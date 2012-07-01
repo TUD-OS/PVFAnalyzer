@@ -15,8 +15,8 @@ test : test.o Makefile
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 	
-.PHONY : clean
+.PHONY : clean cleanall
 
-clean :
+clean cleanall :
 	$(RM) $(OBJS) test.o
 	$(RM) cfg test
