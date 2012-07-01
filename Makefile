@@ -1,12 +1,16 @@
 OBJS = main.o ptrace.o
 
 CXX = clang++
-CXXFLAGS = -Weverything -Weffc++
+CXXFLAGS = -Weverything -Weffc++ -std=c++0x
 
-all : cfg
+all : cfg test
 
 cfg : $(OBJS) Makefile
 	$(CXX) $(OBJS) -o $@
+
+test : test.o Makefile
+	$(CXX) test.o -o $@
+	./test
 
 %.o : %.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
@@ -14,5 +18,5 @@ cfg : $(OBJS) Makefile
 .PHONY : clean
 
 clean :
-	$(RM) $(OBJS)
-	$(RM) cfg
+	$(RM) $(OBJS) test.o
+	$(RM) cfg test

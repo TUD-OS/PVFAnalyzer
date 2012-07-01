@@ -4,15 +4,33 @@
 #include <cstddef>
 #include <cassert>
 
-typedef ptrdiff_t address;
+typedef ptrdiff_t address; // address type
 
 /**
  * @brief Arbitrary memory region
  **/
 struct MemRegion
 {
+	/**
+	 * @brief Region base address
+	 **/
 	address   base;
+	
+	/**
+	 * @brief Region size
+	 **/
 	ptrdiff_t size;
+	
+	/**
+	 * @brief Check if address a is within the range specified by the region.
+	 *
+	 * @param a Address
+	 * @return true if a is within bounds, false otherwise
+	 **/
+	bool contains(address const a) const
+	{
+		return (this->base <= a) && (a <= (this->base + this->size));
+	}
 };
 
 
@@ -28,6 +46,9 @@ struct MemRegion
  **/
 struct RelocatedMemRegion : public MemRegion
 {
+	/**
+	 * @brief Address this region is mapped to
+	 **/
 	address   mapped_base;
 		
 	/**
@@ -54,5 +75,16 @@ struct RelocatedMemRegion : public MemRegion
 		assert(base <= a);
 		assert(a <= base + size);
 		return a - base + mapped_base;
+	}
+	
+	/**
+	 * @brief Determine if the given address is within the relocated region.
+	 *
+	 * @param a address
+	 * @return true if a is witihn [mapped_base, mapped_base+size], false otherwise
+	 **/
+	bool reloc_contains(address const a) const
+	{
+		return contains(reloc_to_region(a));
 	}
 };
