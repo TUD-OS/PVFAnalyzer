@@ -5,6 +5,11 @@
     * instruction information (e.g., ud_t)
     * linkage information (predecessor / successor instructions)
     
+* Program startup
+  * InputReader
+    - ELF binary -> ELF reader
+    - hex input -> memory dump reader
+    
 * Analysis runners
   * Static analysis runner
   
