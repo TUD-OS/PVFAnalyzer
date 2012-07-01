@@ -66,4 +66,4 @@ Based on CFG, perform program vulnerability factor analysis
   predict the outcome of certain fault injection experiments
 - more likely case: we can use the information to pinpoint
   those fault injection experiments that may actually produce
-  _different_ errors   
+  _different_ errors
