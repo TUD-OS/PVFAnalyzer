@@ -20,33 +20,37 @@
 
 #include <string>
 
+/**
+ * @brief Base class for all dynamic analysis components.
+ **/
 class Tracer
 {
 
 public:
-	Tracer(std::string& filename);
-	Tracer(const Tracer& other);
+	Tracer() { }
 	virtual ~Tracer();
-	
+
+	/**
+	 * @brief Start an analysis run.
+	 *
+	 * @return void
+	 **/	
 	virtual void run() = 0;
-	
-	std::string const & filename() { return _filename; }
 
 protected:
-	std::string const _filename;
-
+	
+	Tracer(const Tracer&) { }
 	virtual Tracer& operator=(const Tracer& other) = 0;
 };
 
 
 
+/**
+ * @brief PTrace-based analyzer for Linux binaries
+ **/
 class PTracer : public Tracer
 {
 public:
-	PTracer(std::string& filename)
-		: Tracer(filename)
-	{	}
-	
 	virtual ~PTracer();
 	
 	virtual void run();

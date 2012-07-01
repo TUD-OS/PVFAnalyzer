@@ -1,0 +1,69 @@
+Binary Control Flow Analyzer
+============================
+
+Purpose
+-------
+
+BCFA generates a control flow graph representation
+based on a given binary executable.
+         
+Workflow
+--------
+
+$> ./bcfa <executable>
+
+(1) ELF analysis
+
+	Starting from the ELF section and symbol information,
+    - find the program's entry point,
+    - load the program's code and data sections into memory
+      (not necessarily to where the binary specifies - we can keep
+      a translation internally)
+    - start from entry point and generate CFG
+    - for non-resolvable jump instructions (e.g., jmp *%eax), we need
+      additional runtime information: keep track of those locations
+      for a later dynamic analysis run
+
+(2) Binary runtime analysis
+
+	Start the program using fork(), ptrace(TRACE_ME), execve().
+	
+	- place breakpoints on all dynamic jumps that we found earlier
+	- when such a breakpoint hits, track jmp target information for
+	  later static analysis
+	- we might also encounter code that is not in the binary but in
+	  some lib that was loaded dynamically. Therefore, also trace
+	  related system calls (especially, open()+mmap()+munmap()+close()),
+	  so we can determine which dynamically loaded libs to analyze.
+	  
+	  
+Vague Ideas
+-----------
+
+Checkpoint reuse for dynamic run
+................................
+When resolving dynamic jumps in the runtime analysis phase, we might
+encounter new dynamic jumps that make a new dynamic analysis necessary.
+Instead of running from scratch, it might make sense to take a
+checkpoint of the app here (e.g., fork() and don't continue yet)
+and then backtrack to this point once dynamic location analysis
+in the original run did not produce any new information.
+
+
+Bounds analysis for jump tables
+...............................
+Compilers may generate jump tables to implement things such as
+switch() statements. At runtime we will then only see one single
+instance of this jump. Can we determine such constructs in binary
+code and analyze how large the jump table is?
+
+
+
+PVF analysis
+............
+Based on CFG, perform program vulnerability factor analysis
+- ideal case: we can use a single dynamic and static run to
+  predict the outcome of certain fault injection experiments
+- more likely case: we can use the information to pinpoint
+  those fault injection experiments that may actually produce
+  _different_ errors   
