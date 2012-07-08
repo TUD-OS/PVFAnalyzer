@@ -28,6 +28,12 @@ typedef ptrdiff_t address; // address type
  **/
 struct MemRegion
 {
+	MemRegion()
+		: base(0), size(0)
+	{ }
+	
+	virtual ~MemRegion() { }
+	
 	/**
 	 * @brief Region base address
 	 **/
@@ -104,4 +110,8 @@ struct RelocatedMemRegion : public MemRegion
 	{
 		return contains(reloc_to_region(a));
 	}
+	
+    RelocatedMemRegion()
+	    : MemRegion(), mapped_base(0)
+	{ }
 };
