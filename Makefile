@@ -5,7 +5,7 @@ DEPFILE     = depend
 
 CXX ?= clang++
 ifeq ($(CXX),clang++)
-CXXFLAGS = -Weverything
+CXXFLAGS = -Weverything -Wno-padded
 endif
 CXXFLAGS += -Weffc++ -std=c++0x -MMD
 

@@ -1,3 +1,28 @@
+Version roadmap
+---------------
+
+v0.1:
+* read input from command line / byte file / ELF binary (section)
+* make a CFG creation pass running as far as possible (e.g., ignoring dynamic jumps)
+* CFG pretty printing
+* wvtest, valgrind etc.
+
+v0.2:
+* dynamic analysis: mark dynamic jumps during static analysis run and then use dynamic
+  tracing to determine the jump targets at runtime
+* still ignore those dynamic jumps that cannot be resolved by a simple dynamic run
+  (e.g., that would require forcing execution down a certain path)
+
+v0.3:
+* first simple PVF analysis
+
+Later versions:
+* integrate with another tool (KLEE?) to aid dynamic jump exploration
+
+
+TODO items
+----------
+
 * CFG data structure
   * entry point (address)
   * Nodes:
@@ -6,10 +31,21 @@
     * linkage information (predecessor / successor instructions)
 
 * Program startup
-  * InputReader
-    - File-based:
-	  - starts with ELF magic -> ELF binary -> ELF reader
-	  - otherwise: interpret as raw byte sequence
+  * Analyzer works on an InputStream and transforms it into a CFG
+    * InputStream is basically a dynamically growing array of bytes
+    * methods:
+		addByte(uint8_t b);
+		addBytes(uint8_t *buf, size_t count);
+		
+  * InputStream is generated from InputReaders
+		* Hex input reader:
+			- reads command line arguments one at a time -> stream->addByte()
+		* File reader:
+			- read first bytes to distinguish between ELF binaries and
+			  dump files
+			- ELF binaries: parsed using libELF
+			  - unpack sections, start at entry point -> stream->addBytes()
+			- memory dump files: no unpacking, simply mmap and stream->addBytes()
 
 * Analysis runners
   * Static analysis runner
@@ -39,23 +75,3 @@ Testing / Building
 
 
 
-Version roadmap
----------------
-
-v0.1:
-* read input from command line / byte file / ELF binary (section)
-* make a CFG creation pass running as far as possible (e.g., ignoring dynamic jumps)
-* CFG pretty printing
-* wvtest, valgrind etc.
-
-v0.2:
-* dynamic analysis: mark dynamic jumps during static analysis run and then use dynamic
-  tracing to determine the jump targets at runtime
-* still ignore those dynamic jumps that cannot be resolved by a simple dynamic run
-  (e.g., that would require forcing execution down a certain path)
-
-v0.3:
-* first simple PVF analysis
-
-Later versions:
-* integrate with another tool (KLEE?) to aid dynamic jump exploration

@@ -64,7 +64,8 @@ main(int argc, char **argv)
 	int opt;
 	using namespace std;
 
-	InputStream *reader = 0;
+	InputStream istream;
+	InputReader *reader = 0;
 
 	banner();
 
@@ -76,7 +77,7 @@ main(int argc, char **argv)
 						          << "\033[0m"  << std::endl;
 					}
 					std::cout << "input file: " << argv[optind-1] << std::endl;
-					reader = new FileInputReader(argv[optind-1]);
+					reader = new FileInputReader(&istream, argv[optind-1]);
 			}
 			break;
 
@@ -86,7 +87,7 @@ main(int argc, char **argv)
 						std::cout << "\033[31m" << "Error: multiple input streams selected."
 						          << "\033[0m"  << std::endl;
 					}
-					reader = new HexbyteInputStream();
+					reader = new HexbyteInputReader(&istream);
 					while (idx < argc) {
 						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
@@ -106,7 +107,7 @@ main(int argc, char **argv)
 	}
 
 	std::cout << "input stream:\n";
-	reader->dump();
+	istream.dump();
 
 	return 0;
 }

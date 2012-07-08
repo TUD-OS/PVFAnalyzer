@@ -24,13 +24,65 @@
 #include <cstdio>		// perror
 #include <cstdint>
 
-/**
- * @brief Generic interface of an input reader.
- **/
 class InputStream
 {
 public:
-	virtual ~InputStream() { }
+	InputStream()
+		: _data(0), _data_idx(0)
+	{
+	}
+
+	~InputStream()
+	{
+		if (_data) {
+			free(_data);
+		}
+	}
+
+	void addByte(uint8_t byte);
+	void addBytes(uint8_t* buf, size_t count);
+	void dump();
+
+	uint32_t bytes() { return _data_idx; }
+
+private:
+	enum { DATA_INCREMENT = 1024, };
+
+	uint8_t* _data;
+	uint32_t _data_idx;
+
+	InputStream(const InputStream&)
+		: _data(0), _data_idx(0)
+	{ }
+
+	InputStream& operator=(InputStream &) { return *this; }
+
+	/**
+	 * @brief Make sure the available data area is big enough
+	 *
+	 * Make sure that the input buffer is big enough to read in at
+	 * least one more chunk of input data.
+	 **/
+	void fit_data(size_t count = 1);
+};
+
+
+/**
+ * @brief Generic interface of an input reader.
+ *
+ * An input reader reads input from a source and streams the bytes
+ * found at the source into an InputStream object.
+ **/
+class InputReader
+{
+protected:
+	InputStream *_the_stream;
+public:
+	InputReader(InputStream *is = 0)
+		: _the_stream(is)
+	{ }
+
+	virtual ~InputReader();
 
 	/**
 	 * @brief Read input
@@ -43,21 +95,9 @@ public:
 	 * @param input input
 	 **/
 	virtual void addData(char const *input) = 0;
-	
-	/**
-	 * @brief Count bytes read
-	 *
-	 * @return uint32_t
-	 **/
-	virtual uint32_t bytes() = 0;
-
-
-	/**
-	 * @brief Dump reader data
-	 *
-	 * @return void
-	 **/
-	virtual void dump() = 0;
+private:
+	InputReader(InputReader const&) : _the_stream(0) { }
+	InputReader& operator=(const InputReader&) { return *this; }
 };
 
 
@@ -72,58 +112,35 @@ public:
  *
  * 0xAB 0xCD 0xEF 0x12 0x34 0x 56
  **/
-class HexbyteInputStream : public InputStream
+class HexbyteInputReader : public InputReader
 {
 public:
-	HexbyteInputStream()
-		: _data(0), _data_idx(0)
+	HexbyteInputReader(InputStream *istream)
+		: InputReader(istream)
 	{ }
 
-	virtual ~HexbyteInputStream()
-	{
-		if (_data) {
-			free(_data);
-		}
-	}
+	virtual ~HexbyteInputReader()
+	{ }
 
-	virtual void dump();
 	virtual void addData(char const *byte);
-	virtual uint32_t bytes() { return _data_idx; }
 
 private:
-	enum { DATA_INCREMENT = 1024, };
-
-	uint8_t* _data;
-	unsigned _data_idx;
-
-	/**
-	 * @brief Make sure the available data area is big enough
-	 *
-	 * Make sure that the input buffer is big enough to read in at
-	 * least one more chunk of input data.
-	 **/
-	void fit_data();
 	
-	HexbyteInputStream(HexbyteInputStream const &other)
-		: _data(0), _data_idx(0)
-	{ }
-	HexbyteInputStream& operator= (HexbyteInputStream const& ) { return *this; }
+	HexbyteInputReader(HexbyteInputReader const &) { }
+	HexbyteInputReader& operator= (HexbyteInputReader const& ) { return *this; }
 };
 
 
-class FileInputReader : public InputStream
+class FileInputReader : public InputReader
 {
 public:
-	FileInputReader(char const *file)
-		: filename(file)
+	FileInputReader(InputStream *istream, char const *file)
+		: InputReader(istream), filename(file)
 	{ }
 
-	virtual void dump();
 	virtual void addData(char const *byte);
-	virtual uint32_t bytes();
 
 private:
-
 	char const *filename;
 
 	FileInputReader(FileInputReader const&)
