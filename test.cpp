@@ -16,6 +16,7 @@
 **********************************************************************/
 
 #include "memory.h"
+#include "input.h"
 
 #include <iostream>
 #include <cassert> // for now
@@ -61,10 +62,24 @@ test_relocmemregion()
 }
 
 
+static void
+test_hexinput()
+{
+	InputReader *ir  = new HexbyteInputReader();
+	char const *in[] =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
+
+	for (unsigned i = 0; i < 9; ++i) {
+		ir->addData(in[i]);
+	}
+	assert(ir->bytes() == 9);
+}
+
+
 int main()
 {
 	test_memregion();
 	test_relocmemregion();
+	test_hexinput();
 	
 	std::cout << "all tests finished." << std::endl;
 	
