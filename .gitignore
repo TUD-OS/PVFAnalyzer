@@ -1,4 +1,8 @@
 *.o
+*.d
 *~
 *.kdev4
+*.kate-swp
 cfg
+test
+depend

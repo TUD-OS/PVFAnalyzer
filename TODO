@@ -4,29 +4,34 @@
     * instruction address
     * instruction information (e.g., ud_t)
     * linkage information (predecessor / successor instructions)
-    
+
 * Program startup
   * InputReader
     - ELF binary -> ELF reader
     - hex input -> memory dump reader
-    
+
 * Analysis runners
   * Static analysis runner
-  
+
     (A) Source: Memory dump
         - interpret given image in memory as instructions and
           build CFG.
         - easy to use e.g., for testing
         - dynamic runs won't necessarily be possible
           (though, we can still fork() and jump to execute buffer)
-          
+
     (B) Source: Binary file
         - parse ELF information
-        
+
   * Dynamic analysis runner
-  
+
     (A) PTrace-based
         - target Linux binaries
-        
+
     (B) VM-based
         - target OS code
+
+Testing / Building
+------------------
+* wvtest
+* valgrind
