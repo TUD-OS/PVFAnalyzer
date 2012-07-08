@@ -65,13 +65,20 @@ test_relocmemregion()
 static void
 test_hexinput()
 {
-	InputReader *ir  = new HexbyteInputReader();
-	char const *in[] =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
+	InputReader *ir   = new HexbyteInputReader();
+	InputReader *ir2  = new HexbyteInputReader();
+	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
+	char const *in2[] =  {"0f", "f0", "ba", "xy", "12"};
 
 	for (unsigned i = 0; i < 9; ++i) {
 		ir->addData(in[i]);
 	}
 	assert(ir->bytes() == 9);
+
+	for (unsigned i = 0; i < 5; ++i) {
+		ir2->addData(in2[i]);
+	}
+	assert(ir2->bytes() == 4);
 }
 
 
@@ -80,8 +87,6 @@ int main()
 	test_memregion();
 	test_relocmemregion();
 	test_hexinput();
-	
 	std::cout << "all tests finished." << std::endl;
-	
 	return 0;
 }
