@@ -1,6 +1,15 @@
 #include "input.h"
 
-void HexbyteInputReader::addData ( const char* byte )
+#include <iostream>
+
+/***********************************************************************
+ *                                                                     *
+ *                             HEX BYTE READER                         *
+ *                                                                     *
+ ***********************************************************************/
+
+void
+HexbyteInputStream::addData ( const char* byte )
 {
 	fit_data();
 
@@ -21,7 +30,8 @@ void HexbyteInputReader::addData ( const char* byte )
 	_data[_data_idx++] = data & 0xFF;
 }
 
-void HexbyteInputReader::fit_data()
+void
+HexbyteInputStream::fit_data()
 {
 	/*
 	 * We only alloc if a) no data has been allocated yet or b) we have
@@ -41,4 +51,46 @@ void HexbyteInputReader::fit_data()
 	assert ( _data );
 
 	memset ( _data + _data_idx, 0, newsize - _data_idx );
+}
+
+
+void
+HexbyteInputStream::dump()
+{
+	if (!_data) {
+		std::cout << "<empty stream>" << std::endl;
+		return;
+	}
+
+	for (unsigned i = 0; i < _data_idx; ++i) {
+		std::cout << std::hex << (uint32_t)_data[i] << " ";
+		if ((i % 30 == 29) or (i == _data_idx)) {
+			std::cout << std::endl;
+		}
+	}
+}
+
+/***********************************************************************
+ *                                                                     *
+ *                             FILE READER                             *
+ *                                                                     *
+ ***********************************************************************/
+void
+FileInputReader::addData ( const char* byte )
+{
+
+}
+
+
+uint32_t
+FileInputReader::bytes()
+{
+
+}
+
+
+void
+FileInputReader::dump()
+{
+
 }

@@ -65,8 +65,8 @@ test_relocmemregion()
 static void
 test_hexinput()
 {
-	InputReader *ir   = new HexbyteInputReader();
-	InputReader *ir2  = new HexbyteInputReader();
+	InputStream *ir   = new HexbyteInputStream();
+	InputStream *ir2  = new HexbyteInputStream();
 	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
 	char const *in2[] =  {"0f", "f0", "ba", "xy", "12"};
 

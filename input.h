@@ -27,10 +27,10 @@
 /**
  * @brief Generic interface of an input reader.
  **/
-class InputReader
+class InputStream
 {
 public:
-	virtual ~InputReader() { }
+	virtual ~InputStream() { }
 
 	/**
 	 * @brief Read input
@@ -50,6 +50,14 @@ public:
 	 * @return uint32_t
 	 **/
 	virtual uint32_t bytes() = 0;
+
+
+	/**
+	 * @brief Dump reader data
+	 *
+	 * @return void
+	 **/
+	virtual void dump() = 0;
 };
 
 
@@ -64,27 +72,22 @@ public:
  *
  * 0xAB 0xCD 0xEF 0x12 0x34 0x 56
  **/
-class HexbyteInputReader : public InputReader
+class HexbyteInputStream : public InputStream
 {
 public:
-	HexbyteInputReader()
+	HexbyteInputStream()
 		: _data(0), _data_idx(0)
 	{ }
 
-	virtual ~HexbyteInputReader()
+	virtual ~HexbyteInputStream()
 	{
 		if (_data) {
 			free(_data);
 		}
 	}
 
+	virtual void dump();
 	virtual void addData(char const *byte);
-	
-	/**
-	 * @brief Count number of bytes in buffer
-	 *
-	 * @return uint32_t
-	 **/
 	virtual uint32_t bytes() { return _data_idx; }
 
 private:
@@ -101,19 +104,30 @@ private:
 	 **/
 	void fit_data();
 	
-	HexbyteInputReader(HexbyteInputReader const &other)
+	HexbyteInputStream(HexbyteInputStream const &other)
 		: _data(0), _data_idx(0)
 	{ }
-	HexbyteInputReader& operator= (HexbyteInputReader const& ) { return *this; }
+	HexbyteInputStream& operator= (HexbyteInputStream const& ) { return *this; }
 };
 
 
-class FileInputReader : public InputReader
+class FileInputReader : public InputStream
 {
 public:
+	FileInputReader(char const *file)
+		: filename(file)
+	{ }
+
+	virtual void dump();
+	virtual void addData(char const *byte);
+	virtual uint32_t bytes();
 
 private:
+
+	char const *filename;
+
 	FileInputReader(FileInputReader const&)
+		: filename(0)
 	{ }
 
 	FileInputReader& operator= (FileInputReader const &) { return *this; }
