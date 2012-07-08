@@ -52,6 +52,7 @@ public:
 	virtual uint32_t bytes() = 0;
 };
 
+
 /**
  * @brief Reader for hexadecimal bytes from the command line
  *
@@ -103,5 +104,17 @@ private:
 	HexbyteInputReader(HexbyteInputReader const &other)
 		: _data(0), _data_idx(0)
 	{ }
-	HexbyteInputReader& operator= (HexbyteInputReader const& ) { }
+	HexbyteInputReader& operator= (HexbyteInputReader const& ) { return *this; }
+};
+
+
+class FileInputReader : public InputReader
+{
+public:
+
+private:
+	FileInputReader(FileInputReader const&)
+	{ }
+
+	FileInputReader& operator= (FileInputReader const &) { return *this; }
 };
