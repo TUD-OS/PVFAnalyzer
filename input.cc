@@ -6,13 +6,16 @@ void HexbyteInputReader::addData ( const char* byte )
 
 	/* error handling taken straight from the strol() manpage */
 	errno = 0;
-	uint64_t data = strtoul(byte, 0, 16);
+	char *end = 0;
+	uint32_t data = strtoul(byte, &end, 16);
 
+	//printf("errno %d data %2llx, %p-%p\n", errno, data, byte, end);
 	if ((errno == ERANGE and 
 			(data == ULONG_MAX or data == 0))
-		or (errno != 0 and data == 0)) {
-		std::perror("strtol");
-		throw 0; // FIXME: error handling/reporting?
+		or (errno != 0 and data == 0)
+		or (end - byte != 2)) {
+		//std::perror("strtol");
+		return;
 	}
 
 	_data[_data_idx++] = data & 0xFF;
