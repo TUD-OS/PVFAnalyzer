@@ -25,6 +25,7 @@
  * @brief Command line long options
  **/
 struct option my_opts[] = {
+	{"help", no_argument, 0, 'h' },
 	{"hex", no_argument, 0, 'x'},
 	{0,0,0,0} // this line be last
 };
@@ -37,7 +38,7 @@ int main(int argc, char **argv)
 	
 	cout << "hello" << endl;
 	
-	while ((opt = getopt(argc, argv, "x")) != -1) {
+	while ((opt = getopt(argc, argv, "hx")) != -1) {
 		switch(opt) {
 			case 'x': { // hex dump input
 					int idx = optind;
@@ -52,6 +53,13 @@ int main(int argc, char **argv)
 					}
 				}
 				break;
+			case 'h': { // help
+				printf("\033[32mUsage:\033[0m\n\n");
+				printf("%s [-h] [-x <bytestream>]\n\n\033[32mOptions\033[0m\n", argv[0]);
+				printf("\t-h                 Display help\n");
+				printf("\t-x <bytes>         Interpret the following two-digit hexadecimal numbers\n");
+				printf("\t                   as input to work on.\n");
+			}
 		}
 	}
 
