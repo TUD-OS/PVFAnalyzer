@@ -10,7 +10,6 @@
     - File-based:
 	  - starts with ELF magic -> ELF binary -> ELF reader
 	  - otherwise: interpret as raw byte sequence
-    - hex input -> memory dump reader
 
 * Analysis runners
   * Static analysis runner
@@ -37,3 +36,26 @@ Testing / Building
 ------------------
 * wvtest
 * valgrind
+
+
+
+Version roadmap
+---------------
+
+v0.1:
+* read input from command line / byte file / ELF binary (section)
+* make a CFG creation pass running as far as possible (e.g., ignoring dynamic jumps)
+* CFG pretty printing
+* wvtest, valgrind etc.
+
+v0.2:
+* dynamic analysis: mark dynamic jumps during static analysis run and then use dynamic
+  tracing to determine the jump targets at runtime
+* still ignore those dynamic jumps that cannot be resolved by a simple dynamic run
+  (e.g., that would require forcing execution down a certain path)
+
+v0.3:
+* first simple PVF analysis
+
+Later versions:
+* integrate with another tool (KLEE?) to aid dynamic jump exploration
