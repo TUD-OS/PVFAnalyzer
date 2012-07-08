@@ -65,36 +65,28 @@ main(int argc, char **argv)
 	using namespace std;
 
 	InputStream istream;
-	InputReader *reader = 0;
 
 	banner();
 
 	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
-					if (reader) {
-						std::cout << "\033[31m" << "Error: multiple input streams selected."
-						          << "\033[0m"  << std::endl;
-					}
 					std::cout << "input file: " << argv[optind-1] << std::endl;
-					reader = new FileInputReader(&istream, argv[optind-1]);
+					FileInputReader reader(&istream);
+					reader.addData(argv[optind-1]);
 			}
 			break;
 
 			case 'x': { // hex dump input
 					int idx = optind;
-					if (reader) {
-						std::cout << "\033[31m" << "Error: multiple input streams selected."
-						          << "\033[0m"  << std::endl;
-					}
-					reader = new HexbyteInputReader(&istream);
+					HexbyteInputReader reader(&istream);
 					while (idx < argc) {
 						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
 							optind = idx;
 							break;
 						} else {
-							reader->addData(argv[idx]);
+							reader.addData(argv[idx]);
 						}
 						++idx;
 					}

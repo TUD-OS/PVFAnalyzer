@@ -134,17 +134,14 @@ private:
 class FileInputReader : public InputReader
 {
 public:
-	FileInputReader(InputStream *istream, char const *file)
-		: InputReader(istream), filename(file)
+	FileInputReader(InputStream *istream)
+		: InputReader(istream)
 	{ }
 
-	virtual void addData(char const *byte);
+	virtual void addData(char const *file);
 
 private:
-	char const *filename;
-
 	FileInputReader(FileInputReader const&)
-		: filename(0)
 	{ }
 
 	FileInputReader& operator= (FileInputReader const &) { return *this; }

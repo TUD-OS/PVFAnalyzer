@@ -103,7 +103,7 @@ HexbyteInputReader::addData ( const char* byte )
  ***********************************************************************/
 
 void
-FileInputReader::addData ( const char* byte )
+FileInputReader::addData (const char* filename)
 {
 
 }
