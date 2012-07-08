@@ -7,7 +7,9 @@
 
 * Program startup
   * InputReader
-    - ELF binary -> ELF reader
+    - File-based:
+	  - starts with ELF magic -> ELF binary -> ELF reader
+	  - otherwise: interpret as raw byte sequence
     - hex input -> memory dump reader
 
 * Analysis runners
