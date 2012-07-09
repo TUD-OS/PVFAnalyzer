@@ -87,7 +87,7 @@ static void
 test_fileinput()
 {
 	InputStream is;
-	char const *file = "testing/payload.bin";
+	char const *file = "testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
 	assert(is.bytes() == 32);
@@ -101,6 +101,6 @@ int main()
 	test_hexinput();
 	test_fileinput();
 
-	std::cout << "all tests finished." << std::endl;
+	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
 	return 0;
 }
