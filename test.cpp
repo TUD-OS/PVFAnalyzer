@@ -90,9 +90,6 @@ test_fileinput()
 	char const *file = "testing/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
-	std::cout << "bytes read: " << is.bytes() << std::endl;
-	is.dump();
-	std::cout << "---" << std::endl;
 	assert(is.bytes() == 32);
 }
 
