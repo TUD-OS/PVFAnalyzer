@@ -1,0 +1,27 @@
+CXX ?= clang++
+ifeq ($(CXX),clang++)
+CXXFLAGS = -Weverything -Wno-padded
+endif
+CXXFLAGS += -Weffc++ -std=c++0x -MMD
+CPPFLAGS += -I../common
+
+COMMON_OBJS = $(addprefix ../common/, input.o)
+
+$(DEPFILE) : $(COMMON_OBJS) $(OBJS)
+	cat $(OBJS:.o=.d) $(COMMON_OBJS:.o=.d) >$@
+
+$(TARGET): $(OBJS) $(COMMON_OBJS) $(DEPFILE) Makefile
+	$(CXX) $(OBJS) $(COMMON_OBJS) -o $@
+
+%.o : %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+-include $(DEPFILE)
+	
+.PHONY : clean cleanall
+
+clean cleanall :
+	$(RM) $(OBJS) test.o
+	$(RM) $(TARGET)
+	$(RM) *.d $(DEPFILE)
+	$(RM) *~
