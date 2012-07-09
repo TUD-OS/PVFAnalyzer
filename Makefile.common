@@ -1,18 +1,25 @@
+### COMPILER and OPTIONS ###
 CXX ?= clang++
 ifeq ($(CXX),clang++)
 CXXFLAGS = -Weverything -Wno-padded
 endif
 CXXFLAGS += -Weffc++ -std=c++0x -MMD
+
+# All targets use stuff from the common/ subdir
 CPPFLAGS += -I../common
 
+# List common object files here
 COMMON_OBJS = $(addprefix ../common/, input.o)
 
+# Dependency file
 $(DEPFILE) : $(COMMON_OBJS) $(OBJS)
 	cat $(OBJS:.o=.d) $(COMMON_OBJS:.o=.d) >$@
 
+# target linking rule
 $(TARGET): $(OBJS) $(COMMON_OBJS) $(DEPFILE) Makefile
 	$(CXX) $(OBJS) $(COMMON_OBJS) -o $@
 
+# object rule
 %.o : %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 

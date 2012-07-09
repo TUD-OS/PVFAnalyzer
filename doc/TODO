@@ -71,7 +71,4 @@ TODO items
 Testing / Building
 ------------------
 * wvtest
-* valgrind
-
-
-
+* use build directory(/ies)

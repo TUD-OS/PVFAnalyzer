@@ -66,18 +66,18 @@ static void
 test_hexinput()
 {
 	InputStream is, is2;
-	InputReader *ir   = new HexbyteInputReader(&is);
-	InputReader *ir2  = new HexbyteInputReader(&is2);
+	HexbyteInputReader ir(&is);
+	HexbyteInputReader ir2(&is2);
 	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
 	char const *in2[] =  {"0f", "f0", "ba", "xy", "12"};
 
 	for (unsigned i = 0; i < 9; ++i) {
-		ir->addData(in[i]);
+		ir.addData(in[i]);
 	}
 	assert(is.bytes() == 9);
 
 	for (unsigned i = 0; i < 5; ++i) {
-		ir2->addData(in2[i]);
+		ir2.addData(in2[i]);
 	}
 	assert(is2.bytes() == 4);
 }
