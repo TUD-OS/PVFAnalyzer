@@ -83,11 +83,27 @@ test_hexinput()
 }
 
 
+static void
+test_fileinput()
+{
+	InputStream is;
+	char const *file = "testing/payload.bin";
+	FileInputReader fr(&is);
+	fr.addData(file);
+	std::cout << "bytes read: " << is.bytes() << std::endl;
+	is.dump();
+	std::cout << "---" << std::endl;
+	assert(is.bytes() == 32);
+}
+
+
 int main()
 {
 	test_memregion();
 	test_relocmemregion();
 	test_hexinput();
+	test_fileinput();
+
 	std::cout << "all tests finished." << std::endl;
 	return 0;
 }

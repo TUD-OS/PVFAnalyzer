@@ -24,6 +24,9 @@
 #include <cstdio>		// perror
 #include <cstdint>
 
+#include <fstream>
+#include <iostream>
+
 class InputStream
 {
 public:
@@ -145,4 +148,6 @@ private:
 	{ }
 
 	FileInputReader& operator= (FileInputReader const &) { return *this; }
+
+	bool is_elf_file(std::ifstream& str);
 };

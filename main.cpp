@@ -98,6 +98,7 @@ main(int argc, char **argv)
 		}
 	}
 
+	std::cout << "Read " << istream.bytes() << " bytes of input." << std::endl;
 	std::cout << "input stream:\n";
 	istream.dump();
 

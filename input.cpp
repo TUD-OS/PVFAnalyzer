@@ -37,10 +37,11 @@ void InputStream::dump()
 
 	for (unsigned i = 0; i < _data_idx; ++i) {
 		std::cout << std::hex << (uint32_t)_data[i] << " ";
-		if ((i % 30 == 29) or (i == _data_idx)) {
+		if ((i % 30 == 29)) {
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
 }
 
 
@@ -95,6 +96,7 @@ HexbyteInputReader::addData ( const char* byte )
 	_the_stream->addByte(data & 0xFF);
 }
 
+#include <libelf.h>
 
 /***********************************************************************
  *                                                                     *
@@ -102,8 +104,44 @@ HexbyteInputReader::addData ( const char* byte )
  *                                                                     *
  ***********************************************************************/
 
+bool
+FileInputReader::is_elf_file ( std::ifstream& str )
+{
+	char first_bytes[4];
+	str.read(first_bytes, sizeof(first_bytes));
+
+	if (str.gcount() != 4) // not enough characters for ELF magic
+		return false;
+
+	if ( (first_bytes[0] == ELFMAG0) and
+	     (first_bytes[1] == ELFMAG1) and
+	     (first_bytes[2] == ELFMAG2) and
+	     (first_bytes[3] == ELFMAG3))
+		return true;
+
+	return false;
+}
+
 void
 FileInputReader::addData (const char* filename)
 {
+	std::ifstream ifs;
 
+	ifs.open(filename, std::ios::in | std::ios::binary);
+
+	if (!ifs.is_open()) {
+		return;
+	}
+
+	if (is_elf_file(ifs)) {
+		std::cout << "ELF parsing not implemented yet." << std::endl;
+	} else {
+		ifs.seekg(0, std::ios::beg);
+		do {
+			char c[1];
+			ifs.read(c, 1);
+			if (!ifs.fail())
+				_the_stream->addByte(c[0]);
+		} while (!ifs.eof());
+	}
 }
