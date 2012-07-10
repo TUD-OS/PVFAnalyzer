@@ -2,19 +2,25 @@ Version roadmap
 ---------------
 
 v0.1:
-* read input from command line / byte file / ELF binary (section)
-* make a CFG creation pass running as far as possible (e.g., ignoring dynamic jumps)
-* CFG pretty printing
-* wvtest, valgrind etc.
+* read input from
+  [x] command line
+  [x] byte file
+  [ ] ELF binary (section)
+* [ ] make a CFG creation pass running as far as possible
+      (e.g., ignoring dynamic jumps)
+* [ ] CFG pretty printing
+* [x] wvtest
+* [x] valgrind
 
 v0.2:
-* dynamic analysis: mark dynamic jumps during static analysis run and then use dynamic
-  tracing to determine the jump targets at runtime
-* still ignore those dynamic jumps that cannot be resolved by a simple dynamic run
-  (e.g., that would require forcing execution down a certain path)
+* dynamic analysis:
+  [ ] mark dynamic jumps during static analysis run and then 
+  [ ] use dynamic  tracing to determine the jump targets at runtime
+  * still ignore those dynamic jumps that cannot be resolved by a simple dynamic run
+    (e.g., that would require forcing execution down a certain path)
 
 v0.3:
-* first simple PVF analysis
+* [ ] first simple PVF analysis
 
 Later versions:
 * integrate with another tool (KLEE?) to aid dynamic jump exploration

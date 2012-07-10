@@ -84,8 +84,9 @@ static bool no_running_children()
     WVPASSEQ(errno, ECHILD);
     WVPASSEQ(wait_result, -1);
     return (wait_result == -1 && errno == ECHILD);
-#endif
+#else
     return true;
+#endif
 }
 
 
@@ -94,7 +95,8 @@ int WvTest::fails, WvTest::runs;
 time_t WvTest::start_time;
 bool WvTest::run_twice = false;
 
-void WvTest::alarm_handler(int)
+void __attribute__((noreturn))
+WvTest::alarm_handler(int)
 {
     printf("\n! WvTest  Current test took longer than %d seconds!  FAILED\n",
 	   MAX_TEST_TIME);

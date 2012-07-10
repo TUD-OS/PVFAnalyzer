@@ -27,6 +27,9 @@
 #include <fstream>
 #include <iostream>
 
+/**
+ * @brief Representation of an input buffer
+ **/
 class InputStream
 {
 public:
@@ -42,17 +45,42 @@ public:
 		}
 	}
 
+	/**
+	 * @brief Add a single byte to the buffer.
+	 *
+	 * @param byte byte to add
+	 * @return void
+	 **/
 	void addByte(uint8_t byte);
+
+	/**
+	 * @brief Add multiple bytes at once
+	 *
+	 * @param buf buffer containing bytes to add
+	 * @param count number of bytes to add from buffer
+	 * @return void
+	 **/
 	void addBytes(uint8_t* buf, size_t count);
+
+	/**
+	 * @brief Dump buffer content to stdout
+	 *
+	 * @return void
+	 **/
 	void dump();
 
+	/**
+	 * @brief Get number of bytes that are stored in the stream.
+	 *
+	 * @return uint32_t
+	 **/
 	uint32_t bytes() { return _data_idx; }
 
 private:
 	enum { DATA_INCREMENT = 1024, };
 
-	uint8_t* _data;
-	uint32_t _data_idx;
+	uint8_t* _data;			// buffer ptr
+	uint32_t _data_idx;		// next idx to write to
 
 	InputStream(const InputStream&)
 		: _data(0), _data_idx(0)
@@ -149,5 +177,11 @@ private:
 
 	FileInputReader& operator= (FileInputReader const &) { return *this; }
 
+	/**
+	 * @brief Determine if the input file stream refers to an ELF binary.
+	 *
+	 * @param str input stream
+	 * @return bool true if ELF binary, false otherwise
+	 **/
 	bool is_elf_file(std::ifstream& str);
 };

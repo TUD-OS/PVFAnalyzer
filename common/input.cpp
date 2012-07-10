@@ -141,7 +141,7 @@ FileInputReader::addData (const char* filename)
 			char c[1];
 			ifs.read(c, 1);
 			if (!ifs.fail())
-				_the_stream->addByte(c[0]);
+				_the_stream->addByte(static_cast<uint8_t>(c[0]));
 		} while (!ifs.eof());
 	}
 }

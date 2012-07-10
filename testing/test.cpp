@@ -74,12 +74,12 @@ test_hexinput()
 	for (unsigned i = 0; i < 9; ++i) {
 		ir.addData(in[i]);
 	}
-	WVPASSEQ(is.bytes(), 9);
+	WVPASSEQ(static_cast<int>(is.bytes()), 9);
 
 	for (unsigned i = 0; i < 5; ++i) {
 		ir2.addData(in2[i]);
 	}
-	WVPASSEQ(is2.bytes(), 4);
+	WVPASSEQ(static_cast<int>(is2.bytes()), 4);
 }
 
 
@@ -90,7 +90,7 @@ test_fileinput()
 	char const *file = "testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
-	WVPASSEQ(is.bytes(), 32);
+	WVPASSEQ(static_cast<int>(is.bytes()), 32);
 }
 
 
