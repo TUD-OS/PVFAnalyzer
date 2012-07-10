@@ -34,8 +34,9 @@ static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-x <bytestream>]"
+	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>]"
 	          << std::endl << std::endl << "033[32mOptions\033[0m" << std::endl;
+	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal numbers" << std::endl;
 	std::cout << "\t                   as input to work on." << std::endl;
