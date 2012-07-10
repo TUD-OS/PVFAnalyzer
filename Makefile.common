@@ -9,7 +9,7 @@ CXXFLAGS += -Weffc++ -std=c++0x -MMD
 CPPFLAGS += -I../common
 
 # List common object files here
-COMMON_OBJS = input.o
+COMMON_OBJS = input.o disassembler.o
 VPATH=../common
 
 BUILD_OBJECTS = $(addprefix build/, $(COMMON_OBJS) $(OBJS))

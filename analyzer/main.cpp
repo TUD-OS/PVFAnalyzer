@@ -17,7 +17,8 @@
 
 #include <iostream>		// std::cout
 #include <getopt.h>		// getopt()
-#include "input.h"      // InputReader
+#include "input.h"      // RawData, InputReader
+#include "disassembler.h"
 
 /**
  * @brief Command line long options
@@ -100,6 +101,14 @@ static void
 buildCFG(RawData const &istream)
 {
 	uint32_t ip = 0; // XXX may actually be different
+
+	Udis86Disassembler dis;
+
+	uint8_t const *buf;
+
+	while ((buf = istream.getPtr(ip)) != 0) {
+		dis.disassemble(buf);
+	};
 }
 
 int
