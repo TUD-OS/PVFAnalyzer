@@ -59,28 +59,22 @@ banner()
 }
 
 
-int
-main(int argc, char **argv)
+static bool
+parseInputFromOptions(int argc, char **argv, RawData& target)
 {
 	int opt;
-	using namespace std;
-
-	InputStream istream;
-
-	banner();
-
 	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
 					std::cout << "input file: " << argv[optind-1] << std::endl;
-					FileInputReader reader(&istream);
+					FileInputReader reader(&target);
 					reader.addData(argv[optind-1]);
 			}
 			break;
 
 			case 'x': { // hex dump input
 					int idx = optind;
-					HexbyteInputReader reader(&istream);
+					HexbyteInputReader reader(&target);
 					while (idx < argc) {
 						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
@@ -95,13 +89,36 @@ main(int argc, char **argv)
 				break;
 			case 'h':
 				usage(argv[0]);
-				return 0;
+				return false;
 		}
 	}
+	return true;
+}
+
+
+static void
+buildCFG(RawData const &istream)
+{
+	uint32_t ip = 0; // XXX may actually be different
+}
+
+int
+main(int argc, char **argv)
+{
+	int opt;
+	using namespace std;
+
+	RawData istream;
+
+	banner();
+	if (!parseInputFromOptions(argc, argv, istream))
+		exit(1);
 
 	std::cout << "Read " << istream.bytes() << " bytes of input." << std::endl;
 	std::cout << "input stream:\n";
 	istream.dump();
+
+	buildCFG(istream);
 
 	return 0;
 }

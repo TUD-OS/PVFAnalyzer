@@ -65,7 +65,7 @@ test_relocmemregion()
 static void
 test_hexinput()
 {
-	InputStream is, is2;
+	RawData is, is2;
 	HexbyteInputReader ir(&is);
 	HexbyteInputReader ir2(&is2);
 	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
@@ -80,13 +80,19 @@ test_hexinput()
 		ir2.addData(in2[i]);
 	}
 	WVPASSEQ(static_cast<int>(is2.bytes()), 4);
+
+	uint8_t const * const ptr = is.getPtr(5);
+	WVPASSEQ(*(ptr  ), 0xde);
+	WVPASSEQ(*(ptr+1), 0xad);
+	WVPASSEQ(*(ptr+2), 0xbe);
+	WVPASSEQ(*(ptr+3), 0xef);
 }
 
 
 static void
 test_fileinput()
 {
-	InputStream is;
+	RawData is;
 	char const *file = "testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);

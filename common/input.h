@@ -28,17 +28,17 @@
 #include <iostream>
 
 /**
- * @brief Representation of an input buffer
+ * @brief Representation of an raw data buffer
  **/
-class InputStream
+class RawData
 {
 public:
-	InputStream()
+	RawData()
 		: _data(0), _data_idx(0)
 	{
 	}
 
-	~InputStream()
+	~RawData()
 	{
 		if (_data) {
 			free(_data);
@@ -62,6 +62,23 @@ public:
 	 **/
 	void addBytes(uint8_t* buf, size_t count);
 
+
+	/**
+	 * @brief Get pointer to bytes at offset
+	 *
+	 * @param index offset
+	 * @return uint8_t* const	pointer into buffer if offset fits
+	 *                         into buf, NULL otherwise
+	 **/
+	uint8_t const * const getPtr(uint32_t offset) const
+	{
+		if (offset <= _data_idx) {
+			return _data + offset;
+		} else {
+			return 0;
+		}
+	}
+
 	/**
 	 * @brief Dump buffer content to stdout
 	 *
@@ -72,7 +89,7 @@ public:
 	/**
 	 * @brief Get number of bytes that are stored in the stream.
 	 *
-	 * @return uint32_t
+	 * @return uint32_t number of bytes
 	 **/
 	uint32_t bytes() { return _data_idx; }
 
@@ -82,11 +99,11 @@ private:
 	uint8_t* _data;			// buffer ptr
 	uint32_t _data_idx;		// next idx to write to
 
-	InputStream(const InputStream&)
+	RawData(const RawData&)
 		: _data(0), _data_idx(0)
 	{ }
 
-	InputStream& operator=(InputStream &) { return *this; }
+	RawData& operator=(RawData &) { return *this; }
 
 	/**
 	 * @brief Make sure the available data area is big enough
@@ -107,9 +124,9 @@ private:
 class InputReader
 {
 protected:
-	InputStream *_the_stream;
+	RawData *_the_stream;
 public:
-	InputReader(InputStream *is = 0)
+	InputReader(RawData *is = 0)
 		: _the_stream(is)
 	{ }
 
@@ -146,7 +163,7 @@ private:
 class HexbyteInputReader : public InputReader
 {
 public:
-	HexbyteInputReader(InputStream *istream)
+	HexbyteInputReader(RawData *istream)
 		: InputReader(istream)
 	{ }
 
@@ -165,7 +182,7 @@ private:
 class FileInputReader : public InputReader
 {
 public:
-	FileInputReader(InputStream *istream)
+	FileInputReader(RawData *istream)
 		: InputReader(istream)
 	{ }
 
