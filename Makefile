@@ -3,7 +3,11 @@
 all :
 	$(MAKE) --no-print-directory -C analyzer $@
 	$(MAKE) --no-print-directory -C testing $@
-	cd testing && ./cfgtest
+	@if [ -f $(which wvtestrun) ]; then    \ 
+		cd testing && wvtestrun ./cfgtest; \
+	else                                   \
+		cd testing && ./cfgtest;           \
+	fi
 
 clean cleanall :
 	$(MAKE) --no-print-directory -C analyzer $@

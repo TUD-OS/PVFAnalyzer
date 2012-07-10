@@ -1,7 +1,7 @@
 ### COMPILER and OPTIONS ###
 CXX ?= clang++
 ifeq ($(CXX),clang++)
-CXXFLAGS = -Weverything -Wno-padded
+CXXFLAGS += -Weverything -Wno-padded
 endif
 CXXFLAGS += -Weffc++ -std=c++0x -MMD
 

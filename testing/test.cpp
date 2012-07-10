@@ -17,9 +17,9 @@
 
 #include "memory.h"
 #include "input.h"
+#include "wvtest.h"
 
 #include <iostream>
-#include <cassert> // for now
 
 static void
 test_memregion()
@@ -28,13 +28,13 @@ test_memregion()
 	r.base = 0xF000;
 	r.size = 0x0FFF;
 	
-	assert(r.base == 0xf000);
-	assert(r.size == 0x0fff);
-	assert(r.contains(r.base));
-	assert(r.contains(r.base + r.size));
-	assert(r.contains(r.base + 5));
-	assert(!r.contains(r.base-1));
-	assert(!r.contains(r.base + r.size + 1));
+	WVPASSEQ(r.base, 0xf000);
+	WVPASSEQ(r.size, 0x0fff);
+	WVPASS(r.contains(r.base));
+	WVPASS(r.contains(r.base + r.size));
+	WVPASS(r.contains(r.base + 5));
+	WVFAIL(r.contains(r.base-1));
+	WVFAIL(r.contains(r.base + r.size + 1));
 }
 
 
@@ -46,19 +46,19 @@ test_relocmemregion()
 	r.size = 0x0FFF;
 	r.mapped_base = 0x10000;
 	
-	assert(r.base == 0xF000);
-	assert(r.size == 0x0FFF);
-	assert(r.mapped_base == 0x10000);
+	WVPASSEQ(r.base, 0xf000);
+	WVPASSEQ(r.size, 0x0fff);
+	WVPASSEQ(r.mapped_base, 0x10000);
+
+	WVPASS(r.contains(r.base));
+	WVPASS(r.contains(r.base + r.size));
+	WVPASS(r.contains(r.base + 5));
+	WVFAIL(r.contains(r.base-1));
+	WVFAIL(r.contains(r.base + r.size + 1));
 	
-	assert(r.contains(r.base));
-	assert(r.contains(r.base + r.size));
-	assert(r.contains(r.base + 5));
-	assert(!r.contains(r.base-1));
-	assert(!r.contains(r.base + r.size + 1));
-	
-	assert(r.reloc_contains(0x10200));
-	assert(r.region_to_reloc(0xF200) == 0x10200);
-	assert(r.reloc_to_region(0x10200) == 0xF200);
+	WVPASS(r.reloc_contains(0x10200));
+	WVPASSEQ(r.region_to_reloc(0xF200),  0x10200);
+	WVPASSEQ(r.reloc_to_region(0x10200), 0xF200);
 }
 
 
@@ -74,12 +74,12 @@ test_hexinput()
 	for (unsigned i = 0; i < 9; ++i) {
 		ir.addData(in[i]);
 	}
-	assert(is.bytes() == 9);
+	WVPASSEQ(is.bytes(), 9);
 
 	for (unsigned i = 0; i < 5; ++i) {
 		ir2.addData(in2[i]);
 	}
-	assert(is2.bytes() == 4);
+	WVPASSEQ(is2.bytes(), 4);
 }
 
 
@@ -90,7 +90,7 @@ test_fileinput()
 	char const *file = "testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
-	assert(is.bytes() == 32);
+	WVPASSEQ(is.bytes(), 32);
 }
 
 
