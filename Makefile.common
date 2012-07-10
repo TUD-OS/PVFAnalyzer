@@ -9,18 +9,21 @@ CXXFLAGS += -Weffc++ -std=c++0x -MMD
 CPPFLAGS += -I../common
 
 # List common object files here
-COMMON_OBJS = $(addprefix ../common/, input.o)
+COMMON_OBJS = input.o
+VPATH=../common
+
+BUILD_OBJECTS = $(addprefix build/, $(COMMON_OBJS) $(OBJS))
 
 # Dependency file
-$(DEPFILE) : $(COMMON_OBJS) $(OBJS)
-	cat $(OBJS:.o=.d) $(COMMON_OBJS:.o=.d) >$@
+$(DEPFILE) : $(BUILD_OBJECTS)
+	cat $(BUILD_OBJECTS:.o=.d) >$@
 
 # target linking rule
-$(TARGET): $(OBJS) $(COMMON_OBJS) $(DEPFILE) Makefile
-	$(CXX) $(OBJS) $(COMMON_OBJS) -o $@
+$(TARGET): $(BUIDL_OBJECTS) $(DEPFILE) Makefile
+	$(CXX) $(BUILD_OBJECTS) -o $@
 
 # object rule
-%.o : %.cpp
+build/%.o : %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 -include $(DEPFILE)
@@ -28,7 +31,8 @@ $(TARGET): $(OBJS) $(COMMON_OBJS) $(DEPFILE) Makefile
 .PHONY : clean cleanall
 
 clean cleanall :
-	$(RM) $(OBJS) test.o
+	$(RM) $(BUILD_OBJECTS)
+	$(RM) $(BUILD_OBJECTS:.o=.d)
 	$(RM) $(TARGET)
-	$(RM) *.d $(DEPFILE)
+	$(RM) $(DEPFILE)
 	$(RM) *~
