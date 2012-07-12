@@ -22,7 +22,7 @@
 #include <iostream>
 
 static void
-test_memregion()
+memregion()
 {
 	MemRegion r;
 	r.base = 0xF000;
@@ -39,7 +39,7 @@ test_memregion()
 
 
 static void
-test_relocmemregion()
+relocmemregion()
 {
 	RelocatedMemRegion r;
 	r.base = 0xF000;
@@ -63,7 +63,7 @@ test_relocmemregion()
 
 
 static void
-test_hexinput()
+hexinput()
 {
 	RawData is, is2;
 	HexbyteInputReader ir(&is);
@@ -102,7 +102,7 @@ hexinput_large()
 }
 
 static void
-test_fileinput()
+fileinput()
 {
 	RawData is;
 	char const *file = "testcases/payload.bin";
@@ -114,11 +114,11 @@ test_fileinput()
 
 int main()
 {
-	test_memregion();
-	test_relocmemregion();
-	test_hexinput();
+	memregion();
+	relocmemregion();
+	hexinput();
 	hexinput_large();
-	test_fileinput();
+	fileinput();
 
 	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
 	return 0;
