@@ -90,6 +90,18 @@ test_hexinput()
 
 
 static void
+hexinput_large()
+{
+	RawData rd;
+	HexbyteInputReader hr(&rd);
+	char const *in[] = {"c3"};
+	for (unsigned i = 0; i < 3000; ++i) {
+		hr.addData(in[0]);
+	}
+	WVPASSEQ(static_cast<int>(rd.bytes()), 3000);
+}
+
+static void
 test_fileinput()
 {
 	RawData is;
@@ -105,6 +117,7 @@ int main()
 	test_memregion();
 	test_relocmemregion();
 	test_hexinput();
+	hexinput_large();
 	test_fileinput();
 
 	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
