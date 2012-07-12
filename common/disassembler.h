@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <udis86.h>
 
 class Disassembler
 {
@@ -49,6 +50,12 @@ public:
 
 	virtual void disassemble(uint8_t const *buf);
 private:
-	Udis86Disassembler(const Udis86Disassembler& ) { }
+	ud_t _ud_obj;
+
+	Udis86Disassembler(const Udis86Disassembler& )
+		: _ud_obj()
+	{
+	}
+
 	Udis86Disassembler& operator=(const Udis86Disassembler&) { return *this; }
 };

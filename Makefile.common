@@ -6,7 +6,8 @@ endif
 CXXFLAGS += -Weffc++ -std=c++0x -MMD
 
 # All targets use stuff from the common/ subdir
-CPPFLAGS += -I../common
+CPPFLAGS += -I../common -I/home/doebel/local/include
+LDFLAGS += -L/home/doebel/local/lib -ludis86
 
 # List common object files here
 COMMON_OBJS = input.o disassembler.o
@@ -20,7 +21,7 @@ $(DEPFILE) : $(BUILD_OBJECTS)
 
 # target linking rule
 $(TARGET): $(BUIDL_OBJECTS) $(DEPFILE) Makefile
-	$(CXX) $(BUILD_OBJECTS) -o $@
+	$(CXX) $(BUILD_OBJECTS) -o $@ $(LDFLAGS)
 
 # object rule
 build/%.o : %.cpp
