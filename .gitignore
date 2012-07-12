@@ -7,3 +7,4 @@ cfg
 cfgtest
 depend
 .*.swp
+.kdev_include*
