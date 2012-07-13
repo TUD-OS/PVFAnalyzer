@@ -1,0 +1,11 @@
+files = """
+main
+"""
+objects = [("%s.o" % f) for f in files.split()]
+
+Import('env')
+
+for f in files.split():
+    env.Object("%s.cpp" %f)
+
+env.Program('cfg', objects)
