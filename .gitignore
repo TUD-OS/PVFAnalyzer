@@ -8,3 +8,5 @@ cfgtest
 depend
 .*.swp
 .kdev_include*
+build
+.sconsign.dblite
