@@ -105,7 +105,7 @@ static void
 fileinput()
 {
 	RawData is;
-	char const *file = "testcases/payload.bin";
+	char const *file = "testing/testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
 	WVPASSEQ(static_cast<int>(is.bytes()), 32);
