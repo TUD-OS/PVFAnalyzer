@@ -107,14 +107,13 @@ buildCFG(RawData const &istream)
 	uint8_t const *buf;
 
 	while ((buf = istream.getPtr(ip)) != 0) {
-		dis.disassemble(buf);
+		ip += dis.disassemble(buf);
 	};
 }
 
 int
 main(int argc, char **argv)
 {
-	int opt;
 	using namespace std;
 
 	RawData istream;
@@ -127,6 +126,7 @@ main(int argc, char **argv)
 	std::cout << "input stream:\n";
 	istream.dump();
 
+	std::cout << "---------\n";
 	buildCFG(istream);
 
 	return 0;

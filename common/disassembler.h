@@ -23,14 +23,12 @@ class Disassembler
 {
 public:
 	Disassembler()
-	{
-	}
+	{ }
 
 	virtual ~Disassembler()
-	{
-	}
+	{ }
 
-	virtual void disassemble(uint8_t const *buf) = 0;
+	virtual unsigned disassemble(uint8_t const *buf) = 0;
 
 protected:
 
@@ -38,6 +36,14 @@ private:
 	Disassembler(const Disassembler&) { }
 	Disassembler& operator=(const Disassembler&) { return *this; }
 };
+
+
+class Instruction
+{
+protected:
+	char *bytes;
+};
+
 
 class Udis86Disassembler : public Disassembler
 {
@@ -48,7 +54,7 @@ public:
 	{
 	}
 
-	virtual void disassemble(uint8_t const *buf);
+	virtual unsigned disassemble(uint8_t const *buf);
 private:
 	ud_t _ud_obj;
 

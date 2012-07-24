@@ -72,7 +72,8 @@ public:
 	 **/
 	uint8_t const * const getPtr(uint32_t offset) const
 	{
-		if (offset <= _data_idx) {
+		//std::cout << __FUNCTION__ << " " << offset << std::endl;
+		if (offset < _data_idx) {
 			return _data + offset;
 		} else {
 			return 0;
