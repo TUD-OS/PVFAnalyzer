@@ -34,7 +34,7 @@ def udis_path(env):
 
 
 env = Environment(CPPPATH = ["#/common"],
-                  CCFLAGS = ["-std=c++0x"],
+                  CCFLAGS = ["-std=c++0x","-Weffc++", "-Wall", "-g"],
                   LIBS = ["analyzer"],
                   LIBPATH = ["#/build/common"],
                  )
