@@ -43,3 +43,5 @@ udis_path(env)
 SConscript("common/SConscript",   variant_dir="build/common", exports='env')
 SConscript("analyzer/SConscript", variant_dir="build/cfg",    exports='env')
 SConscript("testing/SConscript",  variant_dir="build/test",   exports='env')
+
+env.Command("build_always", "", "build/test/cfgtest")
