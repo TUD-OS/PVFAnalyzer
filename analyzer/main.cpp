@@ -17,6 +17,7 @@
 
 #include <iostream>	    // std::cout
 #include <getopt.h>	    // getopt()
+#include <boost/foreach.hpp> // FOREACH
 #include "input.h"     // DataSection, InputReader
 #include "disassembler.h"
 
@@ -105,10 +106,9 @@ buildCFG(std::vector<InputReader*> const & v)
 {
 	Udis86Disassembler dis;
 
-	for (std::vector<InputReader*>::const_iterator it = v.begin();
-		 it != v.end(); ++it) {
-		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
-			dis.buffer((*it)->section(sec)->getBuffer());
+	BOOST_FOREACH(InputReader* ir, v) {
+		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+			dis.buffer(ir->section(sec)->getBuffer());
 
 			Address ip     = 0; // XXX may actually be different
 			unsigned bytes = 0;
@@ -124,10 +124,9 @@ buildCFG(std::vector<InputReader*> const & v)
 static unsigned count_bytes(std::vector<InputReader*> const & rv)
 {
 	unsigned bytes = 0;
-	for (std::vector<InputReader*>::const_iterator it = rv.begin();
-		 it != rv.end(); ++it) {
-		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
-			bytes += (*it)->section(sec)->bytes();
+	BOOST_FOREACH(InputReader* ir, rv) {
+		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+			bytes += ir->section(sec)->bytes();
 		}
 	}
 
@@ -137,10 +136,9 @@ static unsigned count_bytes(std::vector<InputReader*> const & rv)
 
 static void dump_sections(std::vector<InputReader*> const & rv)
 {
-	for (std::vector<InputReader*>::const_iterator it = rv.begin();
-		 it != rv.end(); ++it) {
-		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
-			(*it)->section(sec)->dump();
+	BOOST_FOREACH(InputReader* ir, rv) {
+	for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+			ir->section(sec)->dump();
 		}
 	}
 }
@@ -156,6 +154,7 @@ main(int argc, char **argv)
 		exit(2);
 
 	banner();
+
 	if (input.size() == 0)
 		exit(1);
 
