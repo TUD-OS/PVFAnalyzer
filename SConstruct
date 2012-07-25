@@ -8,9 +8,57 @@ for t in targets.split():
         print "Creating build/%s" % t
         os.mkdir("build/%s" % t)
 
-def udis_path(env):
+def banner(string, color="\033[32m"):
+    preString = "=" * 15
+    print "%s%s" % (color, preString),
+    print "{:^30}".format(string),
+    print "%s\033[0m" % (preString)
+
+
+def initChecks(env):
+    banner("Configuration", "\033[33m")
+
+    unique_headers = """
+boost/foreach.hpp
+cassert
+cerrno
+climits
+cstddef
+cstdint
+cstdio
+cstdlib
+cstring
+ctype.h
+direct.h
+errno.h
+fstream
+getopt.h
+iostream
+libelf.h
+signal.h
+stdio.h
+stdlib.h
+string
+string.h
+sys/wait.h
+time.h
+udis86.h
+unistd.h
+vector
+xargs
+    """
+
+    conf = env.Configure()
+    conf.CheckCC()
+    conf.CheckCXX()
+    for f in unique_headers.split():
+        conf.CheckCXXHeader(f)
+    conf.CheckLibWithHeader("udis86", "udis86.h", "C++")
+
+def udisPath(env):
     import os
-    print "Detecting UDIS86 path...",
+    banner("UDIS86 Detection", "\033[34m")
+
     output = os.popen("which udcli")
     path   = os.path.dirname(output.readlines()[0].strip())
     libpath = path + "/../lib"
@@ -38,8 +86,10 @@ env = Environment(CPPPATH = ["#/common"],
                   LIBS = ["analyzer"],
                   LIBPATH = ["#/build/common"],
                  )
-udis_path(env)
+udisPath(env)
+initChecks(env)
 
+banner("Compilation")
 SConscript("common/SConscript",   variant_dir="build/common", exports='env')
 SConscript("analyzer/SConscript", variant_dir="build/cfg",    exports='env')
 SConscript("testing/SConscript",  variant_dir="build/test",   exports='env')

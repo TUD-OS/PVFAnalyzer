@@ -10,3 +10,5 @@ depend
 .kdev_include*
 build
 .sconsign.dblite
+config.log
+.sconf_temp
