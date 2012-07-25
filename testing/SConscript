@@ -11,4 +11,4 @@ env.Append(CPPDEFINES = ["WVTEST_CONFIGURED"])
 for f in files.split():
     env.Object("%s.cpp" %f)
 
-env.Program('cfgtest', objects)
+env.test = env.Program('cfgtest', objects)
