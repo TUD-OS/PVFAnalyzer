@@ -36,23 +36,11 @@ TODO items
     * instruction information (e.g., ud_t)
     * linkage information (predecessor / successor instructions)
 
+* Disassembler abstraction
+
 * Program startup
   * Analyzer works on an InputStream and transforms it into a CFG
-    * InputStream is basically a dynamically growing array of bytes
-    * methods:
-		addByte(uint8_t b);
-		addBytes(uint8_t *buf, size_t count);
 		
-  * InputStream is generated from InputReaders
-		* Hex input reader:
-			- reads command line arguments one at a time -> stream->addByte()
-		* File reader:
-			- read first bytes to distinguish between ELF binaries and
-			  dump files
-			- ELF binaries: parsed using libELF
-			  - unpack sections, start at entry point -> stream->addBytes()
-			- memory dump files: no unpacking, simply mmap and stream->addBytes()
-
 * Analysis runners
   * Static analysis runner
 
@@ -73,3 +61,23 @@ TODO items
 
     (B) VM-based
         - target OS code
+
+
+-------------------
+FINISHED TODO ITEMS
+-------------------
+* InputStream is generated from InputReaders
+    * InputStream is basically a dynamically growing array of bytes
+    * methods:
+		addByte(uint8_t b);
+		addBytes(uint8_t *buf, size_t count);
+    * Hex input reader:
+        - reads command line arguments one at a time -> stream->addByte()
+    * File reader:
+        - read first bytes to distinguish between ELF binaries and
+          dump files
+        - ELF binaries: parsed using libELF
+          - unpack sections, start at entry point -> stream->addBytes()
+        - memory dump files: no unpacking, simply mmap and stream->addBytes()
+    * Readers allow iterating over a collection of DsataSections
+

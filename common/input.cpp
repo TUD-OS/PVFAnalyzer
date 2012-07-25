@@ -46,6 +46,8 @@ void DataSection::addBytes ( uint8_t* buf, size_t count )
 
 void DataSection::dump()
 {
+	std::cout << "--- Dump of section '" << name() << "' ---" << std::endl;
+
 	if (!_data) {
 		std::cout << "<empty stream>" << std::endl;
 		return;
@@ -154,6 +156,9 @@ FileInputReader::addData (const char* filename)
 	} else {
 		// single input section, again...
 		_sections.push_back(DataSection());
+		std::string secname = "binary: ";
+		secname += filename;
+		section(0)->name(secname);
 		ifs.seekg(0, std::ios::beg);
 		do {
 			char c[1];

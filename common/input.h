@@ -37,7 +37,7 @@ class DataSection
 {
 public:
 	DataSection()
-		: _data(0), _data_idx(0)
+		: _data(0), _data_idx(0), _name("unnamed")
 	{
 	}
 
@@ -57,6 +57,7 @@ public:
 			_data_idx = buf.size;
 			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), buf.size);
 		}
+		_name = orig.name();
 	}
 
 	/**
@@ -101,11 +102,16 @@ public:
 	 **/
 	uint32_t bytes() { return _data_idx; }
 
+	std::string const & name() const 	{ return _name; }
+	void name(char const * n) 			{ _name = std::string(n); }
+	void name(std::string& n) 			{ _name = n; }
+
 private:
 	enum { DATA_INCREMENT = 1024, };
 
 	uint8_t* _data;			// buffer ptr
 	uint32_t _data_idx;		// next idx to write to
+	std::string _name;     // dbg: section name
 
 
 	DataSection& operator=(DataSection &) { return *this; }
@@ -182,6 +188,7 @@ public:
 	{
 		// we always have a single DataSection
 		_sections.push_back(DataSection());
+		section(0)->name("hex input");
 	}
 
 	virtual ~HexbyteInputReader()
