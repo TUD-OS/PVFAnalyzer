@@ -28,7 +28,7 @@
 #include <iostream>
 
 /**
- * @brief Representation of an raw data buffer
+ * @brief Representation of a raw data buffer
  **/
 class RawData
 {
