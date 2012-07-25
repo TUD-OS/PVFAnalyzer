@@ -61,7 +61,7 @@ banner()
 
 
 static bool
-parseInputFromOptions(int argc, char **argv, RawData& target)
+parseInputFromOptions(int argc, char **argv, DataSection& target)
 {
 	int opt;
 	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
@@ -98,7 +98,7 @@ parseInputFromOptions(int argc, char **argv, RawData& target)
 
 
 static void
-buildCFG(RawData const &istream)
+buildCFG(DataSection const &istream)
 {
 	uint32_t ip = 0; // XXX may actually be different
 
@@ -116,7 +116,7 @@ main(int argc, char **argv)
 {
 	using namespace std;
 
-	RawData istream;
+	DataSection istream;
 
 	banner();
 	if (!parseInputFromOptions(argc, argv, istream))

@@ -13,14 +13,14 @@ InputReader::~InputReader()
  ***********************************************************************/
 
 
-void RawData::addByte ( uint8_t byte )
+void DataSection::addByte ( uint8_t byte )
 {
 	fit_data();
 	_data[_data_idx++] = byte;
 }
 
 
-void RawData::addBytes ( uint8_t* buf, size_t count )
+void DataSection::addBytes ( uint8_t* buf, size_t count )
 {
 	(void)buf;
 	fit_data(count);
@@ -28,7 +28,7 @@ void RawData::addBytes ( uint8_t* buf, size_t count )
 }
 
 
-void RawData::dump()
+void DataSection::dump()
 {
 	if (!_data) {
 		std::cout << "<empty stream>" << std::endl;
@@ -46,7 +46,7 @@ void RawData::dump()
 
 
 void
-RawData::fit_data(size_t howmuch)
+DataSection::fit_data(size_t howmuch)
 {
 	/*
 	 * We only alloc if a) no data has been allocated yet or b) we have

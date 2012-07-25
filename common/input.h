@@ -32,15 +32,15 @@
 /**
  * @brief Representation of a raw data buffer
  **/
-class RawData
+class DataSection
 {
 public:
-	RawData()
+	DataSection()
 		: _data(0), _data_idx(0)
 	{
 	}
 
-	~RawData()
+	~DataSection()
 	{
 		if (_data) {
 			free(_data);
@@ -95,11 +95,11 @@ private:
 	uint8_t* _data;			// buffer ptr
 	uint32_t _data_idx;		// next idx to write to
 
-	RawData(const RawData&)
+	DataSection(const DataSection&)
 		: _data(0), _data_idx(0)
 	{ }
 
-	RawData& operator=(RawData &) { return *this; }
+	DataSection& operator=(DataSection &) { return *this; }
 
 	/**
 	 * @brief Make sure the available data area is big enough
@@ -120,9 +120,9 @@ private:
 class InputReader
 {
 protected:
-	RawData *_the_stream;
+	DataSection *_the_stream;
 public:
-	InputReader(RawData *is = 0)
+	InputReader(DataSection *is = 0)
 		: _the_stream(is)
 	{ }
 
@@ -159,7 +159,7 @@ private:
 class HexbyteInputReader : public InputReader
 {
 public:
-	HexbyteInputReader(RawData *istream)
+	HexbyteInputReader(DataSection *istream)
 		: InputReader(istream)
 	{ }
 
@@ -178,7 +178,7 @@ private:
 class FileInputReader : public InputReader
 {
 public:
-	FileInputReader(RawData *istream)
+	FileInputReader(DataSection *istream)
 		: InputReader(istream)
 	{ }
 

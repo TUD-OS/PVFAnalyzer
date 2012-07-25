@@ -65,7 +65,7 @@ relocmemregion()
 static void
 hexinput()
 {
-	RawData is, is2;
+	DataSection is, is2;
 	HexbyteInputReader ir(&is);
 	HexbyteInputReader ir2(&is2);
 	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
@@ -92,7 +92,7 @@ hexinput()
 static void
 hexinput_large()
 {
-	RawData rd;
+	DataSection rd;
 	HexbyteInputReader hr(&rd);
 	char const *in[] = {"c3"};
 	for (unsigned i = 0; i < 3000; ++i) {
@@ -104,7 +104,7 @@ hexinput_large()
 static void
 fileinput()
 {
-	RawData is;
+	DataSection is;
 	char const *file = "testing/testcases/payload.bin";
 	FileInputReader fr(&is);
 	fr.addData(file);
