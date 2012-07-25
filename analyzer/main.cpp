@@ -15,9 +15,9 @@
 
 **********************************************************************/
 
-#include <iostream>		// std::cout
-#include <getopt.h>		// getopt()
-#include "input.h"      // DataSection, InputReader
+#include <iostream>	    // std::cout
+#include <getopt.h>	    // getopt()
+#include "input.h"     // DataSection, InputReader
 #include "disassembler.h"
 
 /**
@@ -60,23 +60,24 @@ banner()
 }
 
 
-static InputReader*
-parseInputFromOptions(int argc, char **argv)
+static bool
+parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
-	InputReader *reader = 0;
+
 	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
 					std::cout << "input file: " << argv[optind-1] << std::endl;
-					reader = new FileInputReader();
-					reader->addData(argv[optind-1]);
+					FileInputReader *fr = new FileInputReader();
+					retvec.push_back(fr);
+					fr->addData(argv[optind-1]);
 			}
 			break;
 
 			case 'x': { // hex dump input
 					int idx = optind;
-					reader = new HexbyteInputReader();
+					HexbyteInputReader *reader = new HexbyteInputReader();
 					while (idx < argc) {
 						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
@@ -87,28 +88,60 @@ parseInputFromOptions(int argc, char **argv)
 						}
 						++idx;
 					}
+					retvec.push_back(reader);
 				}
 				break;
 			case 'h':
 				usage(argv[0]);
-				return 0;
+				return false;
 		}
 	}
-	return reader;
+	return true;
 }
 
 
 static void
-buildCFG(InputReader* rd)
+buildCFG(std::vector<InputReader*> const & v)
 {
-	uint32_t ip = 0; // XXX may actually be different
-
 	Udis86Disassembler dis;
-	dis.buffer(rd->section(0)->getBuffer());
 
-	unsigned bytes;
-	while ((bytes = dis.disassemble()) > 0) {
-		ip += bytes;
+	for (std::vector<InputReader*>::const_iterator it = v.begin();
+		 it != v.end(); ++it) {
+		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
+			dis.buffer((*it)->section(sec)->getBuffer());
+
+			Address ip     = 0; // XXX may actually be different
+			unsigned bytes = 0;
+
+			while ((bytes = dis.disassemble()) > 0) {
+				ip += bytes;
+			}
+		}
+	}
+}
+
+
+static unsigned count_bytes(std::vector<InputReader*> const & rv)
+{
+	unsigned bytes = 0;
+	for (std::vector<InputReader*>::const_iterator it = rv.begin();
+		 it != rv.end(); ++it) {
+		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
+			bytes += (*it)->section(sec)->bytes();
+		}
+	}
+
+	return bytes;
+}
+
+
+static void dump_sections(std::vector<InputReader*> const & rv)
+{
+	for (std::vector<InputReader*>::const_iterator it = rv.begin();
+		 it != rv.end(); ++it) {
+		for (unsigned sec = 0; sec < (*it)->section_count(); ++sec) {
+			(*it)->section(sec)->dump();
+		}
 	}
 }
 
@@ -117,19 +150,21 @@ main(int argc, char **argv)
 {
 	using namespace std;
 
-	InputReader *reader = parseInputFromOptions(argc, argv);
+	std::vector<InputReader*> input;
+
+	if (not parseInputFromOptions(argc, argv, input))
+		exit(2);
 
 	banner();
-	if (!reader)
+	if (input.size() == 0)
 		exit(1);
 
-	// XXX: hack!
-	std::cout << "Read " << reader->section(0)->bytes() << " bytes of input." << std::endl;
+	std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
 	std::cout << "input stream:\n";
-	reader->section(0)->dump();
+	dump_sections(input);
 
 	std::cout << "---------\n";
-	buildCFG(reader);
+	buildCFG(input);
 
 	return 0;
 }
