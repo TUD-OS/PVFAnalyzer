@@ -21,7 +21,7 @@
 #include <cstddef>
 #include <cassert>
 
-typedef ptrdiff_t address; // address type
+typedef ptrdiff_t Address; // address type
 
 /**
  * @brief Arbitrary memory region
@@ -31,13 +31,17 @@ struct MemRegion
 	MemRegion()
 		: base(0), size(0)
 	{ }
-	
+
+	MemRegion(Address base, ptrdiff_t size)
+		: base(base), size(size)
+	{ }
+
 	virtual ~MemRegion() { }
 	
 	/**
 	 * @brief Region base address
 	 **/
-	address   base;
+	Address   base;
 	
 	/**
 	 * @brief Region size
@@ -50,9 +54,14 @@ struct MemRegion
 	 * @param a Address
 	 * @return true if a is within bounds, false otherwise
 	 **/
-	bool contains(address const a) const
+	bool contains(Address const a) const
 	{
 		return (this->base <= a) && (a <= (this->base + this->size));
+	}
+
+	bool operator==(MemRegion const & other)
+	{
+		return (base == other.base) and (size == other.size);
 	}
 };
 
@@ -72,7 +81,7 @@ struct RelocatedMemRegion : public MemRegion
 	/**
 	 * @brief Address this region is mapped to
 	 **/
-	address   mapped_base;
+	Address   mapped_base;
 		
 	/**
 	 * @brief Translate a relocated address to a region address.
@@ -80,7 +89,7 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a Address within [mapped_base, mapped_base+size]
 	 * @return address within [base, base+size]
 	 **/
-	address reloc_to_region(address const & a) const
+	Address reloc_to_region(Address const & a) const
 	{
 		assert(mapped_base <= a);
 		assert(a <= mapped_base + size);
@@ -93,7 +102,7 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a Address within [base, base+size]
 	 * @return address within [mapped_base, mapped_base+size]
 	 **/
-	address region_to_reloc(address const & a) const
+	Address region_to_reloc(Address const & a) const
 	{
 		assert(base <= a);
 		assert(a <= base + size);
@@ -106,7 +115,7 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a address
 	 * @return true if a is witihn [mapped_base, mapped_base+size], false otherwise
 	 **/
-	bool reloc_contains(address const a) const
+	bool reloc_contains(Address const a) const
 	{
 		return contains(reloc_to_region(a));
 	}

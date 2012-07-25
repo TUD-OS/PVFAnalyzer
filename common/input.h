@@ -27,6 +27,8 @@
 #include <fstream>
 #include <iostream>
 
+#include "memory.h"
+
 /**
  * @brief Representation of a raw data buffer
  **/
@@ -64,20 +66,13 @@ public:
 
 
 	/**
-	 * @brief Get pointer to bytes at offset
+	 * @brief Get underlying buffer
 	 *
-	 * @param index offset
-	 * @return uint8_t* const	pointer into buffer if offset fits
-	 *                         into buf, NULL otherwise
+	 * @return MemRegion
 	 **/
-	uint8_t const * const getPtr(uint32_t offset) const
+	MemRegion const getBuffer() const
 	{
-		//std::cout << __FUNCTION__ << " " << offset << std::endl;
-		if (offset < _data_idx) {
-			return _data + offset;
-		} else {
-			return 0;
-		}
+		return MemRegion((Address)(_data), _data_idx);
 	}
 
 	/**

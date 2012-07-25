@@ -1,14 +1,16 @@
 #include "disassembler.h"
 #include <iostream>
 
-unsigned Udis86Disassembler::disassemble(const uint8_t* buf)
+unsigned Udis86Disassembler::disassemble()
 {
-	uint8_t *b = (uint8_t*)buf; // XXX: evil cast! But udis86 wants a non-const
-	                            //      pointer here...
-	ud_set_input_buffer(&_ud_obj, b, 16);
+	if (_buffer == MemRegion())
+		return -1;
+
+	if (reinterpret_cast<Address>(ud_insn_ptr(&_ud_obj)) >= _buffer.base + _buffer.size)
+		return -2;
+
 	ud_disassemble(&_ud_obj);
 	std::cout << ud_insn_asm(&_ud_obj) << std::endl;
-
 	return ud_insn_len(&_ud_obj);
 }
 

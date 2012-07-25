@@ -19,21 +19,28 @@
 #include <cstdint>
 #include <udis86.h>
 
+#include "memory.h"
+
 class Disassembler
 {
 public:
 	Disassembler()
+		: _buffer()
 	{ }
 
 	virtual ~Disassembler()
 	{ }
 
-	virtual unsigned disassemble(uint8_t const *buf) = 0;
+	virtual unsigned disassemble() = 0;
+
+	MemRegion buffer() { return _buffer; }
+	virtual void buffer(MemRegion region) { _buffer = region; }
 
 protected:
+	MemRegion _buffer;
 
 private:
-	Disassembler(const Disassembler&) { }
+	Disassembler(const Disassembler&) : _buffer() { }
 	Disassembler& operator=(const Disassembler&) { return *this; }
 };
 
@@ -51,17 +58,21 @@ public:
 	Udis86Disassembler();
 
 	virtual ~Udis86Disassembler()
-	{
-	}
+	{ }
 
-	virtual unsigned disassemble(uint8_t const *buf);
+	virtual unsigned disassemble();
+
+	virtual void buffer(MemRegion region)
+	{
+		Disassembler::buffer(region);
+		ud_set_input_buffer(&_ud_obj, reinterpret_cast<uint8_t*>(region.base), region.size);
+	}
 private:
 	ud_t _ud_obj;
 
 	Udis86Disassembler(const Udis86Disassembler& )
 		: _ud_obj()
-	{
-	}
+	{ }
 
 	Udis86Disassembler& operator=(const Udis86Disassembler&) { return *this; }
 };

@@ -81,7 +81,7 @@ hexinput()
 	}
 	WVPASSEQ(static_cast<int>(is2.bytes()), 4);
 
-	uint8_t const * const ptr = is.getPtr(5);
+	uint8_t const * const ptr = reinterpret_cast<uint8_t const * const>(is.getBuffer().base) + 5;
 	WVPASSEQ(*(ptr  ), 0xde);
 	WVPASSEQ(*(ptr+1), 0xad);
 	WVPASSEQ(*(ptr+2), 0xbe);

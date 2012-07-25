@@ -103,12 +103,12 @@ buildCFG(RawData const &istream)
 	uint32_t ip = 0; // XXX may actually be different
 
 	Udis86Disassembler dis;
+	dis.buffer(istream.getBuffer());
 
-	uint8_t const *buf;
-
-	while ((buf = istream.getPtr(ip)) != 0) {
-		ip += dis.disassemble(buf);
-	};
+	unsigned bytes;
+	while ((bytes = dis.disassemble()) > 0) {
+		ip += bytes;
+	}
 }
 
 int
