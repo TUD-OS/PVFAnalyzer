@@ -121,11 +121,15 @@ public:
 		std::cout << ud_insn_asm(&_ud_obj);
 	}
 
+	/**
+	 * @brief Access the Udis86 disassembler object representing this Instruction
+	 *
+	 * @return ud_t*
+	 **/
+	ud_t* ud_obj() { return &_ud_obj; }
+
 protected:
 	ud_t _ud_obj;
-
-	friend class Udis86Disassembler;
-	ud_t* ud_obj() { return &_ud_obj; }
 
 private:
 	Udis86Instruction(const Udis86Instruction&) : _ud_obj() { }

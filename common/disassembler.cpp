@@ -16,6 +16,5 @@ Instruction* Udis86Disassembler::disassemble(Address offset)
 	i->ip(_buffer.base + offset);
 
 	ud_disassemble(i->ud_obj());
-	//std::cout << ud_insn_asm(&_ud_obj) << std::endl;
 	return i;
 }
