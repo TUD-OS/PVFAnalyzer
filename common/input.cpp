@@ -1,3 +1,19 @@
+/**********************************************************************
+          DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+ Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+
+ Everyone is permitted to copy and distribute verbatim or modified
+ copies of this license document, and changing it is allowed as long
+ as the name is changed.
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+
+**********************************************************************/
 #include "input.h"
 
 #include <iostream>
@@ -93,7 +109,7 @@ HexbyteInputReader::addData ( const char* byte )
 		return;
 	}
 
-	_the_stream->addByte(data & 0xFF);
+	section(0)->addByte(data & 0xFF);
 }
 
 #include <libelf.h>
@@ -136,12 +152,14 @@ FileInputReader::addData (const char* filename)
 	if (is_elf_file(ifs)) {
 		std::cout << "ELF parsing not implemented yet." << std::endl;
 	} else {
+		// single input section, again...
+		_sections.push_back(DataSection());
 		ifs.seekg(0, std::ios::beg);
 		do {
 			char c[1];
 			ifs.read(c, 1);
 			if (!ifs.fail())
-				_the_stream->addByte(static_cast<uint8_t>(c[0]));
+				section(0)->addByte(static_cast<uint8_t>(c[0]));
 		} while (!ifs.eof());
 	}
 }

@@ -65,23 +65,24 @@ relocmemregion()
 static void
 hexinput()
 {
-	DataSection is, is2;
-	HexbyteInputReader ir(&is);
-	HexbyteInputReader ir2(&is2);
+	HexbyteInputReader ir;
+	HexbyteInputReader ir2;
 	char const *in[]  =  {"12", "34", "56", "78", "90", "de", "ad", "be", "ef"};
 	char const *in2[] =  {"0f", "f0", "ba", "xy", "12"};
 
 	for (unsigned i = 0; i < 9; ++i) {
 		ir.addData(in[i]);
 	}
-	WVPASSEQ(static_cast<int>(is.bytes()), 9);
+	WVPASSEQ(ir.section_count(), 1);
+	WVPASSEQ(static_cast<int>(ir.section(0)->bytes()), 9);
 
 	for (unsigned i = 0; i < 5; ++i) {
 		ir2.addData(in2[i]);
 	}
-	WVPASSEQ(static_cast<int>(is2.bytes()), 4);
+	WVPASSEQ(ir.section_count(), 1);
+	WVPASSEQ(static_cast<int>(ir2.section(0)->bytes()), 4);
 
-	uint8_t const * const ptr = reinterpret_cast<uint8_t const * const>(is.getBuffer().base) + 5;
+	uint8_t const * const ptr = reinterpret_cast<uint8_t const * const>(ir.section(0)->getBuffer().base) + 5;
 	WVPASSEQ(*(ptr  ), 0xde);
 	WVPASSEQ(*(ptr+1), 0xad);
 	WVPASSEQ(*(ptr+2), 0xbe);
@@ -92,23 +93,23 @@ hexinput()
 static void
 hexinput_large()
 {
-	DataSection rd;
-	HexbyteInputReader hr(&rd);
+	HexbyteInputReader hr;
 	char const *in[] = {"c3"};
 	for (unsigned i = 0; i < 3000; ++i) {
 		hr.addData(in[0]);
 	}
-	WVPASSEQ(static_cast<int>(rd.bytes()), 3000);
+	WVPASSEQ(hr.section_count(), 1);
+	WVPASSEQ(static_cast<int>(hr.section(0)->bytes()), 3000);
 }
 
 static void
 fileinput()
 {
-	DataSection is;
 	char const *file = "testing/testcases/payload.bin";
-	FileInputReader fr(&is);
+	FileInputReader fr;
 	fr.addData(file);
-	WVPASSEQ(static_cast<int>(is.bytes()), 32);
+	WVPASSEQ(fr.section_count(), 1);
+	WVPASSEQ(static_cast<int>(fr.section(0)->bytes()), 32);
 }
 
 

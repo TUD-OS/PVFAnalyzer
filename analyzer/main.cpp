@@ -17,7 +17,7 @@
 
 #include <iostream>		// std::cout
 #include <getopt.h>		// getopt()
-#include "input.h"      // RawData, InputReader
+#include "input.h"      // DataSection, InputReader
 #include "disassembler.h"
 
 /**
@@ -60,29 +60,30 @@ banner()
 }
 
 
-static bool
-parseInputFromOptions(int argc, char **argv, DataSection& target)
+static InputReader*
+parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
+	InputReader *reader = 0;
 	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
 					std::cout << "input file: " << argv[optind-1] << std::endl;
-					FileInputReader reader(&target);
-					reader.addData(argv[optind-1]);
+					reader = new FileInputReader();
+					reader->addData(argv[optind-1]);
 			}
 			break;
 
 			case 'x': { // hex dump input
 					int idx = optind;
-					HexbyteInputReader reader(&target);
+					reader = new HexbyteInputReader();
 					while (idx < argc) {
 						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
 							optind = idx;
 							break;
 						} else {
-							reader.addData(argv[idx]);
+							reader->addData(argv[idx]);
 						}
 						++idx;
 					}
@@ -90,20 +91,20 @@ parseInputFromOptions(int argc, char **argv, DataSection& target)
 				break;
 			case 'h':
 				usage(argv[0]);
-				return false;
+				return 0;
 		}
 	}
-	return true;
+	return reader;
 }
 
 
 static void
-buildCFG(DataSection const &istream)
+buildCFG(InputReader* rd)
 {
 	uint32_t ip = 0; // XXX may actually be different
 
 	Udis86Disassembler dis;
-	dis.buffer(istream.getBuffer());
+	dis.buffer(rd->section(0)->getBuffer());
 
 	unsigned bytes;
 	while ((bytes = dis.disassemble()) > 0) {
@@ -116,18 +117,19 @@ main(int argc, char **argv)
 {
 	using namespace std;
 
-	DataSection istream;
+	InputReader *reader = parseInputFromOptions(argc, argv);
 
 	banner();
-	if (!parseInputFromOptions(argc, argv, istream))
+	if (!reader)
 		exit(1);
 
-	std::cout << "Read " << istream.bytes() << " bytes of input." << std::endl;
+	// XXX: hack!
+	std::cout << "Read " << reader->section(0)->bytes() << " bytes of input." << std::endl;
 	std::cout << "input stream:\n";
-	istream.dump();
+	reader->section(0)->dump();
 
 	std::cout << "---------\n";
-	buildCFG(istream);
+	buildCFG(reader);
 
 	return 0;
 }

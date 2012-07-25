@@ -26,6 +26,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <vector>
 
 #include "memory.h"
 
@@ -44,6 +45,17 @@ public:
 	{
 		if (_data) {
 			free(_data);
+		}
+	}
+
+	DataSection(const DataSection& orig)
+		: DataSection()
+	{
+		MemRegion buf = orig.getBuffer();
+		if (buf.base and buf.size) {
+			_data     = static_cast<uint8_t*>(realloc(_data, buf.size));
+			_data_idx = buf.size;
+			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), buf.size);
 		}
 	}
 
@@ -95,9 +107,6 @@ private:
 	uint8_t* _data;			// buffer ptr
 	uint32_t _data_idx;		// next idx to write to
 
-	DataSection(const DataSection&)
-		: _data(0), _data_idx(0)
-	{ }
 
 	DataSection& operator=(DataSection &) { return *this; }
 
@@ -115,15 +124,15 @@ private:
  * @brief Generic interface of an input reader.
  *
  * An input reader reads input from a source and streams the bytes
- * found at the source into an InputStream object.
+ * found at the source into a set of DataSection objects.
  **/
 class InputReader
 {
 protected:
-	DataSection *_the_stream;
+	std::vector<DataSection> _sections;
 public:
-	InputReader(DataSection *is = 0)
-		: _the_stream(is)
+	InputReader()
+		: _sections()
 	{ }
 
 	virtual ~InputReader();
@@ -139,8 +148,17 @@ public:
 	 * @param input input
 	 **/
 	virtual void addData(char const *input) = 0;
+
+	DataSection* section(unsigned number) // XXX: return a const reference?
+	{
+		if (number > section_count())
+			return 0;
+		return &_sections[number];
+	}
+
+	unsigned section_count() { return _sections.size(); }
 private:
-	InputReader(InputReader const&) : _the_stream(0) { }
+	InputReader(InputReader const&) : _sections() { }
 	InputReader& operator=(const InputReader&) { return *this; }
 };
 
@@ -159,9 +177,12 @@ private:
 class HexbyteInputReader : public InputReader
 {
 public:
-	HexbyteInputReader(DataSection *istream)
-		: InputReader(istream)
-	{ }
+	HexbyteInputReader()
+		: InputReader()
+	{
+		// we always have a single DataSection
+		_sections.push_back(DataSection());
+	}
 
 	virtual ~HexbyteInputReader()
 	{ }
@@ -178,8 +199,8 @@ private:
 class FileInputReader : public InputReader
 {
 public:
-	FileInputReader(DataSection *istream)
-		: InputReader(istream)
+	FileInputReader()
+		: InputReader()
 	{ }
 
 	virtual void addData(char const *file);
