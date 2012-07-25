@@ -1,24 +1,21 @@
 #include "disassembler.h"
+#include "instruction.h"
 #include <iostream>
 
-unsigned Udis86Disassembler::disassemble()
+Instruction* Udis86Disassembler::disassemble(Address offset)
 {
-	if (_buffer == MemRegion())
-		return -1;
+	if (_buffer == MemRegion()) // no memregion set?
+		return 0;
 
-	if (reinterpret_cast<Address>(ud_insn_ptr(&_ud_obj)) >= _buffer.base + _buffer.size)
-		return -2;
+	if (offset >= _buffer.size)
+		return 0;
 
-	ud_disassemble(&_ud_obj);
-	std::cout << ud_insn_asm(&_ud_obj) << std::endl;
-	return ud_insn_len(&_ud_obj);
-}
+	Udis86Instruction* i = new Udis86Instruction();
+	i->membase(_buffer.base + offset);
+	// XXX: need to set EIP properly!
+	i->ip(_buffer.base + offset);
 
-Udis86Disassembler::Udis86Disassembler()
-	: _ud_obj()
-{
-	ud_init(&_ud_obj);
-	ud_set_input_file(&_ud_obj, stdin);
-	ud_set_mode(&_ud_obj, 32);
-	ud_set_syntax(&_ud_obj, UD_SYN_INTEL);
+	ud_disassemble(i->ud_obj());
+	//std::cout << ud_insn_asm(&_ud_obj) << std::endl;
+	return i;
 }

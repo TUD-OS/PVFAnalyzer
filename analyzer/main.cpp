@@ -15,11 +15,13 @@
 
 **********************************************************************/
 
-#include <iostream>	    // std::cout
-#include <getopt.h>	    // getopt()
-#include <boost/foreach.hpp> // FOREACH
-#include "input.h"     // DataSection, InputReader
+#include <iostream>	          // std::cout
+#include <iomanip>
+#include <getopt.h>	          // getopt()
+#include <boost/foreach.hpp>  // FOREACH
+#include "input.h"            // DataSection, InputReader
 #include "disassembler.h"
+#include "instruction.h"
 
 /**
  * @brief Command line long options
@@ -111,10 +113,14 @@ buildCFG(std::vector<InputReader*> const & v)
 			dis.buffer(ir->section(sec)->getBuffer());
 
 			Address ip     = 0; // XXX may actually be different
-			unsigned bytes = 0;
+			unsigned offs  = 0;
+			Instruction* i = 0;
 
-			while ((bytes = dis.disassemble()) > 0) {
-				ip += bytes;
+			while ((i = dis.disassemble(offs)) != 0) {
+				i->print();
+				std::cout << std::endl;
+				ip   += i->length();
+				offs += i->length();
 			}
 		}
 	}

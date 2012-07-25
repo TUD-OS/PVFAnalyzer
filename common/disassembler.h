@@ -20,7 +20,16 @@
 #include <udis86.h>
 
 #include "memory.h"
+#include "instruction.h"
 
+/**
+ * @brief Disassembler interface
+ * 
+ * A disassembler generically represents a buffer containing
+ * instruction bytes and provides functionality to obtain
+ * decoded Instructions from within this buffer.
+ * 
+ **/
 class Disassembler
 {
 public:
@@ -31,13 +40,19 @@ public:
 	virtual ~Disassembler()
 	{ }
 
-	virtual unsigned disassemble() = 0;
+	/**
+	 * @brief Disassemble next instruction at given offset
+	 *
+	 * @param offset offset within underlying buffer to start decoding at
+	 * @return Instruction*
+	 **/
+	virtual Instruction* disassemble(Address offset) = 0;
 
-	MemRegion buffer() { return _buffer; }
+	MemRegion buffer()                    { return _buffer; }
 	virtual void buffer(MemRegion region) { _buffer = region; }
 
 protected:
-	MemRegion _buffer;
+	MemRegion _buffer; // underlying buffer
 
 private:
 	Disassembler(const Disassembler&) : _buffer() { }
@@ -45,34 +60,9 @@ private:
 };
 
 
-class Instruction
-{
-protected:
-	char *bytes;
-};
-
-
 class Udis86Disassembler : public Disassembler
 {
 public:
-	Udis86Disassembler();
-
-	virtual ~Udis86Disassembler()
-	{ }
-
-	virtual unsigned disassemble();
-
-	virtual void buffer(MemRegion region)
-	{
-		Disassembler::buffer(region);
-		ud_set_input_buffer(&_ud_obj, reinterpret_cast<uint8_t*>(region.base), region.size);
-	}
-private:
-	ud_t _ud_obj;
-
-	Udis86Disassembler(const Udis86Disassembler& )
-		: _ud_obj()
-	{ }
-
-	Udis86Disassembler& operator=(const Udis86Disassembler&) { return *this; }
+	virtual ~Udis86Disassembler() { }
+	virtual Instruction* disassemble(Address a);
 };
