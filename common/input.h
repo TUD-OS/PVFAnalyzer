@@ -37,7 +37,7 @@ class DataSection
 {
 public:
 	DataSection()
-		: _data(0), _data_idx(0), _name("unnamed")
+		: _data(0), _data_idx(0), _reloc(0), _name("unnamed")
 	{
 	}
 
@@ -51,7 +51,7 @@ public:
 	DataSection(const DataSection& orig)
 		: DataSection()
 	{
-		MemRegion buf = orig.getBuffer();
+		RelocatedMemRegion buf = orig.getBuffer();
 		if (buf.base and buf.size) {
 			_data     = static_cast<uint8_t*>(realloc(_data, buf.size));
 			_data_idx = buf.size;
@@ -81,11 +81,11 @@ public:
 	/**
 	 * @brief Get underlying buffer
 	 *
-	 * @return MemRegion
+	 * @return RelocatedMemRegion
 	 **/
-	MemRegion const getBuffer() const
+	RelocatedMemRegion const getBuffer() const
 	{
-		return MemRegion((Address)(_data), _data_idx);
+		return RelocatedMemRegion((Address)(_data), _data_idx, _reloc);
 	}
 
 	/**
@@ -102,16 +102,20 @@ public:
 	 **/
 	uint32_t bytes() { return _data_idx; }
 
+	Address relocationAddress() { return _reloc; }
+	void relocationAddress(Address a) { _reloc = a; }
+
 	std::string const & name() const 	{ return _name; }
 	void name(char const * n) 			{ _name = std::string(n); }
-	void name(std::string& n) 			{ _name = n; }
+	void name(std::string&  n) 			{ _name = n; }
 
 private:
 	enum { DATA_INCREMENT = 1024, };
 
 	uint8_t* _data;			// buffer ptr
 	uint32_t _data_idx;		// next idx to write to
-	std::string _name;     // dbg: section name
+	Address  _reloc;		// relocation target address
+	std::string _name;      // dbg: section name
 
 
 	DataSection& operator=(DataSection &) { return *this; }

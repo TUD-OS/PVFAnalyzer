@@ -11,9 +11,9 @@ Instruction* Udis86Disassembler::disassemble(Address offset)
 		return 0;
 
 	Udis86Instruction* i = new Udis86Instruction();
-	i->membase(_buffer.base + offset);
-	// XXX: need to set EIP properly!
-	i->ip(_buffer.base + offset);
+	Address unreloc      = _buffer.base + offset;
+	i->membase(unreloc);
+	i->ip(_buffer.region_to_reloc(unreloc));
 
 	ud_disassemble(i->ud_obj());
 	return i;

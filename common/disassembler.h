@@ -48,11 +48,19 @@ public:
 	 **/
 	virtual Instruction* disassemble(Address offset) = 0;
 
-	MemRegion buffer()                    { return _buffer; }
-	virtual void buffer(MemRegion region) { _buffer = region; }
+	/*
+	 * Buffer management
+	 *
+	 * The disassembler works on an in-memory buffer containing
+	 * the instruction bytes. As instruction decoding may depend on
+	 * the memory location (e.g., relative addressing), this buffer
+	 * needs to have relocation information attached.
+	 */
+	RelocatedMemRegion buffer()           { return _buffer; }
+	virtual void buffer(RelocatedMemRegion region) { _buffer = region; }
 
 protected:
-	MemRegion _buffer; // underlying buffer
+	RelocatedMemRegion _buffer; // underlying buffer
 
 private:
 	Disassembler(const Disassembler&) : _buffer() { }

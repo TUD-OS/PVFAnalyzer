@@ -112,7 +112,7 @@ buildCFG(std::vector<InputReader*> const & v)
 		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
 			dis.buffer(ir->section(sec)->getBuffer());
 
-			Address ip     = 0; // XXX may actually be different
+			Address ip     = dis.buffer().mapped_base;
 			unsigned offs  = 0;
 			Instruction* i = 0;
 

@@ -78,7 +78,7 @@ class Udis86Instruction : public Instruction
 {
 public:
 	Udis86Instruction()
-		: _ud_obj()
+		: Instruction(), _ud_obj()
 	{
 		ud_init(&_ud_obj);
 		ud_set_input_file(&_ud_obj, stdin);
@@ -116,7 +116,7 @@ public:
 	virtual void print()
 	{
 		std::cout << "\033[33m";
-		std::cout << std::hex << "0x" << std::setw(8) << Instruction::ip();
+		std::cout << std::hex << "0x" << std::setfill('0') << std::setw(8) << Instruction::ip();
 		std::cout << "    " << "\033[0m";
 		std::cout << ud_insn_asm(&_ud_obj);
 	}
