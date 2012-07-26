@@ -123,4 +123,12 @@ struct RelocatedMemRegion : public MemRegion
     RelocatedMemRegion()
 	    : MemRegion(), mapped_base(0)
 	{ }
+	
+	RelocatedMemRegion (Address base, ptrdiff_t size, Address mapped = 0)
+		: MemRegion(base, size), mapped_base(mapped)
+	{ }
+
+	RelocatedMemRegion(MemRegion const &m, Address mapped = 0)
+		: MemRegion(m.base, m.size), mapped_base(mapped)
+	{ }
 };
