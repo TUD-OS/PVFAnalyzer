@@ -121,6 +121,7 @@ buildCFG(std::vector<InputReader*> const & v)
 				std::cout << std::endl;
 				ip   += i->length();
 				offs += i->length();
+				delete i;
 			}
 		}
 	}
@@ -149,6 +150,16 @@ static void dump_sections(std::vector<InputReader*> const & rv)
 	}
 }
 
+
+static void cleanup(std::vector<InputReader*> &rv)
+{
+	while (!rv.empty()) {
+		std::vector<InputReader*>::iterator i = rv.begin();
+		delete *i;
+		rv.erase(i);
+	}
+}
+
 int
 main(int argc, char **argv)
 {
@@ -170,6 +181,8 @@ main(int argc, char **argv)
 
 	std::cout << "---------\n";
 	buildCFG(input);
+
+	cleanup(input);
 
 	return 0;
 }
