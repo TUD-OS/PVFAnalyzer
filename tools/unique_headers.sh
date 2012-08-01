@@ -1,10 +1,19 @@
 #!/bin/bash
 
-find . | grep -v build | grep -v .git | \
-		 xargs grep -iIsn \#include | \
-		 grep -v \" | \
-		 cut -d: -f3 | \
-		 cut -d\  -f 2 | \
-		 cut -d\< -f2 | \
-		 cut -d\> -f1 | \
-		 sort | uniq 
+DIRS="analyzer common testing"
+
+function find_includes ()
+{
+	find $@ | \
+		xargs grep -iIsn \#include | \
+		grep -v \"
+}
+
+function get_headers ()
+{
+	for w in $(find_includes $DIRS); do
+		echo $w | sed -e 's/^[^<].*//g' | sed -e 's/[<>]//g'
+	done
+}
+
+get_headers | sort | uniq | grep -v "^$"
