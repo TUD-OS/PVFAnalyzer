@@ -54,6 +54,14 @@ public:
 	 **/
 	Address ip()                    { return _ip; }
 	virtual void    ip(Address a)   { _ip = a; }
+
+
+	/**
+	 * @brief Get the C-string representation of this instruction
+	 *
+	 * @return unsigned int
+	 **/
+	virtual char const *c_str() const = 0;
 	
 	
 	/**
@@ -118,7 +126,13 @@ public:
 		std::cout << "\033[33m";
 		std::cout << std::hex << "0x" << std::setfill('0') << std::setw(8) << Instruction::ip();
 		std::cout << "    " << "\033[0m";
-		std::cout << ud_insn_asm(&_ud_obj);
+		std::cout << c_str();
+	}
+
+
+	virtual char const *c_str() const
+	{
+		return ud_insn_asm(const_cast<ud*>(&_ud_obj));
 	}
 
 	/**
@@ -135,3 +149,4 @@ private:
 	Udis86Instruction(const Udis86Instruction&) : _ud_obj() { }
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
 };
+
