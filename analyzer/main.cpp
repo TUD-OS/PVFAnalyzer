@@ -16,9 +16,11 @@
 **********************************************************************/
 
 #include <iostream>	          // std::cout
-#include <iomanip>
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/tuple/tuple.hpp>
 #include "input.h"            // DataSection, InputReader
 #include "disassembler.h"
 #include "instruction.h"
@@ -102,11 +104,60 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 	return true;
 }
 
+/**
+ * @brief CFG Node data
+ **/
+struct CFGNodeInfo
+{
+	Instruction* instruction; // right now we only store an instruction
+
+	CFGNodeInfo(Instruction *inst = 0)
+		: instruction(inst)
+	{ }
+};
+
+typedef boost::adjacency_list<boost::vecS,
+                              boost::vecS,
+                              boost::bidirectionalS,
+                              CFGNodeInfo> ControlFlowGraph;
+
+
+/**
+ * @brief Node writer for Graphviz CFG output
+ **/
+struct GraphvizInstructionWriter
+{
+	ControlFlowGraph& g;
+
+	GraphvizInstructionWriter(ControlFlowGraph& _g)
+		: g(_g)
+	{ }
+
+	template <class Vertex>
+	void operator() (std::ostream& out, const Vertex &v) const
+	{
+		out << " [shape=box,";
+		if (g[v].instruction) {
+			out << "label=\"\\[0x" << std::hex << std::setw(8)
+			    << g[v].instruction->ip() << "\\]\\n"
+			    << g[v].instruction->c_str() << "\"";
+		} else {
+			out << "label=\"<empty>\"";
+		}
+		out << "]";
+	}
+};
 
 static void
 buildCFG(std::vector<InputReader*> const & v)
 {
 	Udis86Disassembler dis;
+	ControlFlowGraph   cfg;
+
+	// create initial dummy node (start)
+	boost::graph_traits<ControlFlowGraph>::vertex_descriptor lastDesc
+		= boost::add_vertex(CFGNodeInfo(0), cfg);
+	boost::graph_traits<ControlFlowGraph>::vertex_descriptor nextDesc;
 
 	BOOST_FOREACH(InputReader* ir, v) {
 		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
@@ -117,18 +168,45 @@ buildCFG(std::vector<InputReader*> const & v)
 			Instruction* i = 0;
 
 			while ((i = dis.disassemble(offs)) != 0) {
+
+				nextDesc   = boost::add_vertex(CFGNodeInfo(i), cfg);
+				boost::add_edge(lastDesc, nextDesc, cfg);
+				/* XXX: need to add other targets here XXX */
+				lastDesc   = nextDesc; // sequential...
+
 				i->print();
 				std::cout << std::endl;
 				ip   += i->length();
 				offs += i->length();
-				delete i;
+				//delete i;
 			}
+		}
+	}
+
+
+	/* ---------- CFG Postprocessing ---------- */
+
+	std::cout << "vertices in CFG: " << boost::num_vertices(cfg)
+	          << " " << boost::num_edges(cfg) << std::endl;
+
+	boost::write_graphviz(std::cout, cfg, GraphvizInstructionWriter(cfg));
+
+	/*
+	 * Cleanup: we need to delete the instructions in the
+	 * CFG's vertex nodes.
+	 */
+	boost::graph_traits<ControlFlowGraph>::vertex_iterator vi, vi_end;
+	for (tie(vi, vi_end) = boost::vertices(cfg);
+		 vi != vi_end; ++vi) {
+		if (cfg[*vi].instruction) {
+			delete cfg[*vi].instruction;
 		}
 	}
 }
 
 
-static unsigned count_bytes(std::vector<InputReader*> const & rv)
+static unsigned
+count_bytes(std::vector<InputReader*> const & rv)
 {
 	unsigned bytes = 0;
 	BOOST_FOREACH(InputReader* ir, rv) {
@@ -141,7 +219,8 @@ static unsigned count_bytes(std::vector<InputReader*> const & rv)
 }
 
 
-static void dump_sections(std::vector<InputReader*> const & rv)
+static void
+dump_sections(std::vector<InputReader*> const & rv)
 {
 	BOOST_FOREACH(InputReader* ir, rv) {
 	for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
@@ -151,7 +230,8 @@ static void dump_sections(std::vector<InputReader*> const & rv)
 }
 
 
-static void cleanup(std::vector<InputReader*> &rv)
+static void
+cleanup(std::vector<InputReader*> &rv)
 {
 	while (!rv.empty()) {
 		std::vector<InputReader*>::iterator i = rv.begin();
