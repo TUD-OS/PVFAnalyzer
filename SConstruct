@@ -20,6 +20,9 @@ def initChecks(env):
 
     unique_headers = """
 boost/foreach.hpp
+boost/graph/adjacency_list.hpp
+boost/graph/graphviz.hpp
+boost/tuple/tuple.hpp
 cassert
 cerrno
 climits
@@ -33,6 +36,7 @@ direct.h
 errno.h
 fstream
 getopt.h
+iomanip
 iostream
 libelf.h
 signal.h
@@ -45,7 +49,6 @@ time.h
 udis86.h
 unistd.h
 vector
-xargs
     """
 
     conf = env.Configure()
