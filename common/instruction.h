@@ -116,9 +116,22 @@ struct udis86_t : public ud_t
 	ud_t* udptr() { return reinterpret_cast<ud_t*>(this); }
 	ud_t const *udp() const { return reinterpret_cast<ud_t const *>(this); }
 
+	/**
+	 * @brief Serialize those parts of ud_t that are relevant for us.
+	 *
+	 * Note: We assume that we serialize/deserialize single disassembled
+	 *       instructions here. This means that the instruction has already
+	 *       been successfully disassembled using ud_disassemble(). Hence we
+	 *       can ignore the corresponding input buffer.
+	 *
+	 * @param a serialization archive
+	 * @param version version
+	 * @return void
+	 **/
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
+		std::cerr << "udis86_t serialization is unimplemented!" << std::endl;
 	}
 };
 
