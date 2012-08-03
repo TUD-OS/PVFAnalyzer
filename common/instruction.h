@@ -131,6 +131,12 @@ struct udis86_t : public ud_t
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
+		/* Collecting some info about ud_t components here.
+		 *
+		 * -> inp* are only used during disassembly -> we don't store them
+		 *    as we assume an already disassembled instruction
+		 *
+		 */
 		std::cerr << "udis86_t serialization is unimplemented!" << std::endl;
 	}
 };
