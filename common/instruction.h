@@ -21,6 +21,12 @@
 #include <udis86.h>
 #include "disassembler.h"
 
+#include <boost/serialization/serialization.hpp>
+#include <boost/serialization/export.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/graph/graph_concepts.hpp>
+
 /**
  * @brief Generic interface for Instructions.
  **/
@@ -62,8 +68,8 @@ public:
 	 * @return unsigned int
 	 **/
 	virtual char const *c_str() const = 0;
-	
-	
+
+
 	/**
 	 * @brief Address of instruction bytes
 	 * 
@@ -75,6 +81,21 @@ public:
 	 **/
 	Address membase()               { return _base; }
 	virtual void membase(Address a) { _base = a; }
+
+	/**
+	 * @brief Serialize generic instruction object
+	 *
+	 * @param a       Boost::Serialization archive
+	 * @param version serialization version
+	 * @return void
+	 **/
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		(void)version;
+		ar & _ip;
+		ar & _base;
+	}
 	
 protected:
 	Address _ip;   // corresponding instruction pointer
@@ -82,16 +103,32 @@ protected:
 };
 
 
+struct udis86_t : public ud_t
+{
+	udis86_t()
+		: ud_t()
+	{
+		ud_init(udptr());
+		ud_set_mode(udptr(), 32);
+		ud_set_syntax(udptr(), UD_SYN_INTEL);
+	}
+
+	ud_t* udptr() { return reinterpret_cast<ud_t*>(this); }
+	ud_t const *udp() const { return reinterpret_cast<ud_t const *>(this); }
+
+	template <class Archive>
+	void serialize(Archive& a, const unsigned int version)
+	{
+	}
+};
+
 class Udis86Instruction : public Instruction
 {
 public:
 	Udis86Instruction()
 		: Instruction(), _ud_obj()
 	{
-		ud_init(&_ud_obj);
-		ud_set_input_file(&_ud_obj, stdin);
-		ud_set_mode(&_ud_obj, 32);
-		ud_set_syntax(&_ud_obj, UD_SYN_INTEL);
+		ud_set_input_file(_ud_obj.udptr(), stdin);
 
 		ip(_ip);
 		membase(_base);
@@ -102,13 +139,13 @@ public:
 	
 	virtual unsigned length()
 	{
-		return ud_insn_len(&_ud_obj);
+		return ud_insn_len(_ud_obj.udptr());
 	}
 	
 	virtual void ip(Address a)
 	{
 		Instruction::ip(a);
-		ud_set_pc(&_ud_obj, a);
+		ud_set_pc(_ud_obj.udptr(), a);
 	}
 
 	virtual void membase(Address a)
@@ -118,7 +155,7 @@ public:
 		 * As an Instruction always represents exactly one
 		 * instruction, this should suffice.
 		 */
-		ud_set_input_buffer(&_ud_obj, reinterpret_cast<uint8_t*>(a), 32);
+		ud_set_input_buffer(_ud_obj.udptr(), reinterpret_cast<uint8_t*>(a), 32);
 	}
 
 	virtual void print()
@@ -132,21 +169,27 @@ public:
 
 	virtual char const *c_str() const
 	{
-		return ud_insn_asm(const_cast<ud*>(&_ud_obj));
+		return ud_insn_asm(const_cast<ud*>(_ud_obj.udp()));
 	}
 
+
 	/**
-	 * @brief Access the Udis86 disassembler object representing this Instruction
-	 *
-	 * @return ud_t*
+	 * @brief Serialize/Deserialize UDis86 instruction
 	 **/
-	ud_t* ud_obj() { return &_ud_obj; }
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		boost::serialization::base_object<Instruction>(*this);
+		ar & _ud_obj;
+	}
+
+	ud* ud_obj() { return _ud_obj.udptr(); }
 
 protected:
-	ud_t _ud_obj;
+	udis86_t _ud_obj;
 
 private:
 	Udis86Instruction(const Udis86Instruction&) : _ud_obj() { }
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
 };
-
+BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");

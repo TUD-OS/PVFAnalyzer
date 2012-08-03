@@ -19,6 +19,7 @@
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/tuple/tuple.hpp>
 #include "input.h"            // DataSection, InputReader
@@ -114,6 +115,12 @@ struct CFGNodeInfo
 	CFGNodeInfo(Instruction *inst = 0)
 		: instruction(inst)
 	{ }
+
+	template <class Archive>
+	void serialize(Archive& a, const unsigned int version)
+	{
+		a & instruction;
+	}
 };
 
 typedef boost::adjacency_list<boost::vecS,
@@ -191,12 +198,17 @@ buildCFG(std::vector<InputReader*> const & v)
 
 	boost::write_graphviz(std::cout, cfg, GraphvizInstructionWriter(cfg));
 
+	/* Store graph */
+	std::ofstream ofs("something.cfg"); // XXX file name parameter
+	boost::archive::binary_oarchive oa(ofs);
+	oa << cfg;
+
 	/*
 	 * Cleanup: we need to delete the instructions in the
 	 * CFG's vertex nodes.
 	 */
 	boost::graph_traits<ControlFlowGraph>::vertex_iterator vi, vi_end;
-	for (tie(vi, vi_end) = boost::vertices(cfg);
+	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
 		 vi != vi_end; ++vi) {
 		if (cfg[*vi].instruction) {
 			delete cfg[*vi].instruction;

@@ -57,6 +57,7 @@ vector
     for f in unique_headers.split():
         conf.CheckCXXHeader(f)
     conf.CheckLibWithHeader("udis86", "udis86.h", "C++")
+    conf.CheckLib("boost_serialization", language="C++")
 
 def udisPath(env):
     import os
