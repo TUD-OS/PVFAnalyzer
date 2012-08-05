@@ -25,6 +25,7 @@
 #include "input.h"            // DataSection, InputReader
 #include "disassembler.h"
 #include "instruction.h"
+#include "cfg.h"
 
 /**
  * @brief Command line long options
@@ -113,56 +114,6 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 	}
 	return true;
 }
-
-/**
- * @brief CFG Node data
- **/
-struct CFGNodeInfo
-{
-	Instruction* instruction; // right now we only store an instruction
-
-	CFGNodeInfo(Instruction *inst = 0)
-		: instruction(inst)
-	{ }
-
-	template <class Archive>
-	void serialize(Archive& a, const unsigned int version)
-	{
-		a & instruction;
-	}
-};
-
-typedef boost::adjacency_list<boost::vecS,
-                              boost::vecS,
-                              boost::bidirectionalS,
-                              CFGNodeInfo> ControlFlowGraph;
-
-
-/**
- * @brief Node writer for Graphviz CFG output
- **/
-struct GraphvizInstructionWriter
-{
-	ControlFlowGraph& g;
-
-	GraphvizInstructionWriter(ControlFlowGraph& _g)
-		: g(_g)
-	{ }
-
-	template <class Vertex>
-	void operator() (std::ostream& out, const Vertex &v) const
-	{
-		out << " [shape=box,";
-		if (g[v].instruction) {
-			out << "label=\"\\[0x" << std::hex << std::setw(8)
-			    << g[v].instruction->ip() << "\\]\\n"
-			    << g[v].instruction->c_str() << "\"";
-		} else {
-			out << "label=\"<empty>\"";
-		}
-		out << "]";
-	}
-};
 
 static void
 buildCFG(std::vector<InputReader*> const & v)

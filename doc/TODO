@@ -8,7 +8,7 @@ v0.1:
   [ ] ELF binary (section)
 * [ ] make a CFG creation pass running as far as possible
       (e.g., ignoring dynamic jumps)
-* [ ] CFG pretty printing
+* [x] CFG pretty printing
 * [x] wvtest
 * [x] valgrind
 
@@ -24,23 +24,12 @@ v0.3:
 
 Later versions:
 * integrate with another tool (KLEE?) to aid dynamic jump exploration
+  * KLEE won't work as it requires source code? -> but RevNIC used it, too?
 
 
 TODO items
 ----------
 
-* CFG data structure
-  * entry point (address)
-  * Nodes:
-    * instruction address
-    * instruction information (e.g., ud_t)
-    * linkage information (predecessor / successor instructions)
-
-* Disassembler abstraction
-
-* Program startup
-  * Analyzer works on an InputStream and transforms it into a CFG
-		
 * Analysis runners
   * Static analysis runner
 
@@ -80,4 +69,13 @@ FINISHED TODO ITEMS
           - unpack sections, start at entry point -> stream->addBytes()
         - memory dump files: no unpacking, simply mmap and stream->addBytes()
     * Readers allow iterating over a collection of DsataSections
+* Program startup
+  * Analyzer works on an InputStream and transforms it into a CFG
+* CFG data structure
+  * entry point (address)
+  * Nodes:
+    * instruction address
+    * instruction information (e.g., ud_t)
+    * linkage information (predecessor / successor instructions)
+* Disassembler abstraction
 
