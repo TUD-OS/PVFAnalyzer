@@ -25,6 +25,8 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/graph/graph_concepts.hpp>
 
+#include "memory.h"
+
 /**
  * @brief Generic interface for Instructions.
  **/
