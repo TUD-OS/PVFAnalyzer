@@ -21,23 +21,24 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 
-#include "instruction/instruction.h"
+#include "instruction/basicblock.h"
+#include "data/input.h"
 
 /**
  * @brief CFG Node data
  **/
 struct CFGNodeInfo
 {
-	Instruction* instruction; // right now we only store an instruction
+	BasicBlock* bb; // right now we only store an instruction
 
-	CFGNodeInfo(Instruction *inst = 0)
-		: instruction(inst)
+	CFGNodeInfo(BasicBlock *b = 0)
+		: bb(b)
 	{ }
 
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
-		a & instruction;
+		a & bb;
 	}
 };
 
@@ -49,6 +50,17 @@ typedef boost::adjacency_list<boost::vecS,
 typedef boost::graph_traits<ControlFlowGraph>::vertex_descriptor CFGVertexDescriptor;
 typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterator;
 
+
+class CFGBuilder
+{
+public:
+	static CFGBuilder* get();
+
+	virtual ~CFGBuilder() { }
+
+	virtual void build(std::vector<InputReader*> input) = 0;
+};
+
 /**
  * @brief Free the dynamically allocated memory associated with a CFG
  *
@@ -59,30 +71,9 @@ typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterat
  * @param cfg Control Flow Graph
  * @return void
  **/
-void freeCFGNodes(ControlFlowGraph &cfg)
-{
-	CFGVertexIterator vi, vi_end;
-	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
-		 vi != vi_end; ++vi) {
-		if (cfg[*vi].instruction) {
-			delete cfg[*vi].instruction;
-		}
-	}
-}
-
-void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
-{
-	std::ofstream ofs(name);
-	boost::archive::binary_oarchive oa(ofs);
-	oa << cfg;
-}
-
-void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
-{
-	std::ifstream ifs(name);
-	boost::archive::binary_iarchive ia(ifs);
-	ia >> cfg;
-}
+void freeCFGNodes(ControlFlowGraph &cfg);
+void CFGToFile(ControlFlowGraph const & cfg, std::string const &name);
+void CFGFromFile(ControlFlowGraph& cfg, std::string const &name);
 
 /**
  * @brief Node writer for Graphviz CFG output
@@ -98,7 +89,9 @@ struct GraphvizInstructionWriter
 	template <class Vertex>
 	void operator() (std::ostream& out, const Vertex &v) const
 	{
+		std::cerr << "Re-implement GraphViz write operator!" << std::endl;
 		out << " [shape=box,";
+#if 0
 		if (g[v].instruction) {
 			out << "label=\"\\[0x" << std::hex << std::setw(8)
 			    << g[v].instruction->ip() << "\\]\\n"
@@ -106,6 +99,7 @@ struct GraphvizInstructionWriter
 		} else {
 			out << "label=\"<empty>\"";
 		}
+#endif
 		out << "]";
 	}
 };

@@ -120,6 +120,10 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 static void
 buildCFG(std::vector<InputReader*> const & v)
 {
+	CFGBuilder* builder = CFGBuilder::get();
+	builder->build(v);
+
+#if 0
 	Udis86Disassembler dis;
 	ControlFlowGraph   cfg;
 
@@ -127,6 +131,9 @@ buildCFG(std::vector<InputReader*> const & v)
 	CFGVertexDescriptor lastDesc = boost::add_vertex(CFGNodeInfo(0), cfg);
 	CFGVertexDescriptor nextDesc;
 
+	/*
+	 * Iterate over the input sections and add all the basic blocks we find
+	 */
 	BOOST_FOREACH(InputReader* ir, v) {
 		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
 			dis.buffer(ir->section(sec)->getBuffer());
@@ -162,6 +169,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	 * CFG's vertex nodes.
 	 */
 	freeCFGNodes(cfg);
+#endif
 }
 
 

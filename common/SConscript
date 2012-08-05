@@ -1,6 +1,8 @@
 files = """
 disassembler
 input
+cfg
+cfgbuilder
 """
 
 Import('env')
