@@ -165,13 +165,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	 * Cleanup: we need to delete the instructions in the
 	 * CFG's vertex nodes.
 	 */
-	boost::graph_traits<ControlFlowGraph>::vertex_iterator vi, vi_end;
-	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
-		 vi != vi_end; ++vi) {
-		if (cfg[*vi].instruction) {
-			delete cfg[*vi].instruction;
-		}
-	}
+	freeCFGNodes(cfg);
 }
 
 

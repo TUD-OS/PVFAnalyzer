@@ -103,6 +103,8 @@ void writeCFG(ControlFlowGraph& cfg)
 	GraphvizInstructionWriter gnw(cfg);
 	boost::write_graphviz(ofs, cfg, gnw);
 	std::cout << "Wrote output to '" << output_filename << "'" << std::endl;
+
+	freeCFGNodes(cfg);
 }
 
 

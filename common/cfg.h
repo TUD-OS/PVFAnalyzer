@@ -45,6 +45,27 @@ typedef boost::adjacency_list<boost::vecS,
                               boost::bidirectionalS,
                               CFGNodeInfo> ControlFlowGraph;
 
+/**
+ * @brief Free the dynamically allocated memory associated with a CFG
+ *
+ * CFGs store node information that has been dynamically allocated. This
+ * function iterates over a CFG's nodes and deletes this dynamically allocated
+ * memory.
+ *
+ * @param cfg Control Flow Graph
+ * @return void
+ **/
+void freeCFGNodes(ControlFlowGraph &cfg)
+{
+	boost::graph_traits<ControlFlowGraph>::vertex_iterator vi, vi_end;
+	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
+		 vi != vi_end; ++vi) {
+		if (cfg[*vi].instruction) {
+			delete cfg[*vi].instruction;
+		}
+	}
+}
+
 
 /**
  * @brief Node writer for Graphviz CFG output
