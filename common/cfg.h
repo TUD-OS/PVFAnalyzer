@@ -19,6 +19,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <fstream>
 
 #include "instruction.h"
 
@@ -66,6 +67,19 @@ void freeCFGNodes(ControlFlowGraph &cfg)
 	}
 }
 
+void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
+{
+	std::ofstream ofs(name);
+	boost::archive::binary_oarchive oa(ofs);
+	oa << cfg;
+}
+
+void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
+{
+	std::ifstream ifs(name);
+	boost::archive::binary_iarchive ia(ifs);
+	ia >> cfg;
+}
 
 /**
  * @brief Node writer for Graphviz CFG output

@@ -92,9 +92,7 @@ parseInputFromOptions(int argc, char **argv)
 
 void readCFG(ControlFlowGraph& cfg)
 {
-	std::ifstream ifs(input_filename);
-	boost::archive::binary_iarchive arch(ifs);
-	arch >> cfg;
+	CFGFromFile(cfg, input_filename);
 }
 
 void writeCFG(ControlFlowGraph& cfg)

@@ -156,9 +156,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	}
 
 	/* Store graph */
-	std::ofstream ofs(output_filename);
-	boost::archive::binary_oarchive oa(ofs);
-	oa << cfg;
+	CFGToFile(cfg, output_filename);
 	std::cout << "Wrote CFG to '" << output_filename << "'" << std::endl;
 
 	/*
