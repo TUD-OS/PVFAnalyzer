@@ -58,7 +58,7 @@ public:
 
 	virtual ~CFGBuilder() { }
 
-	virtual void build(std::vector<InputReader*> input) = 0;
+	virtual void build(std::vector<InputReader*> input, Address entry) = 0;
 };
 
 /**

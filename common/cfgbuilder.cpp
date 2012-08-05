@@ -16,7 +16,7 @@ public:
 		: dis(), cfg()
 	{ }
 
-	virtual void build(std::vector<InputReader*> v);
+	virtual void build(std::vector<InputReader*> v, Address a);
 };
 
 CFGBuilder* CFGBuilder::get()
@@ -45,13 +45,9 @@ CFGBuilder* CFGBuilder::get()
  * 3) JMP targets may go into the middle of an already discovered BB
  *    -> split the BB into two, add respective connections
  */
-void CFGBuilder_priv::build ( std::vector< InputReader* > v )
+void CFGBuilder_priv::build ( std::vector< InputReader* > v, Address entry )
 {
-	BOOST_FOREACH(InputReader* ir, v) {
-		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
-			addSingleBuffer(ir->section(sec)->getBuffer());
-		}
-	}
+	std::vector<InputReader*>::iterator irv = std::find(v.begin(), v.end(), entry);
 }
 
 

@@ -31,6 +31,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <boost/concept_check.hpp>
 
 #include "memory.h"
 
@@ -144,9 +145,11 @@ class InputReader
 {
 protected:
 	std::vector<DataSection> _sections;
+	Address                  _entry;
+
 public:
 	InputReader()
-		: _sections()
+		: _sections(), _entry(0)
 	{ }
 
 	virtual ~InputReader();
@@ -163,6 +166,8 @@ public:
 	 **/
 	virtual void addData(char const *input) = 0;
 
+	Address entry() { return _entry; }
+
 	DataSection* section(unsigned number) // XXX: return a const reference?
 	{
 		if (number > section_count())
@@ -170,9 +175,21 @@ public:
 		return &_sections[number];
 	}
 
+	DataSection* sectionForAddress(Address a)
+	{
+		for (unsigned n = 0; n < section_count(); ++n) {
+			RelocatedMemRegion mbuf = section(n)->getBuffer();
+			if ((mbuf.base >= a) and
+			    (a < mbuf.base + mbuf.size))
+				return section(n);
+		}
+		return 0;
+	}
+
 	unsigned section_count() { return _sections.size(); }
+
 private:
-	InputReader(InputReader const&) : _sections() { }
+	InputReader(InputReader const&) : _sections(), _entry(0) { }
 	InputReader& operator=(const InputReader&) { return *this; }
 };
 

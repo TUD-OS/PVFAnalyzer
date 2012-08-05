@@ -121,7 +121,7 @@ static void
 buildCFG(std::vector<InputReader*> const & v)
 {
 	CFGBuilder* builder = CFGBuilder::get();
-	builder->build(v);
+	builder->build(v, 0);
 
 #if 0
 	Udis86Disassembler dis;
