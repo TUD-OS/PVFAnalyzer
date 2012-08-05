@@ -101,15 +101,15 @@ initChecks(env)
 
 banner("Compilation")
 SConscript("common/SConscript",   variant_dir="build/common", exports='env')
-SConscript("analyzer/SConscript", variant_dir="build/cfg",    exports='env')
+SConscript("cfg_reader/SConscript", variant_dir="build/cfg_reader",  exports='env')
 SConscript("testing/SConscript",  variant_dir="build/test",   exports='env')
 
 # make a test run after compilation
 env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
 
-Depends(env.analyzer, env.analyzerlib)
-Depends(env.test    , env.analyzerlib)
-Depends(env.testcmd , env.test)
+Depends(env.reader , env.analyzerlib)
+Depends(env.test   , env.analyzerlib)
+Depends(env.testcmd, env.test)
 
 # For some reason, scons -c does not seem to remove the
 # library created. So, we need to have a dedicated clean
