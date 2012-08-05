@@ -102,6 +102,30 @@ protected:
 	Address _base; // where instruction bytes are in memory
 };
 
+/*
+ * ud_t contains ud_operand members that need to have dedicated
+ * serialization routine as well.
+ */
+struct udop : public ud_operand_t
+{
+	udop(ud_operand_t& op)
+	{
+		*this = op;
+	}
+
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		ar & type;
+		ar & size;
+		ar & lval.uqword;
+		ar & base;
+		ar & index;
+		ar & offset;
+		ar & scale;
+	}
+};
+
 
 struct udis86_t : public ud_t
 {
@@ -129,7 +153,7 @@ struct udis86_t : public ud_t
 	 * @return void
 	 **/
 	template <class Archive>
-	void serialize(Archive& a, const unsigned int version)
+	void serialize(Archive& ar, const unsigned int version)
 	{
 		/* Collecting some info about ud_t components here.
 		 *
@@ -137,7 +161,40 @@ struct udis86_t : public ud_t
 		 *    as we assume an already disassembled instruction
 		 *
 		 */
-		std::cerr << "udis86_t serialization is unimplemented!" << std::endl;
+		ar & insn_offset;
+		ar & insn_hexcode;
+		ar & insn_buffer;
+		ar & insn_fill;
+		ar & dis_mode;
+		ar & pc;
+		ar & vendor;
+
+		ar & mnemonic;
+		ar & static_cast<udop&> ( operand[0] );
+		ar & static_cast<udop&> ( operand[1] );
+		ar & static_cast<udop&> ( operand[2] );
+
+		ar & error;
+		ar & pfx_rex;
+		ar & pfx_seg;
+		ar & pfx_opr;
+		ar & pfx_adr;
+		ar & pfx_lock;
+		ar & pfx_rep;
+		ar & pfx_repe;
+		ar & pfx_repne;
+		ar & pfx_insn;
+		ar & default64;
+		ar & opr_mode;
+		ar & adr_mode;
+		ar & br_far;
+		ar & br_near;
+		ar & implicit_addr;
+		ar & c1;
+		ar & c2;
+		ar & c3;
+		ar & have_modrm;
+		ar & modrm;
 	}
 };
 
