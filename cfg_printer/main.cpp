@@ -16,9 +16,14 @@
 **********************************************************************/
 
 #include <getopt.h>
+#include <iostream>
+#include <fstream>
+
+#include <boost/archive/binary_iarchive.hpp>
 
 #include "cfg.h"
 #include "version.h"
+#include "instruction_udis86.h"
 
 struct option my_opts[] = {
 	{"file",    required_argument, 0, 'f'},
@@ -85,12 +90,37 @@ parseInputFromOptions(int argc, char **argv)
 }
 
 
+void readCFG(ControlFlowGraph& cfg)
+{
+	std::ifstream ifs(input_filename);
+	boost::archive::binary_iarchive arch(ifs);
+	arch >> cfg;
+}
+
+void writeCFG(ControlFlowGraph& cfg)
+{
+	std::ofstream ofs(output_filename);
+	GraphvizInstructionWriter gnw(cfg);
+	boost::write_graphviz(ofs, cfg, gnw);
+	std::cout << "Wrote output to '" << output_filename << "'" << std::endl;
+}
+
+
+void work()
+{
+	ControlFlowGraph cfg;
+	readCFG(cfg);
+	writeCFG(cfg);
+}
+
+
 int main(int argc, char **argv)
 {
 	if (not parseInputFromOptions(argc, argv))
 		return 1;
 	
 	banner();
+	work();
 
 	return 0;
 }
