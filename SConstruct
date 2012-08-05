@@ -19,9 +19,15 @@ def initChecks(env):
     banner("Configuration", "\033[33m")
 
     unique_headers = """
+boost/archive/binary_iarchive.hpp
+boost/archive/binary_oarchive.hpp
 boost/foreach.hpp
 boost/graph/adjacency_list.hpp
+boost/graph/adj_list_serialize.hpp
+boost/graph/graph_concepts.hpp
 boost/graph/graphviz.hpp
+boost/serialization/export.hpp
+boost/serialization/serialization.hpp
 boost/tuple/tuple.hpp
 cassert
 cerrno
