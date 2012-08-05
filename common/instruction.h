@@ -96,7 +96,9 @@ public:
 		ar & _ip;
 		ar & _base;
 	}
-	
+
+	virtual bool isBranch() = 0;
+
 protected:
 	Address _ip;   // corresponding instruction pointer
 	Address _base; // where instruction bytes are in memory

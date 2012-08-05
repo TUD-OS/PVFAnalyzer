@@ -179,6 +179,26 @@ public:
 
 	ud* ud_obj() { return _ud_obj.udptr(); }
 
+	virtual bool isBranch()
+	{
+		switch(ud_obj()->mnemonic) {
+			case UD_Ija:	case UD_Ijae:	case UD_Ijb:
+			case UD_Ijbe:	case UD_Ijcxz:	case UD_Ijecxz:
+			case UD_Ijg:	case UD_Ijge:	case UD_Ijl:
+			case UD_Ijle:	case UD_Ijmp:	case UD_Ijno:
+			case UD_Ijnp:	case UD_Ijns:	case UD_Ijnz:
+			case UD_Ijo:	case UD_Ijp:	case UD_Ijs:
+			case UD_Ijz:	case UD_Ijrcxz: case UD_Icall:
+			case UD_Iret:
+			/* yep, syscalls branch to somewhere else, too */
+			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:
+			case UD_Isysret:
+				return true;
+			default: break;
+		}
+		return false;
+	}
+
 protected:
 	udis86_t _ud_obj;
 
