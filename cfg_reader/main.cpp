@@ -26,6 +26,7 @@
 #include "disassembler.h"
 #include "instruction.h"
 #include "cfg.h"
+#include "version.h"
 
 /**
  * @brief Command line long options
@@ -60,10 +61,7 @@ usage(char const *prog)
 static void
 banner()
 {
-	struct {
-		unsigned minor;
-		unsigned major;
-	} version =  {0,0};
+	version_t version = global_program_version;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
 	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
