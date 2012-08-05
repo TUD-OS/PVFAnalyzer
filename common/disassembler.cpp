@@ -1,5 +1,5 @@
 #include "disassembler.h"
-#include "instruction.h"
+#include "instruction_udis86.h"
 #include <iostream>
 
 Instruction* Udis86Disassembler::disassemble(Address offset)
