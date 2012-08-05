@@ -1,12 +1,14 @@
 targets = """common test cfg_reader"""
 
 import os
-if not os.path.exists("build"):
-    os.mkdir("build")
-for t in targets.split():
-    if not os.path.exists("build/%s" % t):
-        print "Creating build/%s" % t
-        os.mkdir("build/%s" % t)
+
+def createBuildDir():
+    if not os.path.exists("build"):
+        os.mkdir("build")
+    for t in targets.split():
+        if not os.path.exists("build/%s" % t):
+            print "Creating build/%s" % t
+            os.mkdir("build/%s" % t)
 
 def banner(string, color="\033[32m"):
     preString = "=" * 15
@@ -85,19 +87,31 @@ def udisPath(env):
 
     if os.path.exists(incpath + "/udis86.h"):
         incp = os.path.realpath(incpath)
-        env.Append(CPPPATH=[incp])
+#        env.Append(CPPPATH=[incp])
+        env.Append(CPPFLAGS=["-isystem", incp])
     else:
         print "\033[31;1mudis86.h not found.\033[0m"
         sys.exit(1)
 
+
+createBuildDir()
 
 env = Environment(CPPPATH = ["#/common"],
                   CCFLAGS = ["-std=c++0x","-Weffc++", "-Wall", "-g"],
                   LIBS = ["analyzer"],
                   LIBPATH = ["#/build/common"],
                  )
-udisPath(env)
-initChecks(env)
+
+if ARGUMENTS.get('VERBOSE') != '1':
+    env['ARCOMSTR']     = "\033[35m[AR    ]\033[0m $TARGET"
+    env['CCCOMSTR']     = "\033[35m[CC    ]\033[0m $TARGET"
+    env['CXXCOMSTR']    = "\033[35m[CXX   ]\033[0m $TARGET"
+    env['LINKCOMSTR']   = "\033[35m[LD    ]\033[0m $TARGET"
+    env['RANLIBCOMSTR'] = "\033[35m[RANLIB]\033[0m $TARGET"
+
+if not env.GetOption("clean"):
+    udisPath(env)
+    initChecks(env)
 
 banner("Compilation")
 SConscript("common/SConscript",   variant_dir="build/common", exports='env')
