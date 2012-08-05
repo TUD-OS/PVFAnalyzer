@@ -30,12 +30,14 @@
  * @brief Command line long options
  **/
 struct option my_opts[] = {
-	{"file", required_argument, 0, 'f'},
-	{"help", no_argument,       0, 'h'},
-	{"hex",  no_argument,       0, 'x'},
+	{"file",    required_argument, 0, 'f'},
+	{"help",    no_argument,       0, 'h'},
+	{"hex",     no_argument,       0, 'x'},
+	{"outfile", required_argument, 0, 'o'},
 	{0,0,0,0} // this line be last
 };
 
+static std::string output_filename = "output.cfg";
 
 static void
 usage(char const *prog)
@@ -47,6 +49,7 @@ usage(char const *prog)
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal numbers" << std::endl;
 	std::cout << "\t                   as input to work on." << std::endl;
+	std::cout << "\t-o <file>          Write the resulting CFG to file." << std::endl;
 }
 
 
@@ -71,7 +74,7 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "f:hx")) != -1) {
+	while ((opt = getopt(argc, argv, "f:ho:x")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
 					std::cout << "input file: " << argv[optind-1] << std::endl;
@@ -97,9 +100,15 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 					retvec.push_back(reader);
 				}
 				break;
+
 			case 'h':
 				usage(argv[0]);
 				return false;
+
+			case 'o':
+				std::cout << "OUT: " << optarg << std::endl;
+				output_filename = optarg;
+				break;
 		}
 	}
 	return true;
@@ -199,7 +208,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	boost::write_graphviz(std::cout, cfg, GraphvizInstructionWriter(cfg));
 
 	/* Store graph */
-	std::ofstream ofs("something.cfg"); // XXX file name parameter
+	std::ofstream ofs(output_filename);
 	boost::archive::binary_oarchive oa(ofs);
 	oa << cfg;
 
