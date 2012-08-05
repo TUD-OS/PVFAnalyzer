@@ -16,6 +16,10 @@
 **********************************************************************/
 #pragma once
 
+/**
+ * @brief Raw input data structures working on bytes read from some source.
+ */
+
 #include <cassert>		// assert
 #include <cstring>		// memset
 #include <climits>		// ULONG_MAX

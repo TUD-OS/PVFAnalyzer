@@ -17,6 +17,10 @@
 
 #pragma once
 
+/**
+ * @brief Memory region data structures
+ */
+
 #include <cstdint>
 #include <cstddef>
 #include <cassert>
