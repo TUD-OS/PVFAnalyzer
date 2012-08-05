@@ -89,7 +89,6 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 					int idx = optind;
 					HexbyteInputReader *reader = new HexbyteInputReader();
 					while (idx < argc) {
-						//std::cout << optind << " " << argv[idx] << endl;
 						if (argv[idx][0] == '-') { // next option found
 							optind = idx;
 							break;
@@ -125,9 +124,8 @@ buildCFG(std::vector<InputReader*> const & v)
 	ControlFlowGraph   cfg;
 
 	// create initial dummy node (start)
-	boost::graph_traits<ControlFlowGraph>::vertex_descriptor lastDesc
-		= boost::add_vertex(CFGNodeInfo(0), cfg);
-	boost::graph_traits<ControlFlowGraph>::vertex_descriptor nextDesc;
+	CFGVertexDescriptor lastDesc = boost::add_vertex(CFGNodeInfo(0), cfg);
+	CFGVertexDescriptor nextDesc;
 
 	BOOST_FOREACH(InputReader* ir, v) {
 		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {

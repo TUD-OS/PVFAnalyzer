@@ -46,6 +46,9 @@ typedef boost::adjacency_list<boost::vecS,
                               boost::bidirectionalS,
                               CFGNodeInfo> ControlFlowGraph;
 
+typedef boost::graph_traits<ControlFlowGraph>::vertex_descriptor CFGVertexDescriptor;
+typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterator;
+
 /**
  * @brief Free the dynamically allocated memory associated with a CFG
  *
@@ -58,7 +61,7 @@ typedef boost::adjacency_list<boost::vecS,
  **/
 void freeCFGNodes(ControlFlowGraph &cfg)
 {
-	boost::graph_traits<ControlFlowGraph>::vertex_iterator vi, vi_end;
+	CFGVertexIterator vi, vi_end;
 	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
 		 vi != vi_end; ++vi) {
 		if (cfg[*vi].instruction) {
