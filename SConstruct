@@ -1,4 +1,4 @@
-targets = """common test cfg_reader"""
+targets = """common test cfg_reader  cfg_printer"""
 
 import os
 
@@ -116,12 +116,14 @@ if not env.GetOption("clean"):
 banner("Compilation")
 SConscript("common/SConscript",   variant_dir="build/common", exports='env')
 SConscript("cfg_reader/SConscript", variant_dir="build/cfg_reader",  exports='env')
+SConscript("cfg_printer/SConscript", variant_dir="build/cfg_printer",  exports='env')
 SConscript("testing/SConscript",  variant_dir="build/test",   exports='env')
 
 # make a test run after compilation
 env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
 
 Depends(env.reader , env.analyzerlib)
+Depends(env.printer, env.analyzerlib)
 Depends(env.test   , env.analyzerlib)
 Depends(env.testcmd, env.test)
 
