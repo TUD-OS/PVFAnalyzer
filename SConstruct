@@ -1,4 +1,4 @@
-targets = """common test cfg"""
+targets = """common test cfg_reader"""
 
 import os
 if not os.path.exists("build"):
