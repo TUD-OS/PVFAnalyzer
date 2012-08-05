@@ -35,22 +35,25 @@ struct option my_opts[] = {
 	{"help",    no_argument,       0, 'h'},
 	{"hex",     no_argument,       0, 'x'},
 	{"outfile", required_argument, 0, 'o'},
+	{"verbose", no_argument,       0, 'v'},
 	{0,0,0,0} // this line be last
 };
 
+static bool verbose                = false;
 static std::string output_filename = "output.cfg";
 
 static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>]"
+	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
-	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal numbers" << std::endl;
-	std::cout << "\t                   as input to work on." << std::endl;
-	std::cout << "\t-o <file>          Write the resulting CFG to file." << std::endl;
+	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal" << std::endl;
+	std::cout << "\t                   numbers as input to work on." << std::endl;
+	std::cout << "\t-o <file>          Write the resulting CFG to file. [output.cfg]" << std::endl;
+	std::cout << "\t-v                 Verbose output [off]" << std::endl;
 }
 
 
@@ -75,10 +78,9 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "f:ho:x")) != -1) {
+	while ((opt = getopt(argc, argv, "f:ho:xv")) != -1) {
 		switch(opt) {
 			case 'f': { // file input
-					std::cout << "input file: " << argv[optind-1] << std::endl;
 					FileInputReader *fr = new FileInputReader();
 					retvec.push_back(fr);
 					fr->addData(argv[optind-1]);
@@ -107,8 +109,11 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 				return false;
 
 			case 'o':
-				std::cout << "OUT: " << optarg << std::endl;
 				output_filename = optarg;
+				break;
+
+			case 'v':
+				verbose = true;
 				break;
 		}
 	}
@@ -141,8 +146,10 @@ buildCFG(std::vector<InputReader*> const & v)
 				/* XXX: need to add other targets here XXX */
 				lastDesc   = nextDesc; // sequential...
 
-				i->print();
-				std::cout << std::endl;
+				if (verbose) {
+					i->print();
+					std::cout << std::endl;
+				}
 				ip   += i->length();
 				offs += i->length();
 				//delete i;
@@ -150,18 +157,11 @@ buildCFG(std::vector<InputReader*> const & v)
 		}
 	}
 
-
-	/* ---------- CFG Postprocessing ---------- */
-
-	std::cout << "vertices in CFG: " << boost::num_vertices(cfg)
-	          << " " << boost::num_edges(cfg) << std::endl;
-
-	boost::write_graphviz(std::cout, cfg, GraphvizInstructionWriter(cfg));
-
 	/* Store graph */
 	std::ofstream ofs(output_filename);
 	boost::archive::binary_oarchive oa(ofs);
 	oa << cfg;
+	std::cout << "Wrote CFG to '" << output_filename << "'" << std::endl;
 
 	/*
 	 * Cleanup: we need to delete the instructions in the
@@ -227,11 +227,13 @@ main(int argc, char **argv)
 	if (input.size() == 0)
 		exit(1);
 
-	std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
-	std::cout << "input stream:\n";
-	dump_sections(input);
+	if (verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
+	if (verbose) {
+		std::cout << "input stream:\n";
+		dump_sections(input);
+		std::cout << "---------\n";
+	}
 
-	std::cout << "---------\n";
 	buildCFG(input);
 
 	cleanup(input);
