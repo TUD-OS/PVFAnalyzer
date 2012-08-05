@@ -21,9 +21,9 @@
 
 #include <boost/archive/binary_iarchive.hpp>
 
-#include "cfg.h"
 #include "version.h"
-#include "instruction_udis86.h"
+#include "instruction/cfg.h"
+#include "instruction/instruction_udis86.h"
 
 struct option my_opts[] = {
 	{"file",    required_argument, 0, 'f'},

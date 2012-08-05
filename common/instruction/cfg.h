@@ -21,7 +21,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
 
-#include "instruction.h"
+#include "instruction/instruction.h"
 
 /**
  * @brief CFG Node data

@@ -19,8 +19,8 @@
 #include <cstdint>
 #include <udis86.h>
 
-#include "memory.h"
-#include "instruction.h"
+#include "data/memory.h"
+#include "instruction/instruction.h"
 
 /**
  * @brief Disassembler interface

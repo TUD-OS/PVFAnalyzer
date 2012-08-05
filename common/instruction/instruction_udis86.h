@@ -16,7 +16,7 @@
 **********************************************************************/
 #pragma once
 
-#include "instruction.h"
+#include "instruction/instruction.h"
 
 #include <udis86.h>
 

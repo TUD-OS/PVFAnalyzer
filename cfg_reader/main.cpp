@@ -22,10 +22,10 @@
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/tuple/tuple.hpp>
-#include "input.h"            // DataSection, InputReader
-#include "disassembler.h"
-#include "instruction.h"
-#include "cfg.h"
+#include "data/input.h"            // DataSection, InputReader
+#include "instruction/disassembler.h"
+#include "instruction/instruction.h"
+#include "instruction/cfg.h"
 #include "version.h"
 
 /**

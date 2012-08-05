@@ -15,8 +15,8 @@
 
 **********************************************************************/
 
-#include "memory.h"
-#include "input.h"
+#include "data/memory.h"
+#include "data/input.h"
 #include "wvtest.h"
 
 #include <iostream>

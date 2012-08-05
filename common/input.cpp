@@ -14,7 +14,7 @@
   0. You just DO WHAT THE FUCK YOU WANT TO.
 
 **********************************************************************/
-#include "input.h"
+#include "data/input.h"
 
 #include <iostream>
 

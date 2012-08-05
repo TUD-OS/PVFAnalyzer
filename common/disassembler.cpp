@@ -14,8 +14,8 @@
   0. You just DO WHAT THE FUCK YOU WANT TO.
 
 **********************************************************************/
-#include "disassembler.h"
-#include "instruction_udis86.h"
+#include "instruction/disassembler.h"
+#include "instruction/instruction_udis86.h"
 #include <iostream>
 
 Instruction* Udis86Disassembler::disassemble(Address offset)
