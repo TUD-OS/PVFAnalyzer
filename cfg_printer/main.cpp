@@ -53,7 +53,7 @@ banner()
 	version_t version = global_program_version;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	std::cout << "\033[33m" << "        CFG Printer version " << version.major
 	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
@@ -66,8 +66,22 @@ parseInputFromOptions(int argc, char **argv)
 	int opt;
 
 	while ((opt = getopt(argc, argv, "f:ho:v")) != -1) {
+		switch(opt) {
+			case 'f':
+				input_filename = optarg;
+				break;
+			case 'h':
+				usage(argv[0]);
+				break;
+			case 'o':
+				output_filename = optarg;
+				break;
+			case 'v':
+				verbose = true;
+				break;
+		}
 	}
-	return false;
+	return true;
 }
 
 
@@ -75,6 +89,8 @@ int main(int argc, char **argv)
 {
 	if (not parseInputFromOptions(argc, argv))
 		return 1;
+	
+	banner();
 
 	return 0;
 }
