@@ -32,6 +32,7 @@
  * @brief Command line long options
  **/
 struct option my_opts[] = {
+	{"debug",   no_argument,       0, 'd'},
 	{"file",    required_argument, 0, 'f'},
 	{"help",    no_argument,       0, 'h'},
 	{"hex",     no_argument,       0, 'x'},
@@ -57,6 +58,7 @@ usage(char const *prog)
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
 	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
+	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal" << std::endl;
@@ -84,7 +86,11 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "f:ho:xv")) != -1) {
+	while ((opt = getopt(argc, argv, "df:ho:xv")) != -1) {
+
+		if (conf.parse_option(opt))
+			continue;
+
 		switch(opt) {
 			case 'f': { // file input
 					FileInputReader *fr = new FileInputReader();
@@ -115,10 +121,6 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 
 			case 'o':
 				conf.output_filename = optarg;
-				break;
-
-			case 'v':
-				conf.verbose = true;
 				break;
 		}
 	}

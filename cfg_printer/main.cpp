@@ -26,6 +26,7 @@
 #include "instruction/instruction_udis86.h"
 
 struct option my_opts[] = {
+	{"debug",   no_argument,       0, 'd'},
 	{"file",    required_argument, 0, 'f'},
 	{"help",    no_argument,       0, 'h'},
 	{"outfile", required_argument, 0, 'o'},
@@ -53,6 +54,7 @@ usage(char const *prog)
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
 	std::cout << prog << " [-h] [-f <file>] [-o <file>] [-v]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
+	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-f <file>          Read CFG from file. [input.cfg]" << std::endl;
 	std::cout << "\t-o <file>          Write graphviz output to file. [output.dot]" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -79,6 +81,9 @@ parseInputFromOptions(int argc, char **argv)
 	int opt;
 
 	while ((opt = getopt(argc, argv, "f:ho:v")) != -1) {
+		if (conf.parse_option(opt))
+			continue;
+
 		switch(opt) {
 			case 'f':
 				conf.input_filename = optarg;
@@ -88,9 +93,6 @@ parseInputFromOptions(int argc, char **argv)
 				break;
 			case 'o':
 				conf.output_filename = optarg;
-				break;
-			case 'v':
-				conf.verbose = true;
 				break;
 		}
 	}

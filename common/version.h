@@ -17,10 +17,25 @@ struct version_t {
 struct Configuration
 {
 	bool      verbose;
+	bool      debug;
 	version_t global_program_version;
 
+	bool parse_option(int opt)
+	{
+		switch(opt) {
+			case 'd':
+				debug = true;
+				return true;
+			case 'v':
+				verbose = true;
+				return true;
+			default:
+				return false;
+		}
+	}
+
 	Configuration()
-		: verbose(false), global_program_version(0,0)
+		: verbose(false), debug(false), global_program_version(0,0)
 	{ }
 
 	virtual ~Configuration() { }
@@ -35,3 +50,6 @@ public:
 
 #define VERBOSE(x) \
 	do { if (Configuration::get()->verbose) { x } } while (0)
+
+#define DEBUG(x) \
+	do { if (Configuration::get()->debug) std::cout << "DBG: "; { x } } while (0);
