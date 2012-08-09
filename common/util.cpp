@@ -1,3 +1,3 @@
-#include "version.h"
+#include "util.h"
 
 Configuration* Configuration::globalConfig = 0;

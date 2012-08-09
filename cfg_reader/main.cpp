@@ -26,7 +26,7 @@
 #include "instruction/disassembler.h"
 #include "instruction/instruction.h"
 #include "instruction/cfg.h"
-#include "version.h"
+#include "util.h"
 
 /**
  * @brief Command line long options

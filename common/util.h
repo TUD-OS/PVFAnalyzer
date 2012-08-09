@@ -53,3 +53,13 @@ public:
 
 #define DEBUG(x) \
 	do { if (Configuration::get()->debug) { std::cout << "DBG: [" << __func__ << "] "; { x }} } while (0);
+
+
+/* My exceptions */
+struct NotImplementedException
+{
+	char const *message;
+	NotImplementedException(char const *msg)
+		: message(msg)
+	{ }
+};
