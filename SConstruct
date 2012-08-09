@@ -99,6 +99,6 @@ SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer",exports='
 SConscript("testing/SConscript",     variant_dir="build/test",       exports='env')
 
 # make a test run after compilation
-#env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
+env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
 
-#env.Depends(env.testcmd, env.test)
+env.Depends(env.testcmd, env.test)
