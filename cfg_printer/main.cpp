@@ -33,10 +33,19 @@ struct option my_opts[] = {
 	{0,0,0,0} // this line be last
 };
 
-static bool verbose                = false;
-static std::string input_filename  = "input.cfg";
-static std::string output_filename = "output.dot";
 
+struct PrinterConfiguration : public Configuration
+{
+	std::string input_filename;
+	std::string output_filename;
+
+	PrinterConfiguration()
+		: Configuration(), input_filename("input.cfg"),
+	      output_filename("output.dot")
+	{ }
+};
+
+static PrinterConfiguration conf;
 
 static void
 usage(char const *prog)
@@ -54,7 +63,7 @@ usage(char const *prog)
 static void
 banner()
 {
-	version_t version = Configuration().global_program_version;
+	version_t version = conf.global_program_version;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
 	std::cout << "\033[33m" << "        CFG Printer version " << version.major()
@@ -72,16 +81,16 @@ parseInputFromOptions(int argc, char **argv)
 	while ((opt = getopt(argc, argv, "f:ho:v")) != -1) {
 		switch(opt) {
 			case 'f':
-				input_filename = optarg;
+				conf.input_filename = optarg;
 				break;
 			case 'h':
 				usage(argv[0]);
 				break;
 			case 'o':
-				output_filename = optarg;
+				conf.output_filename = optarg;
 				break;
 			case 'v':
-				verbose = true;
+				conf.verbose = true;
 				break;
 		}
 	}
@@ -91,15 +100,15 @@ parseInputFromOptions(int argc, char **argv)
 
 void readCFG(ControlFlowGraph& cfg)
 {
-	CFGFromFile(cfg, input_filename);
+	CFGFromFile(cfg, conf.input_filename);
 }
 
 void writeCFG(ControlFlowGraph& cfg)
 {
-	std::ofstream ofs(output_filename);
+	std::ofstream ofs(conf.output_filename);
 	GraphvizInstructionWriter gnw(cfg);
 	boost::write_graphviz(ofs, cfg, gnw);
-	std::cout << "Wrote output to '" << output_filename << "'" << std::endl;
+	std::cout << "Wrote output to '" << conf.output_filename << "'" << std::endl;
 
 	freeCFGNodes(cfg);
 }
@@ -117,7 +126,9 @@ int main(int argc, char **argv)
 {
 	if (not parseInputFromOptions(argc, argv))
 		return 1;
-	
+
+	Configuration::setConfig(&conf);
+
 	banner();
 	work();
 
