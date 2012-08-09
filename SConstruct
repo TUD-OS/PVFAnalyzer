@@ -1,8 +1,7 @@
-targets = """common test cfg_reader  cfg_printer"""
-
-import os
+import os, sys
 
 def createBuildDir():
+    targets = """common test cfg_reader  cfg_printer"""
     if not os.path.exists("build"):
         os.mkdir("build")
     for t in targets.split():
@@ -31,41 +30,20 @@ boost/graph/graphviz.hpp
 boost/serialization/export.hpp
 boost/serialization/serialization.hpp
 boost/tuple/tuple.hpp
-cassert
-cerrno
-climits
-cstddef
-cstdint
-cstdio
-cstdlib
-cstring
-ctype.h
-direct.h
-errno.h
-fstream
-getopt.h
-iomanip
-iostream
-libelf.h
-signal.h
-stdio.h
-stdlib.h
-string
-string.h
-sys/wait.h
-time.h
-udis86.h
-unistd.h
-vector
     """
 
-    conf = env.Configure()
-    conf.CheckCC()
-    conf.CheckCXX()
+    conf = Configure(env)
+    if not conf.CheckCC(): sys.exit(1)
+    if not conf.CheckCXX(): sys.exit(1)
     for f in unique_headers.split():
-        conf.CheckCXXHeader(f)
-    conf.CheckLibWithHeader("udis86", "udis86.h", "C++")
-    conf.CheckLib("boost_serialization", language="C++")
+        if not conf.CheckCXXHeader(f): sys.exit(1)
+
+    # Apparently, a SCons bug breaks dependencies if we use
+    # the checks below :(
+    #conf.CheckLibWithHeader("udis86", "udis86.h", "C++")
+    #conf.CheckLib("boost_serialization", language="C++")
+
+    return conf.Finish()
 
 def udisPath(env):
     import os
@@ -98,6 +76,7 @@ createBuildDir()
 
 env = Environment(CPPPATH = ["#/common"],
                   CCFLAGS = ["-std=c++0x","-Weffc++", "-Wall", "-g"],
+                  CPPFLAGS = ["-isystem", "/home/doebel/local/include"],
                   LIBS = ["analyzer"],
                   LIBPATH = ["#/build/common"],
                  )
@@ -111,23 +90,15 @@ if ARGUMENTS.get('VERBOSE') != '1':
 
 if not env.GetOption("clean"):
     udisPath(env)
-    initChecks(env)
+    env = initChecks(env)
 
 banner("Compilation")
-SConscript("common/SConscript",   variant_dir="build/common", exports='env')
-SConscript("cfg_reader/SConscript", variant_dir="build/cfg_reader",  exports='env')
-SConscript("cfg_printer/SConscript", variant_dir="build/cfg_printer",  exports='env')
-SConscript("testing/SConscript",  variant_dir="build/test",   exports='env')
+SConscript("common/SConscript",      variant_dir="#/build/common",     exports='env')
+SConscript("cfg_reader/SConscript",  variant_dir="#/build/cfg_reader", exports='env')
+SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer",exports='env')
+SConscript("testing/SConscript",     variant_dir="build/test",       exports='env')
 
 # make a test run after compilation
-env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
+#env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
 
-Depends(env.reader , env.analyzerlib)
-Depends(env.printer, env.analyzerlib)
-Depends(env.test   , env.analyzerlib)
-Depends(env.testcmd, env.test)
-
-# For some reason, scons -c does not seem to remove the
-# library created. So, we need to have a dedicated clean
-# rule to erase it.
-env.Clean(".", "build/common/libanalyzer.a")
+#env.Depends(env.testcmd, env.test)

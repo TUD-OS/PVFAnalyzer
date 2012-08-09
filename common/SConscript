@@ -7,7 +7,9 @@ cfgbuilder
 
 Import('env')
 
-for f in files.split():
-    env.Object("%s.cpp" %f)
+obj = []
 
-env.analyzerlib = Library('analyzer', [("%s.o" % f) for f in files.split()] )
+for f in files.split():
+    obj += [env.Object("%s.cpp" %f)]
+
+env.analyzerlib = env.Library('analyzer', obj)

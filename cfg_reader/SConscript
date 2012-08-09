@@ -8,5 +8,5 @@ Import('env')
 for f in files.split():
     env.Object("%s.cpp" %f)
 
-env.Append(LIBS = ["boost_serialization"])
 env.reader = env.Program('cfg', objects)
+env.Append(LIBS = ["boost_serialization"])
