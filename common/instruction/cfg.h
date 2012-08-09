@@ -54,11 +54,11 @@ typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterat
 class CFGBuilder
 {
 public:
-	static CFGBuilder* get();
+	static CFGBuilder* get(std::vector<InputReader*> const & input);
 
 	virtual ~CFGBuilder() { }
 
-	virtual void build(std::vector<InputReader*> input, Address entry) = 0;
+	virtual void build(Address entry) = 0;
 };
 
 /**

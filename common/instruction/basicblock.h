@@ -27,7 +27,7 @@ struct BasicBlock
 
 	BasicBlock()
 		: instructions()
-	{ }
+	{ std::cout << "BasicBlock()" << std::endl; }
 
 	/**
 	 * @brief Add a single instruction
@@ -49,7 +49,7 @@ struct BasicBlock
 	void add_instructions(std::vector<Instruction*>& orig)
 	{
 		instructions.insert(instructions.end(),
-							orig.begin(), orig.end());
+		                    orig.begin(), orig.end());
 	}
 
 	template <class Archive>

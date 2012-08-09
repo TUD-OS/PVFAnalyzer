@@ -40,8 +40,16 @@ struct option my_opts[] = {
 	{0,0,0,0} // this line be last
 };
 
-static bool verbose                = false;
-static std::string output_filename = "output.cfg";
+struct ReaderConfig : public Configuration
+{
+	std::string output_filename;
+
+	ReaderConfig()
+		: Configuration(), output_filename("output.cfg")
+	{ }
+};
+
+static ReaderConfig conf;
 
 static void
 usage(char const *prog)
@@ -61,11 +69,11 @@ usage(char const *prog)
 static void
 banner()
 {
-	version_t version = global_program_version;
+	version_t version = Configuration::get()->global_program_version;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
-	          << "." << version.minor << "\033[0m" << std::endl;
+	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major()
+	          << "." << version.minor() << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
 }
@@ -106,11 +114,11 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 				return false;
 
 			case 'o':
-				output_filename = optarg;
+				conf.output_filename = optarg;
 				break;
 
 			case 'v':
-				verbose = true;
+				conf.verbose = true;
 				break;
 		}
 	}
@@ -120,8 +128,9 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 static void
 buildCFG(std::vector<InputReader*> const & v)
 {
-	CFGBuilder* builder = CFGBuilder::get();
-	builder->build(v, 0);
+	CFGBuilder* builder = CFGBuilder::get(v);
+	std::cout << "Builder @ " << (void*)builder << std::endl;
+	builder->build(0);
 
 #if 0
 	Udis86Disassembler dis;
@@ -218,13 +227,15 @@ main(int argc, char **argv)
 	if (not parseInputFromOptions(argc, argv, input))
 		exit(2);
 
+	Configuration::setConfig(&conf);
+
 	banner();
 
 	if (input.size() == 0)
 		exit(1);
 
-	if (verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
-	if (verbose) {
+	if (conf.verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
+	if (conf.verbose) {
 		std::cout << "input stream:\n";
 		dump_sections(input);
 		std::cout << "---------\n";
