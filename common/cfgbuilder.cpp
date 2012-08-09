@@ -5,6 +5,35 @@
 #include "version.h"
 
 #include <boost/foreach.hpp>
+#include <boost/graph/depth_first_search.hpp>
+
+struct BBInfo {
+	BasicBlock *bb;
+	std::vector<Address> targets;
+
+	BBInfo()
+		: bb(0), targets()
+	{ }
+
+	BBInfo(BBInfo const &b)
+		: bb(b.bb), targets(b.targets)
+	{ }
+
+	BBInfo& operator=(BBInfo& other)
+	{ return *this; }
+
+public:
+	void dump()
+	{
+		std::cout << "BB @ " << (void*)bb << " -> [";
+		BOOST_FOREACH(Address a, targets) {
+			if (a != *targets.begin())
+				std::cout << ", ";
+			std::cout << a;
+		}
+		std::cout << "]";
+	}
+};
 
 class CFGBuilder_priv : public CFGBuilder
 {
@@ -13,7 +42,7 @@ class CFGBuilder_priv : public CFGBuilder
 
 	std::vector<InputReader*> const &inputs;
 
-	BasicBlock* generate(Address e);
+	BBInfo generate(Address e);
 
 	RelocatedMemRegion bufferForAddress(Address a)
 	{
@@ -62,22 +91,96 @@ CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in)
  * 3) JMP targets may go into the middle of an already discovered BB
  *    -> split the BB into two, add respective connections
  */
+
+struct TargetAddress
+{
+	Address a;
+	TargetAddress(Address _a) : a(_a) { }
+
+	bool operator () (std::pair<CFGVertexDescriptor, Address>& p)
+	{
+		return p.second == a;
+	}
+};
+
+class dfs_visitor : public boost::default_dfs_visitor {
+public:
+	dfs_visitor() {}
+
+	template <typename VERT, typename GRAPH>
+	void discover_vertex(VERT v, const GRAPH& g) const
+	{
+		/* Q: How to stop a search once you're done?
+		 * A: Throw an exception!
+		 *
+		 * http://stackoverflow.com/questions/1500709/how-do-i-stop-the-breadth-first-search-using-boost-graph-library-when-using-a-cu
+		 */
+		DEBUG(std::cout << v << std::endl;);
+		CFGNodeInfo i = g[v];
+		std::cout << i.bb << " ";
+		if (i.bb) std::cout << i.bb->instructions.size();
+		else std::cout << "[empty]";
+		std::cout << std::endl;
+	}
+};
+
 void CFGBuilder_priv::build (Address entry)
 {
 	DEBUG(std::cout << __func__ << "(" << std::hex << entry << ")" << std::endl;);
-	BasicBlock* bb = generate(entry);
-	(void)bb;
+
+	typedef std::pair<CFGVertexDescriptor, Address> BBConn;
+	std::list<BBConn> bb_connections;
+
+	/* Create an initial CFG node */
+	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), cfg);
+	/* init node links directly to entry point */
+	bb_connections.push_back(BBConn(initialVD, entry));
+
+	/* As long as we have unresolved connections... */
+	while (!bb_connections.empty()) {
+
+		BBConn next = bb_connections.front();
+		bb_connections.pop_front();
+
+		BBInfo bbi = generate(entry);
+		DEBUG(bbi.dump(); std::cout << std::endl; );
+
+		if (bbi.bb != 0) {
+			/*
+			* Definitely a new CFG vertex
+			*/
+			std::cout << bbi.bb << std::endl;
+			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), cfg);
+
+			dfs_visitor vis;
+			boost::depth_first_search(cfg, boost::visitor(vis));
+
+			/* for each target of this BB: */
+			BOOST_FOREACH(Address a, bbi.targets) {
+				// already have a BB with this start address?
+				// have a BB, but address points into its middle?
+				dfs_visitor vis;
+				boost::depth_first_search(cfg, boost::visitor(vis));
+
+				// need to discover more code first
+				bb_connections.push_back(BBConn(vd, a));
+			}
+		}
+	}
 }
 
 
-BasicBlock* CFGBuilder_priv::generate(Address e)
+BBInfo CFGBuilder_priv::generate(Address e)
 {
-	BasicBlock *r          = new BasicBlock();
-	(void)r;
+	BBInfo bbi;
+	bbi.bb                 = new BasicBlock();
 	RelocatedMemRegion buf = bufferForAddress(e);
 
-	if (buf.size == 0)
-		return 0;
+	if (buf.size == 0) {
+		delete bbi.bb;
+		bbi.bb = 0;
+		return bbi;
+	}
 
 	unsigned offs  = e - buf.mapped_base;
 	Instruction *i = 0;
@@ -90,10 +193,16 @@ BasicBlock* CFGBuilder_priv::generate(Address e)
 			DEBUG(std::cout << "End of input" << std::endl; );
 		} else {
 			DEBUG(i->print(); std::cout << std::endl;);
+			bbi.bb->add_instruction(i);
 			offs += i->length();
 		}
 
 	} while (i);
 
-	return 0;
+	if (bbi.bb->instructions.size() == 0) {
+		delete bbi.bb;
+		bbi.bb = 0;
+	}
+
+	return bbi;
 }

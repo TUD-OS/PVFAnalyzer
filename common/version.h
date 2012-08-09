@@ -52,4 +52,4 @@ public:
 	do { if (Configuration::get()->verbose) { x } } while (0)
 
 #define DEBUG(x) \
-	do { if (Configuration::get()->debug) std::cout << "DBG: "; { x } } while (0);
+	do { if (Configuration::get()->debug) { std::cout << "DBG: [" << __func__ << "] "; { x }} } while (0);

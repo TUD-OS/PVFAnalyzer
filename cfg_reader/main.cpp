@@ -131,7 +131,7 @@ static void
 buildCFG(std::vector<InputReader*> const & v)
 {
 	CFGBuilder* builder = CFGBuilder::get(v);
-	std::cout << "Builder @ " << (void*)builder << std::endl;
+	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 	builder->build(0);
 
 #if 0

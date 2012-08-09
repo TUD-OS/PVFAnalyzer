@@ -27,7 +27,7 @@ struct BasicBlock
 
 	BasicBlock()
 		: instructions()
-	{ std::cout << "BasicBlock()" << std::endl; }
+	{ }
 
 	/**
 	 * @brief Add a single instruction
