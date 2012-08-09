@@ -57,4 +57,16 @@ struct BasicBlock
 	{
 		a & instructions;
 	}
+
+	Address firstInstruction()
+	{
+		assert(!instructions.empty());
+		return instructions.front()->ip();
+	}
+
+	Address lastInstruction()
+	{
+		assert(!instructions.empty());
+		return instructions.back()->ip();
+	}
 };

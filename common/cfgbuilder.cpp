@@ -92,10 +92,10 @@ CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in)
  *    -> split the BB into two, add respective connections
  */
 
-struct TargetAddress
+struct BranchToAddress
 {
 	Address a;
-	TargetAddress(Address _a) : a(_a) { }
+	BranchToAddress(Address _a) : a(_a) { }
 
 	bool operator () (std::pair<CFGVertexDescriptor, Address>& p)
 	{
@@ -103,10 +103,23 @@ struct TargetAddress
 	}
 };
 
-class dfs_visitor : public boost::default_dfs_visitor {
-public:
-	dfs_visitor() {}
+struct CFGVertexFoundException
+{
+	CFGVertexDescriptor _vd;
+	CFGVertexFoundException(CFGVertexDescriptor v)
+		: _vd(v)
+	{ }
+};
 
+
+class dfs_visitor : public boost::default_dfs_visitor {
+	Address _a;
+public:
+	dfs_visitor(Address a)
+		: _a(a)
+	{}
+
+	/* XXX: We actually don't need a template fn, but only one instance of it */
 	template <typename VERT, typename GRAPH>
 	void discover_vertex(VERT v, const GRAPH& g) const
 	{
@@ -152,14 +165,14 @@ void CFGBuilder_priv::build (Address entry)
 			std::cout << bbi.bb << std::endl;
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), cfg);
 
-			dfs_visitor vis;
+			dfs_visitor vis(0);
 			boost::depth_first_search(cfg, boost::visitor(vis));
 
 			/* for each target of this BB: */
 			BOOST_FOREACH(Address a, bbi.targets) {
 				// already have a BB with this start address?
 				// have a BB, but address points into its middle?
-				dfs_visitor vis;
+				dfs_visitor vis(a);
 				boost::depth_first_search(cfg, boost::visitor(vis));
 
 				// need to discover more code first
