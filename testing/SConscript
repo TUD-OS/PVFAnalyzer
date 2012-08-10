@@ -1,6 +1,7 @@
 files = """
 test
 wvtest
+wvtestmain
 """
 
 objects = [("%s.o" % f) for f in files.split()]

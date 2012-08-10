@@ -17,6 +17,9 @@
 
 #include "data/memory.h"
 #include "data/input.h"
+
+#include "instruction/disassembler.h"
+
 #include "wvtest.h"
 
 #include <iostream>
@@ -99,6 +102,7 @@ hexinput_large()
 		hr.addData(in[0]);
 	}
 	WVPASSEQ(hr.section_count(), 1);
+	WVPASSEQ(hr.entry(), 0);
 	WVPASSEQ(static_cast<int>(hr.section(0)->bytes()), 3000);
 }
 
@@ -113,14 +117,34 @@ fileinput()
 }
 
 
-int main()
+static void
+testdisas()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	char const *input[] = {"c3"};
+	hir.addData(input[0]);
+
+	WVPASSEQ(hir.section_count(), 1);
+	WVPASSEQ(hir.entry(), 0);
+}
+
+WVTEST_MAIN("memory regions")
 {
 	memregion();
 	relocmemregion();
+}
+
+WVTEST_MAIN("input readers")
+{
 	hexinput();
 	hexinput_large();
 	fileinput();
+}
 
-	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
-	return 0;
+WVTEST_MAIN("disassembling")
+{
+	testdisas();
+
+//	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
 }
