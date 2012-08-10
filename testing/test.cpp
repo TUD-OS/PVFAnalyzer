@@ -23,6 +23,7 @@
 #include "wvtest.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 #include <iostream>
 
 WVTEST_MAIN("memregion")
@@ -112,6 +113,23 @@ WVTEST_MAIN("file input reader")
 	WVPASSEQ(static_cast<int>(fr.section(0)->bytes()), 32);
 }
 
+static void
+checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned offset,
+                           unsigned len, char const *repr, bool branch = false)
+{
+	Instruction *i = dis.disassemble(offset);
+	WVPASS(i);
+	WVPASSEQ(i->ip(), memloc + offset);
+	WVPASSEQ(i->membase(), dis.buffer().base + offset);
+	WVPASSEQ(i->length(), len);
+	std::string str(i->c_str());
+	boost::trim(str);
+	std::cout << "'" << str << "'" << " <-> '" << repr << "'" << std::endl;
+	WVPASS(strcmp(str.c_str(), repr) == 0);
+	WVPASSEQ(i->isBranch(), branch);
+	delete i;
+}
+
 
 WVTEST_MAIN("single disassembly")
 {
@@ -128,19 +146,78 @@ WVTEST_MAIN("single disassembly")
 	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
 	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, dis.buffer().mapped_base);
 
-	Instruction *i = dis.disassemble(0);
-	WVPASS(i);
-	WVPASSEQ(i->ip(), 0);
-	WVPASSEQ(i->membase(), dis.buffer().base);
-	WVPASSEQ(i->length(), 1);
-	std::string str(i->c_str());
-	boost::trim(str);
-	WVPASS(str == "ret");
-	WVPASS(i->isBranch() == true);
-
-	delete i;
+	checkSequentialInstruction(dis, 0, 0, 1, "ret", true);
 
 	/* there is no further instruction...*/
-	i = dis.disassemble(1);
+	Instruction *i = dis.disassemble(1);
+	WVPASS(i == 0);
+}
+
+
+WVTEST_MAIN("two instr. disassembly")
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	char const *input[] = {"89", "44", "24", "04",                    /* mov [esp+4], eax */
+	                       "c7", "04", "24", "00", "00", "00", "00"}; /* movl [esp], 0 */
+	for (unsigned i = 0; i < 11; ++i) {
+		hir.addData(input[i]);
+	}
+	WVPASSEQ(hir.section_count(), 1);
+	WVPASSEQ(hir.entry(), 0);
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, 0);
+
+	dis.buffer(hir.section(0)->getBuffer());
+	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, dis.buffer().mapped_base);
+
+	checkSequentialInstruction(dis, 0, 0, 4, "mov [esp+0x4], eax");
+	checkSequentialInstruction(dis, 0, 4, 7, "mov dword [esp], 0x0");
+
+	/* there is no further instruction...*/
+	Instruction *i = dis.disassemble(11);
+	WVPASS(i == 0);
+}
+
+
+WVTEST_MAIN("Instruction::relocated")
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	Address const codeAddress = 0x804c990;
+	char const *input = {"e8 bf 0a 00 00"};  /* call 804d454 */
+	std::vector<std::string> in;
+	boost::split(in, input, boost::is_any_of(" "));
+	WVPASS(in.size() == 5);
+
+	BOOST_FOREACH(std::string s, in) {
+		hir.addData(s.c_str());
+	}
+	hir.section(0)->relocationAddress(codeAddress);
+	WVPASSEQ(hir.section_count(), 1);
+	WVPASSEQ(hir.entry(), 0);
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, codeAddress);
+
+	dis.buffer(hir.section(0)->getBuffer());
+	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, dis.buffer().mapped_base);
+
+	checkSequentialInstruction(dis, codeAddress, 0, 5, "call dword 0x804d454", true);
+
+	/* relocate to other base address */
+	RelocatedMemRegion r = dis.buffer();
+	r.mapped_base = 0;
+
+	Udis86Disassembler d2;
+	d2.buffer(r);
+
+	checkSequentialInstruction(d2, 0, 0, 5, "call dword 0xac4", true);
+
+	/* there is no further instruction...*/
+	Instruction *i = dis.disassemble(5);
+	WVPASS(i == 0);
+
+	i = d2.disassemble(5);
+	std::cout << (void*)i << std::endl;
 	WVPASS(i == 0);
 }
