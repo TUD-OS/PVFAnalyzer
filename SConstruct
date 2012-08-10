@@ -47,7 +47,7 @@ boost/tuple/tuple.hpp
 
 def udisPath(env):
     import os
-    banner("UDIS86 Detection", "\033[34m")
+    banner("UDIS86 Detection", "\033[36m")
 
     output = os.popen("which udcli")
     path   = os.path.dirname(output.readlines()[0].strip())
@@ -72,7 +72,7 @@ def udisPath(env):
         sys.exit(1)
 
 def detect_wv():
-    banner("Detecting wvtestrun", "\033[34m")
+    banner("Detecting wvtestrun", "\033[36m")
     ret = os.popen("which wvtestrun").read().strip()
     if ret != "":
         print ret
