@@ -3,6 +3,7 @@ cfg
 cfgbuilder
 disassembler
 input
+udis86_helper
 util
 """
 
