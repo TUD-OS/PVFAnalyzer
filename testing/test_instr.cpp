@@ -131,7 +131,6 @@ test_jnz()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-
 	inputToDisassembler("0f 85 16 01 00 00", dis, hir, 0x804c5fc, 6);
 	checkSequentialInstruction(dis, 0x804c5fc, 0, 6, "jnz dword 0x804c718", true);
 }
@@ -141,7 +140,6 @@ test_call()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-
 	inputToDisassembler("e8 7c ff ff ff", dis, hir, 0x804bfdf, 5);
 	checkSequentialInstruction(dis, 0x804bfdf, 0, 5, "call dword 0x804bf60", true);
 }
@@ -152,7 +150,6 @@ test_call2()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-
 	inputToDisassembler("ff d0", dis, hir, 0, 2);
 	checkSequentialInstruction(dis, 0, 0, 2, "call eax", true);
 }
@@ -163,11 +160,28 @@ test_ret()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-
 	inputToDisassembler("c3", dis, hir, 0x804bfdf, 1);
 	checkSequentialInstruction(dis, 0x804bfdf, 0, 1, "ret", true);
 }
 
+
+static void
+test_jmp()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("ff 25 60 e1 07 08", dis, hir, 0, 6);
+	checkSequentialInstruction(dis, 0, 0, 6, "jmp dword [0x807e160]", true);
+}
+
+static void
+test_nop()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("90", dis, hir, 0, 1);
+	checkSequentialInstruction(dis, 0, 0, 1, "nop", false);
+}
 
 WVTEST_MAIN("branch checks")
 {
@@ -175,4 +189,6 @@ WVTEST_MAIN("branch checks")
 	test_call();
 	test_call2();
 	test_ret();
+	test_jmp();
+	test_nop();
 }
