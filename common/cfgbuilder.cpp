@@ -43,7 +43,7 @@ public:
 class CFGBuilder_priv : public CFGBuilder
 {
 	Udis86Disassembler dis; ///> underlying disassembler
-	ControlFlowGraph   cfg; ///> control flow graph
+	ControlFlowGraph   _cfg; ///> control flow graph
 
 	/*
 	 * List of input buffers to read instructions from.
@@ -75,10 +75,12 @@ class CFGBuilder_priv : public CFGBuilder
 
 public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in)
-		: dis(), cfg(), inputs(in)
+		: dis(), _cfg(), inputs(in)
 	{ }
 
 	virtual void build(Address a);
+
+	virtual ControlFlowGraph const& cfg() { return _cfg; }
 };
 
 /**
@@ -119,30 +121,45 @@ public:
 	void discover_vertex(CFGVertexDescriptor v, const ControlFlowGraph& g) const
 	{
 		BasicBlock *bb = g[v].bb;
-		DEBUG(std::cout << v << " " << bb << " " << _a << std::endl;);
+
 		// skip empty basic blocks (which only appear in the initial BB)
 		if (bb->instructions.size() > 0) {
-			DEBUG(std::cout << "  " << bb->firstInstruction() << " - " << bb->lastInstruction() << std::endl;);
+			DEBUG(std::cout << "Vertex " << v << " "
+	                         << bb->firstInstruction() << "-" << bb->lastInstruction()
+	                         << " srch " << _a << std::endl;);
 			if ((_a >= bb->firstInstruction()) and (_a <= bb->lastInstruction()))
 				throw CFGVertexFoundException(v);
 		}
 	}
 };
 
+/* We will find a lot of initially unresolved links by exploring a new
+ * basic block and finding its terminating instruction, which points to
+ * one or more other addresses. This type represents dangling links.
+ */
+typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
+
+struct AddressComparator
+{
+	BasicBlock *_b;
+	AddressComparator(BasicBlock *b) : _b(b) { }
+
+	bool operator() (UnresolvedLink u)
+	{
+		return ((_b->firstInstruction() <= u.second) and (u.second <= _b->lastInstruction()));
+	}
+};
+
+
 void CFGBuilder_priv::build(Address entry)
 {
 	DEBUG(std::cout << __func__ << "(" << std::hex << entry << ")" << std::endl;);
 
-	/* We will find a lot of initially unresolved links by exploring a new
-	 * basic block and finding its terminating instruction, which points to
-	 * one or more other addresses. This type represents dangling links.
-	 */
-	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink
 	/* This list stores all yet unresolved links. */;
 	std::list<UnresolvedLink> bb_connections;
 
 	/* Create an initial CFG node */
-	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), cfg);
+	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
 
 	/* The init node links directly to entry point. This is the first link we explore
 	 * in the loop below. */
@@ -153,6 +170,7 @@ void CFGBuilder_priv::build(Address entry)
 
 		UnresolvedLink next = bb_connections.front();
 		bb_connections.pop_front();
+		DEBUG(std::cout << "Exploring next BB starting @ " << (void*)next.second << std::endl;);
 
 		BBInfo bbi = exploreSingleBB(next.second);
 		DEBUG(bbi.dump(); std::cout << std::endl; );
@@ -160,8 +178,27 @@ void CFGBuilder_priv::build(Address entry)
 		if (bbi.bb != 0) {
 			DEBUG(std::cout << bbi.bb << std::endl;);
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
-			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), cfg);
+			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
 
+			DEBUG(std::cout << "Adding incoming edges..." << std::endl;);
+			/* We need to add an edge from the previous vd */
+			boost::add_edge(next.first, vd, _cfg);
+			/* Also, there might be more BBs with this target BB in the queue. */
+			std::list<UnresolvedLink>::iterator n =
+				std::find_if(bb_connections.begin(), bb_connections.end(), AddressComparator(bbi.bb));
+			while (n != bb_connections.end()) {
+				BasicBlock* b = _cfg[(*n).first].bb;
+				/* If the unresolved link goes to our start address, add an edge, ... */
+				if (b->firstInstruction() == bbi.bb->firstInstruction()) {
+					boost::add_edge((*n).first, vd, _cfg);
+				} else { /* ... otherwise, split right now.*/
+					throw NotImplementedException("split BB");
+				}
+				bb_connections.erase(n);
+				n = std::find_if(bb_connections.begin(), bb_connections.end(), AddressComparator(bbi.bb));
+			}
+
+			DEBUG(std::cout << "Scanning for BBs with outgoing targets." << std::endl;);
 			/* Now establish target links */
 			BOOST_FOREACH(Address a, bbi.targets) {
 				/*
@@ -178,18 +215,21 @@ void CFGBuilder_priv::build(Address entry)
 				 */
 				try {
 					BBForAddressFinder vis(a);
-					boost::depth_first_search(cfg, boost::visitor(vis));
+					boost::depth_first_search(_cfg, boost::visitor(vis));
 				} catch (CFGVertexFoundException cvfe) {
-					std::cout << "FOUND SOMETHING: " << cvfe._vd << std::endl;
+					DEBUG(std::cout << "Found a basic block: " << cvfe._vd << std::endl;);
 					/* Case 1 */
-					if (a == cfg[cvfe._vd].bb->firstInstruction()) {
-						boost::add_edge(vd, cvfe._vd, cfg);
+					if (a == _cfg[cvfe._vd].bb->firstInstruction()) {
+						DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
+						boost::add_edge(vd, cvfe._vd, _cfg);
 					} else { /* case 2 */
+						DEBUG(std::cout << "need to split BB" << std::endl;);
 						throw NotImplementedException("basic block split");
 					}
 					continue;
 				}
 
+				DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
 				// case 3: need to discover more code first
 				bb_connections.push_back(UnresolvedLink(vd, a));
 			}
@@ -201,6 +241,7 @@ void CFGBuilder_priv::build(Address entry)
 			throw NotImplementedException(__func__);
 		}
 	}
+	DEBUG(std::cout << "\033[32m" << "BB construction finished." << "\033[0m" << std::endl;);
 }
 
 
@@ -210,6 +251,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	RelocatedMemRegion buf = bufferForAddress(e);
 
 	if (buf.size == 0) { // no buffer found
+		DEBUG(std::cout << "Did not find code for entry point " << (void*)e << std::endl;);
 		return bbi;
 	}
 
@@ -227,18 +269,22 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			offs += i->length();
 
 			if (i->isBranch()) {
-				DEBUG(std::cout << "found branch." << std::endl;);
-				throw NotImplementedException("Branch target detection");
+				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
+				Address target = i->branchTarget();
+				bbi.targets.push_back(target);
+				// XXX: might have more than one branch target!
+				//throw NotImplementedException("Branch target detection");
 				break;
 			}
 
 		} else { // end of input
-			DEBUG(std::cout << "end of input" << std::endl;);
+			DEBUG(std::cout << "End of input. BB terminates here." << std::endl;);
 		}
 
 	} while (i);
 
 	if (bbi.bb->instructions.size() == 0) {
+		DEBUG(std::cout << "No instructions in BB?" << std::endl;);
 		delete bbi.bb;
 		bbi.bb = 0;
 	}

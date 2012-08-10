@@ -17,8 +17,10 @@
 #pragma once
 
 #include "instruction/instruction.h"
+#include "util.h"
 
 #include <udis86.h>
+#include <cstdio>
 
 /*
  * ud_t contains ud_operand members that need to have dedicated
@@ -116,6 +118,13 @@ struct udis86_t : public ud_t
 	}
 };
 
+class Udis86Helper
+{
+public:
+	static void print_ud_op(unsigned op);
+	static int64_t operandToValue(ud_t *ud, unsigned operandNo);
+};
+
 class Udis86Instruction : public Instruction
 {
 public:
@@ -182,13 +191,13 @@ public:
 	virtual bool isBranch()
 	{
 		switch(ud_obj()->mnemonic) {
-			case UD_Ija:	case UD_Ijae:	case UD_Ijb:
+			case UD_Ija:		case UD_Ijae:	case UD_Ijb:
 			case UD_Ijbe:	case UD_Ijcxz:	case UD_Ijecxz:
-			case UD_Ijg:	case UD_Ijge:	case UD_Ijl:
+			case UD_Ijg:		case UD_Ijge:	case UD_Ijl:
 			case UD_Ijle:	case UD_Ijmp:	case UD_Ijno:
 			case UD_Ijnp:	case UD_Ijns:	case UD_Ijnz:
-			case UD_Ijo:	case UD_Ijp:	case UD_Ijs:
-			case UD_Ijz:	case UD_Ijrcxz: case UD_Icall:
+			case UD_Ijo:		case UD_Ijp:		case UD_Ijs:
+			case UD_Ijz:		case UD_Ijrcxz:	case UD_Icall:
 			case UD_Iret:
 			/* yep, syscalls branch to somewhere else, too */
 			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:
@@ -199,6 +208,26 @@ public:
 		return false;
 	}
 
+
+	virtual Address branchTarget()
+	{
+		assert(isBranch());
+		ud_t *ud = ud_obj();
+		DEBUG(std::cout << "jump: " << ud_insn_asm(ud) << std::endl;);
+		/* Assumption: jumps always have a single target. */
+		assert(ud->operand[1].type == UD_NONE);
+		assert(ud->operand[2].type == UD_NONE);
+
+		int target = Udis86Helper::operandToValue(ud, 0);
+		DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
+		                << "+" << target << "=" << Instruction::ip() + length() + target
+		                << std::endl;);
+		target += Instruction::ip();
+		target += length();
+
+		return target;
+	}
+
 protected:
 	udis86_t _ud_obj;
 
@@ -207,4 +236,3 @@ private:
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
 };
 
-BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");

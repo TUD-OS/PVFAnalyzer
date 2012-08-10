@@ -58,7 +58,7 @@ public:
 	 *
 	 * @return Address
 	 **/
-	Address ip()                    { return _ip; }
+	Address ip()            { return _ip; }
 	virtual void    ip(Address a)   { _ip = a; }
 
 
@@ -98,6 +98,7 @@ public:
 	}
 
 	virtual bool isBranch() = 0;
+	virtual Address branchTarget() = 0;
 
 protected:
 	Address _ip;   // corresponding instruction pointer
