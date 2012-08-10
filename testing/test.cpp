@@ -22,10 +22,10 @@
 
 #include "wvtest.h"
 
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 
-static void
-memregion()
+WVTEST_MAIN("memregion")
 {
 	MemRegion r;
 	r.base = 0xF000;
@@ -41,8 +41,7 @@ memregion()
 }
 
 
-static void
-relocmemregion()
+WVTEST_MAIN("reloc memregion")
 {
 	RelocatedMemRegion r;
 	r.base = 0xF000;
@@ -65,8 +64,7 @@ relocmemregion()
 }
 
 
-static void
-hexinput()
+WVTEST_MAIN("hex input reader")
 {
 	HexbyteInputReader ir;
 	HexbyteInputReader ir2;
@@ -93,8 +91,7 @@ hexinput()
 }
 
 
-static void
-hexinput_large()
+WVTEST_MAIN("hex input, large")
 {
 	HexbyteInputReader hr;
 	char const *in[] = {"c3"};
@@ -106,8 +103,7 @@ hexinput_large()
 	WVPASSEQ(static_cast<int>(hr.section(0)->bytes()), 3000);
 }
 
-static void
-fileinput()
+WVTEST_MAIN("file input reader")
 {
 	char const *file = "testing/testcases/payload.bin";
 	FileInputReader fr;
@@ -117,8 +113,7 @@ fileinput()
 }
 
 
-static void
-testdisas()
+WVTEST_MAIN("single disassembly")
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
@@ -127,24 +122,25 @@ testdisas()
 
 	WVPASSEQ(hir.section_count(), 1);
 	WVPASSEQ(hir.entry(), 0);
-}
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, 0);
 
-WVTEST_MAIN("memory regions")
-{
-	memregion();
-	relocmemregion();
-}
+	dis.buffer(hir.section(0)->getBuffer());
+	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
+	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, dis.buffer().mapped_base);
 
-WVTEST_MAIN("input readers")
-{
-	hexinput();
-	hexinput_large();
-	fileinput();
-}
+	Instruction *i = dis.disassemble(0);
+	WVPASS(i);
+	WVPASSEQ(i->ip(), 0);
+	WVPASSEQ(i->membase(), dis.buffer().base);
+	WVPASSEQ(i->length(), 1);
+	std::string str(i->c_str());
+	boost::trim(str);
+	WVPASS(str == "ret");
+	WVPASS(i->isBranch() == true);
 
-WVTEST_MAIN("disassembling")
-{
-	testdisas();
+	delete i;
 
-//	std::cout << "\033[32m---> all tests finished. <---\033[0m" << std::endl;
+	/* there is no further instruction...*/
+	i = dis.disassemble(1);
+	WVPASS(i == 0);
 }
