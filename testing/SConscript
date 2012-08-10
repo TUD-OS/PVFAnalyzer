@@ -1,5 +1,6 @@
 files = """
-test
+test_data
+test_instr
 wvtest
 wvtestmain
 """
