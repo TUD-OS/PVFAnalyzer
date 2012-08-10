@@ -71,6 +71,14 @@ def udisPath(env):
         print "\033[31;1mudis86.h not found.\033[0m"
         sys.exit(1)
 
+def detect_wv():
+    banner("Detecting wvtestrun", "\033[34m")
+    ret = os.popen("which wvtestrun").read().strip()
+    if ret != "":
+        print ret
+    else:
+        print "<not found>"
+    return ret
 
 createBuildDir()
 
@@ -88,9 +96,11 @@ if ARGUMENTS.get('VERBOSE') != '1':
     env['LINKCOMSTR']   = "\033[35m[LD    ]\033[0m $TARGET"
     env['RANLIBCOMSTR'] = "\033[35m[RANLIB]\033[0m $TARGET"
 
+wvtestrun = ""
 if not env.GetOption("clean"):
     udisPath(env)
     env = initChecks(env)
+    wvtestrun = detect_wv()
 
 banner("Compilation")
 SConscript("common/SConscript",      variant_dir="#/build/common",     exports='env')
@@ -99,6 +109,7 @@ SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer",exports='
 SConscript("testing/SConscript",     variant_dir="build/test",       exports='env')
 
 # make a test run after compilation
-env.testcmd = env.Command("build_always", "", "build/test/cfgtest")
+env.Append(ENV = {"TERM" : os.environ["TERM"]})
+env.testcmd = env.Command("build_always", "", "%s build/test/cfgtest" % wvtestrun)
 
 env.Depends(env.testcmd, env.test)
