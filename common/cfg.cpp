@@ -31,7 +31,7 @@ void GraphvizInstructionWriter::operator() (std::ostream& out, const CFGVertexDe
 	BasicBlock* bb = g[v].bb;
 	if (!bb->instructions.empty()) {
 		out << "label=\"[@0x";
-		out << bb->firstInstruction() << "]\\l";
+		out << std::hex << bb->firstInstruction() << "]\\l";
 		BOOST_FOREACH(Instruction* i, bb->instructions) {
 			out << i->c_str() << "\\l";
 		}
