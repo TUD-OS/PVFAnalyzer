@@ -132,7 +132,11 @@ buildCFG(std::vector<InputReader*> const & v)
 {
 	CFGBuilder* builder = CFGBuilder::get(v);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
+	try {
 	builder->build(0);
+	} catch (NotImplementedException e) {
+		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
+	}
 
 #if 0
 	Udis86Disassembler dis;
