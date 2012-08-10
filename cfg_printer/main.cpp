@@ -136,3 +136,5 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#include "instruction/instruction_udis86.h"
+BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");

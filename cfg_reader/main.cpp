@@ -138,53 +138,15 @@ buildCFG(std::vector<InputReader*> const & v)
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
 	}
 
-#if 0
-	Udis86Disassembler dis;
-	ControlFlowGraph   cfg;
-
-	// create initial dummy node (start)
-	CFGVertexDescriptor lastDesc = boost::add_vertex(CFGNodeInfo(0), cfg);
-	CFGVertexDescriptor nextDesc;
-
-	/*
-	 * Iterate over the input sections and add all the basic blocks we find
-	 */
-	BOOST_FOREACH(InputReader* ir, v) {
-		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
-			dis.buffer(ir->section(sec)->getBuffer());
-
-			Address ip     = dis.buffer().mapped_base;
-			unsigned offs  = 0;
-			Instruction* i = 0;
-
-			while ((i = dis.disassemble(offs)) != 0) {
-
-				nextDesc   = boost::add_vertex(CFGNodeInfo(i), cfg);
-				boost::add_edge(lastDesc, nextDesc, cfg);
-				/* XXX: need to add other targets here XXX */
-				lastDesc   = nextDesc; // sequential...
-
-				if (verbose) {
-					i->print();
-					std::cout << std::endl;
-				}
-				ip   += i->length();
-				offs += i->length();
-				//delete i;
-			}
-		}
-	}
-
 	/* Store graph */
-	CFGToFile(cfg, output_filename);
-	std::cout << "Wrote CFG to '" << output_filename << "'" << std::endl;
+	CFGToFile(builder->cfg(), conf.output_filename);
+	std::cout << "Wrote CFG to '" << conf.output_filename << "'" << std::endl;
 
 	/*
 	 * Cleanup: we need to delete the instructions in the
 	 * CFG's vertex nodes.
 	 */
-	freeCFGNodes(cfg);
-#endif
+	freeCFGNodes(builder->cfg());
 }
 
 
@@ -253,3 +215,5 @@ main(int argc, char **argv)
 
 	return 0;
 }
+#include "instruction/instruction_udis86.h"
+BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");
