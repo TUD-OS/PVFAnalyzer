@@ -19,6 +19,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/foreach.hpp>  // FOREACH
 #include <fstream>
 
 #include "instruction/basicblock.h"
@@ -59,6 +60,7 @@ public:
 	virtual ~CFGBuilder() { }
 
 	virtual void build(Address entry) = 0;
+	virtual ControlFlowGraph const& cfg()   = 0;
 };
 
 /**
@@ -71,7 +73,7 @@ public:
  * @param cfg Control Flow Graph
  * @return void
  **/
-void freeCFGNodes(ControlFlowGraph &cfg);
+void freeCFGNodes(ControlFlowGraph const &cfg);
 void CFGToFile(ControlFlowGraph const & cfg, std::string const &name);
 void CFGFromFile(ControlFlowGraph& cfg, std::string const &name);
 
@@ -86,20 +88,5 @@ struct GraphvizInstructionWriter
 		: g(_g)
 	{ }
 
-	template <class Vertex>
-	void operator() (std::ostream& out, const Vertex &v) const
-	{
-		std::cerr << "Re-implement GraphViz write operator!" << std::endl;
-		out << " [shape=box,";
-#if 0
-		if (g[v].instruction) {
-			out << "label=\"\\[0x" << std::hex << std::setw(8)
-			    << g[v].instruction->ip() << "\\]\\n"
-			    << g[v].instruction->c_str() << "\"";
-		} else {
-			out << "label=\"<empty>\"";
-		}
-#endif
-		out << "]";
-	}
+	void operator() (std::ostream& out, const CFGVertexDescriptor &v) const;
 };
