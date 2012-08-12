@@ -1,0 +1,18 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "Bug: INT80 not identified as branch instruction"
+desc: ""
+type: :bugfix
+component: CFGAnalysis
+release: 
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-12 21:12:22.847401 Z
+references: []
+
+id: 8ce3a41a7f370b42ad1607c8b2304317d9590867
+log_events: 
+- - 2012-08-12 21:12:24.150049 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
