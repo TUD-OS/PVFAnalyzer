@@ -1,0 +1,21 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "CFGBuilder: let users provide ControlFlowGraph object initially"
+desc: |-
+  - easier memory management (users have to call FreeCFGNodes anyway)
+  - also better if CFG needs to be extended later, because you can then simply pass an already filled ControlFlowGraph and an additional list of unresolved jump targets to continue discovery, e.g., after a dynamic run
+type: :feature
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-13 11:39:02.482125 Z
+references: []
+
+id: 2ffd1b95a481b39f654f41a0883766d8bb42908d
+log_events: 
+- - 2012-08-13 11:39:03.526408 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
