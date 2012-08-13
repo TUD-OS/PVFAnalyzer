@@ -59,8 +59,8 @@ public:
 
 class CFGBuilder_priv : public CFGBuilder
 {
-	Udis86Disassembler dis; ///> underlying disassembler
-	ControlFlowGraph   _cfg; ///> control flow graph
+	Udis86Disassembler  dis; ///> underlying disassembler
+	ControlFlowGraph&  _cfg; ///> control flow graph
 
 	/*
 	 * List of input buffers to read instructions from.
@@ -91,21 +91,19 @@ class CFGBuilder_priv : public CFGBuilder
 	}
 
 public:
-	CFGBuilder_priv(std::vector<InputReader*> const& in)
-		: dis(), _cfg(), inputs(in)
+	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
+		: dis(), _cfg(cfg), inputs(in)
 	{ }
 
 	virtual void build(Address a);
-
-	virtual ControlFlowGraph const& cfg() { return _cfg; }
 };
 
 /**
  * @brief CFG Builder singleton accessor 
  */
-CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in)
+CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
 {
-	static CFGBuilder_priv p(in);
+	static CFGBuilder_priv p(in, cfg); // XXX might want to have more than one?
 	return &p;
 }
 

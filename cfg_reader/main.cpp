@@ -130,7 +130,8 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 static void
 buildCFG(std::vector<InputReader*> const & v)
 {
-	CFGBuilder* builder = CFGBuilder::get(v);
+	ControlFlowGraph cfg;
+	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 	try {
 	builder->build(0);
@@ -139,14 +140,14 @@ buildCFG(std::vector<InputReader*> const & v)
 	}
 
 	/* Store graph */
-	CFGToFile(builder->cfg(), conf.output_filename);
+	CFGToFile(cfg, conf.output_filename);
 	std::cout << "Wrote CFG to '" << conf.output_filename << "'" << std::endl;
 
 	/*
 	 * Cleanup: we need to delete the instructions in the
 	 * CFG's vertex nodes.
 	 */
-	freeCFGNodes(builder->cfg());
+	freeCFGNodes(cfg);
 }
 
 
