@@ -198,7 +198,7 @@ public:
 			case UD_Ijnp:	case UD_Ijns:	case UD_Ijnz:
 			case UD_Ijo:		case UD_Ijp:		case UD_Ijs:
 			case UD_Ijz:		case UD_Ijrcxz:	case UD_Icall:
-			case UD_Iret:
+			case UD_Iret:	case UD_Iint:
 			/* yep, syscalls branch to somewhere else, too */
 			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:
 			case UD_Isysret:

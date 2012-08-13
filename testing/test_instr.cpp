@@ -183,6 +183,15 @@ test_nop()
 	checkSequentialInstruction(dis, 0, 0, 1, "nop", false);
 }
 
+static void
+test_int80()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("cd 80", dis, hir, 0, 2);
+	checkSequentialInstruction(dis, 0, 0, 2, "int 0x80", true);
+}
+
 WVTEST_MAIN("branch checks")
 {
 	test_jnz();
@@ -191,4 +200,5 @@ WVTEST_MAIN("branch checks")
 	test_ret();
 	test_jmp();
 	test_nop();
+	test_int80();
 }

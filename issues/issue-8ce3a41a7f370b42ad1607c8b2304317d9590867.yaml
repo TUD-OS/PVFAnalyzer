@@ -5,8 +5,8 @@ type: :bugfix
 component: CFGAnalysis
 release: 
 reporter: doebel <doebel@tudos.org>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2012-08-12 21:12:22.847401 Z
 references: []
 
@@ -16,3 +16,11 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-13 08:38:45.830947 Z
+  - doebel <doebel@tudos.org>
+  - changed status from unstarted to in_progress
+  - ""
+- - 2012-08-13 08:41:18.823357 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - added check
