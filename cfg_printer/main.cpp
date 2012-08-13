@@ -109,10 +109,27 @@ void readCFG(ControlFlowGraph& cfg)
 
 void writeCFG(ControlFlowGraph& cfg)
 {
-	std::ofstream ofs(conf.output_filename);
+	std::streambuf *buf;  // output buffer pointer
+	std::ofstream ofs;    // file stream if outfile != stdout
+
+	if (conf.output_filename == "-") { // special output file '-'
+		buf = std::cout.rdbuf();
+	} else {
+		ofs.open(conf.output_filename);
+		if (!ofs.is_open()) {
+			std::cerr << "Could not open '" << conf.output_filename
+			          << "' for output. Redirecting to stdout."
+			          << std::endl;
+			buf = std::cout.rdbuf();
+		} else {
+			buf = ofs.rdbuf();
+		}
+	}
+
+	std::ostream out(buf); // the real output stream
+
 	GraphvizInstructionWriter gnw(cfg);
-	boost::write_graphviz(ofs, cfg, gnw);
-	std::cout << "Wrote output to '" << conf.output_filename << "'" << std::endl;
+	boost::write_graphviz(out, cfg, gnw);
 
 	freeCFGNodes(cfg);
 }
