@@ -17,18 +17,30 @@
 
 #include "data/memory.h"
 #include "data/input.h"
-
 #include "instruction/disassembler.h"
-
 #include "wvtest.h"
+#include "util.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include <iostream>
 
-static void
+class init
+{
+	Configuration globalCfg;
+public:
+	init()
+		: globalCfg(true, true)
+	{
+		Configuration::setConfig(&globalCfg);
+	}
+};
+
+init _i;
+
+static Instruction *
 checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned offset,
-                           unsigned len, char const *repr, bool branch = false)
+                           unsigned len, char const *repr, bool branch = false, bool release_mem = true)
 {
 	Instruction *i = dis.disassemble(offset);
 	WVPASS(i);
@@ -40,7 +52,13 @@ checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned off
 	std::cout << "'" << str << "'" << " <-> '" << repr << "'" << std::endl;
 	WVPASS(strcmp(str.c_str(), repr) == 0);
 	WVPASSEQ(i->isBranch(), branch);
-	delete i;
+
+	if (release_mem) {
+		delete i;
+		i = 0;
+	}
+
+	return i;
 }
 
 
@@ -201,4 +219,21 @@ WVTEST_MAIN("branch checks")
 	test_jmp();
 	test_nop();
 	test_int80();
+}
+
+
+static void test_int80branch()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("cd 80", dis, hir, 0, 2);
+	Instruction *i = checkSequentialInstruction(dis, 0, 0, 2, "int 0x80", true, false);
+	WVPASS(i != 0);
+	WVPASSEQ(i->branchTarget(), 3);
+	delete i;
+}
+
+WVTEST_MAIN("branch targets")
+{
+	test_int80branch();
 }
