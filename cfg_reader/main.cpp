@@ -33,6 +33,7 @@
  **/
 struct option my_opts[] = {
 	{"debug",   no_argument,       0, 'd'},
+	{"entry",   required_argument, 0, 'e'},
 	{"file",    required_argument, 0, 'f'},
 	{"help",    no_argument,       0, 'h'},
 	{"hex",     no_argument,       0, 'x'},
@@ -44,9 +45,10 @@ struct option my_opts[] = {
 struct ReaderConfig : public Configuration
 {
 	std::string output_filename;
+	Address entryPoint;
 
 	ReaderConfig()
-		: Configuration(), output_filename("output.cfg")
+		: Configuration(), output_filename("output.cfg"), entryPoint(0)
 	{ }
 };
 
@@ -58,12 +60,13 @@ usage(char const *prog)
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
 	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
-	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
-	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal" << std::endl;
 	std::cout << "\t                   numbers as input to work on." << std::endl;
 	std::cout << "\t-o <file>          Write the resulting CFG to file. [output.cfg]" << std::endl;
+	std::cout << "\t-e <addr>          Set decoding entry point address [0x00000000]" << std::endl;
+	std::cout << "\t-d                 Debug output [off]" << std::endl;
+	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
 }
 
@@ -86,7 +89,7 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "df:ho:xv")) != -1) {
+	while ((opt = getopt(argc, argv, "e:df:ho:xv")) != -1) {
 
 		if (conf.parse_option(opt))
 			continue;
@@ -122,6 +125,10 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 			case 'o':
 				conf.output_filename = optarg;
 				break;
+
+			case 'e':
+				conf.entryPoint = strtoul(optarg, 0, 0);
+				break;
 		}
 	}
 	return true;
@@ -134,7 +141,8 @@ buildCFG(std::vector<InputReader*> const & v)
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 	try {
-	builder->build(0);
+		VERBOSE(std::cout << "Decoding. Entry point 0x" << std::hex << conf.entryPoint << std::endl;);
+		builder->build(conf.entryPoint);
 	} catch (NotImplementedException e) {
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
 	}
