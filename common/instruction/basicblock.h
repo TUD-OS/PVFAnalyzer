@@ -24,9 +24,10 @@
 struct BasicBlock
 {
 	std::vector<Instruction*> instructions;
+	Instruction::BranchType   branchType;
 
 	BasicBlock()
-		: instructions()
+		: instructions(), branchType(Instruction::BranchType::BT_NONE)
 	{ }
 
 	/**

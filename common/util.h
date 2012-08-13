@@ -80,3 +80,7 @@ struct NotImplementedException
 		: message(msg)
 	{ }
 };
+
+struct NodeNotFoundException
+{
+};

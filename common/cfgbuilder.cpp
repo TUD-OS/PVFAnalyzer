@@ -21,6 +21,9 @@
 #include "instruction/disassembler.h"
 #include "util.h"
 
+#include <map>
+#include <vector>
+
 #include <boost/foreach.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
@@ -73,6 +76,8 @@ class CFGBuilder_priv : public CFGBuilder
 	 * @brief Explore a single basic block
 	 */
 	BBInfo exploreSingleBB(Address e);
+
+	CFGVertexDescriptor const findCFGNodeWithAddress(Address a);
 
 	/**
 	 * @brief Find input buffer containing an address
@@ -148,6 +153,19 @@ public:
 	}
 };
 
+
+CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
+{
+	try {
+		BBForAddressFinder vis(a);
+		boost::depth_first_search(_cfg, boost::visitor(vis));
+	} catch (CFGVertexFoundException cvfe) {
+		return cvfe._vd;
+	}
+
+	throw NodeNotFoundException();
+}
+
 /* We will find a lot of initially unresolved links by exploring a new
  * basic block and finding its terminating instruction, which points to
  * one or more other addresses. This type represents dangling links.
@@ -170,11 +188,30 @@ void CFGBuilder_priv::build(Address entry)
 {
 	DEBUG(std::cout << __func__ << "(" << std::hex << entry << ")" << std::endl;);
 
-	/* This list stores all yet unresolved links. */;
-	std::list<UnresolvedLink> bb_connections;
+	/* This list stores all yet unresolved links. We work until this
+	 * list becomes empty. */;
+	std::list<UnresolvedLink>      bb_connections;
+
+	/* CALL/RET discovery is tricky: we first discover a CALL site, but don't know
+	 * the BB that returns from that call yet. We therefore keep track of 2 maps:
+	 *
+	 * 1) For each call site, we store a mapping from the location of the CALL to
+	 *    the location the callee is going to return to.
+	 */
+	std::map<Address, Address>     callSites;
+	/*
+	 * 2) For each basic block we keep track of its RET location, which is defined as:
+	 *     RET(initial)  := NONE
+	 *     RET(calleeBB) := callSites[callerBB.lastInstruction()]
+	 *     RET(otherBB)  := RET(parentBB)
+	 */
+	std::map<BasicBlock*, Address> returnLocations;
 
 	/* Create an initial CFG node */
 	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
+
+	/* No BB to return to from init node */
+	returnLocations[_cfg[initialVD].bb] = ~0UL;
 
 	/* The init node links directly to entry point. This is the first link we explore
 	 * in the loop below. */
@@ -191,6 +228,45 @@ void CFGBuilder_priv::build(Address entry)
 		DEBUG(bbi.dump(); std::cout << std::endl; );
 
 		if (bbi.bb != 0) {
+			/* For each call, store the potential location of a later RET */
+			if (bbi.bb->branchType == Instruction::BT_CALL) {
+				Instruction *lastInst = bbi.bb->instructions.back();
+				DEBUG(std::cout << "storing call site: " << std::hex << bbi.bb->lastInstruction()
+				                << " -> " << lastInst->ip() + lastInst->length() << std::endl;);
+				callSites[bbi.bb->lastInstruction()] = lastInst->ip() + lastInst->length();
+			}
+
+			/* 
+			 * If the _previous_ branch was a CALL, this subgraph will have a
+			 * new return location set.
+			 */
+			BasicBlock* prevBB = _cfg[next.first].bb;
+			DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
+
+			if (prevBB->branchType == Instruction::BT_CALL) {
+				returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
+			} else if (prevBB->branchType == Instruction::BT_RET) {
+				Address retloc = returnLocations[bbi.bb];
+				if (retloc != ~0) {
+					CFGVertexDescriptor const node = findCFGNodeWithAddress(returnLocations[bbi.bb]);
+					returnLocations[bbi.bb] = returnLocations[_cfg[node].bb];
+				} else
+					returnLocations[bbi.bb] = ~0;
+			} else {
+				returnLocations[bbi.bb] = returnLocations[prevBB];
+			}
+
+			/*
+			 * If the BB is a RETurn, we need to add another target, which the disassembler
+			 * cannot tell us about, because its not encoded in the instruction.
+			 */
+			if (bbi.bb->branchType == Instruction::BT_RET) {
+				Address retloc = returnLocations[bbi.bb];
+				DEBUG(std::cout << "RET to " << std::hex << retloc << std::endl;);
+				if (retloc != ~0)
+					bbi.targets.push_back(retloc);
+			}
+
 			DEBUG(std::cout << bbi.bb << std::endl;);
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
@@ -213,7 +289,7 @@ void CFGBuilder_priv::build(Address entry)
 				n = std::find_if(bb_connections.begin(), bb_connections.end(), AddressComparator(bbi.bb));
 			}
 
-			DEBUG(std::cout << "Scanning for BBs with outgoing targets." << std::endl;);
+			DEBUG(std::cout << "Adding outgoing targets." << std::endl;);
 			/* Now establish target links */
 			BOOST_FOREACH(Address a, bbi.targets) {
 				/*
@@ -229,24 +305,19 @@ void CFGBuilder_priv::build(Address entry)
 				 *     -> Add an unresolved link and discover later.
 				 */
 				try {
-					BBForAddressFinder vis(a);
-					boost::depth_first_search(_cfg, boost::visitor(vis));
-				} catch (CFGVertexFoundException cvfe) {
-					DEBUG(std::cout << "Found a basic block: " << cvfe._vd << std::endl;);
-					/* Case 1 */
-					if (a == _cfg[cvfe._vd].bb->firstInstruction()) {
+					CFGVertexDescriptor const node = findCFGNodeWithAddress(a);
+					if (a == _cfg[node].bb->firstInstruction()) {
 						DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
-						boost::add_edge(vd, cvfe._vd, _cfg);
-					} else { /* case 2 */
+						boost::add_edge(vd, node, _cfg);
+					} else {
 						DEBUG(std::cout << "need to split BB" << std::endl;);
 						throw NotImplementedException("basic block split");
 					}
-					continue;
+				} catch (NodeNotFoundException) {
+					DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
+					// case 3: need to discover more code first
+					bb_connections.push_back(UnresolvedLink(vd, a));
 				}
-
-				DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
-				// case 3: need to discover more code first
-				bb_connections.push_back(UnresolvedLink(vd, a));
 			}
 		} else {
 			// XXX: Actually, we'd insert dummy targets here. The most likely
@@ -284,19 +355,14 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			offs += i->length();
 
 			if (i->isBranch()) {
-				std::vector<Address> btargets;
 				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
-				i->branchTargets(btargets);
-				BOOST_FOREACH(Address a, btargets) {
-					bbi.targets.push_back(a);
-				}
-				// XXX: might have more than one branch target!
-				//throw NotImplementedException("Branch target detection");
+				bbi.bb->branchType = i->branchTargets(bbi.targets);
 				break;
 			}
 
 		} else { // end of input
 			DEBUG(std::cout << "End of input. BB terminates here." << std::endl;);
+			break;
 		}
 
 	} while (i);
@@ -307,5 +373,6 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 		bbi.bb = 0;
 	}
 
+	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction() << " - " << bbi.bb->lastInstruction() << std::endl;);
 	return bbi;
 }

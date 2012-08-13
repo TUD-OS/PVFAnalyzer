@@ -57,6 +57,7 @@ usage(char const *prog)
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-f <file>          Read CFG from file. [input.cfg]" << std::endl;
 	std::cout << "\t-o <file>          Write graphviz output to file. [output.dot]" << std::endl;
+	std::cout << "\t                   (use -o - to print to stdout)" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 }
@@ -90,6 +91,7 @@ parseInputFromOptions(int argc, char **argv)
 				break;
 			case 'h':
 				usage(argv[0]);
+				exit(0);
 				break;
 			case 'o':
 				conf.output_filename = optarg;

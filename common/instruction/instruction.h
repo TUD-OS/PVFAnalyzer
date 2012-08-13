@@ -97,8 +97,32 @@ public:
 		ar & _base;
 	}
 
+	/**
+	 * @brief Determine if the instruction is a branch instruction.
+	 *
+	 * @return bool
+	 **/
 	virtual bool isBranch() = 0;
-	virtual void branchTargets(std::vector<Address>& v) = 0;
+
+	/**
+	 * @brief Types of branches
+	 **/
+	enum BranchType {
+		BT_NONE,
+		BT_JUMP_UNCOND,
+		BT_JUMP_COND,
+		BT_CALL,
+		BT_RET,
+		BT_INT,
+	};
+
+	/**
+	 * @brief Determine branch targets and type
+	 *
+	 * @param v vector to be filled with target addresses
+	 * @return :BranchType
+	 **/
+	virtual BranchType branchTargets(std::vector<Address>& v) = 0;
 
 protected:
 	Address _ip;   // corresponding instruction pointer

@@ -209,33 +209,44 @@ public:
 	}
 
 
-	virtual void branchTargets(std::vector<Address>& targets)
+	virtual Instruction::BranchType branchTargets(std::vector<Address>& targets)
 	{
-		assert(isBranch());
+		if (!isBranch())
+			return BT_NONE;
+
 		ud_t *ud = ud_obj();
 		DEBUG(std::cout << "jump: " << ud_insn_asm(ud) << std::endl;);
 		/* Assumption: jumps always have a single target. */
 		assert(ud->operand[1].type == UD_NONE);
 		assert(ud->operand[2].type == UD_NONE);
 
-		int target = Udis86Helper::operandToValue(ud, 0);
+		int target;
 
 		switch(ud->operand[0].type) {
 			case UD_OP_IMM:  /* Immediate operand. Value available in lval. */
-				DEBUG(std::cout << "branch to: " << target << std::endl;);
+				/* The immediate operand for INT xx is not a jump target. */
+				if (ud->mnemonic != UD_Iint) { // XXX is INT xx the special or the common case?
+					DEBUG(std::cout << "branch to: " << target << std::endl;);
+					targets.push_back(Udis86Helper::operandToValue(ud, 0));
+				}
 				break;
 			case UD_OP_JIMM: /* Immediate operand to branch instruction (relative offsets).
 			                    Value available in lval */
+				target  = Udis86Helper::operandToValue(ud, 0);
+				DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
+				                << "+" << std::dec << target << "="
+				                << std::hex << Instruction::ip() + length() + target
+				                << std::endl;);
 				target += Instruction::ip();
 				target += length();
-				DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
-				                << "+" << target << "=" << Instruction::ip() + length() + target
-				                << std::endl;);
 				targets.push_back(target);
+				break;
+			case UD_NONE:
+				DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);
 				break;
 			default:
 				DEBUG(std::cout << ud->operand[0].type << std::endl;);
-				throw NotImplementedException("operand to value");
+				throw NotImplementedException("branch target type");
 		}
 
 		switch(ud->mnemonic) {
@@ -253,6 +264,44 @@ public:
 			default:
 				break;
 		}
+
+		BranchType bt = BT_NONE;
+		/* Branch type detection */
+		switch(ud->mnemonic) {
+			case UD_Ija:		case UD_Ijae:	case UD_Ijb:		case UD_Ijbe:
+			case UD_Ijcxz:	case UD_Ijecxz:	case UD_Ijg:		case UD_Ijge:
+			case UD_Ijl:		case UD_Ijle:	case UD_Ijno:	case UD_Ijnp:
+			case UD_Ijns:	case UD_Ijnz:	case UD_Ijo:		case UD_Ijp:
+			case UD_Ijs:		case UD_Ijz:		case UD_Ijrcxz:
+				bt = BT_JUMP_COND;
+				DEBUG(std::cout << "BT_JUMP_COND" << std::endl;);
+				break;
+			case UD_Icall:
+				bt = BT_CALL;
+				DEBUG(std::cout << "BT_CALL" << std::endl;);
+				break;
+			case UD_Iret:
+				bt = BT_RET;
+				DEBUG(std::cout << "BT_RET" << std::endl;);
+				break;
+			case UD_Iint:
+				bt = BT_INT;
+				DEBUG(std::cout << "BT_INT" << std::endl;);
+				break;
+			case UD_Ijmp:
+				bt = BT_JUMP_UNCOND;
+				DEBUG(std::cout << "BT_JUMP_UNCOND" << std::endl;);
+				break;
+			/* yep, syscalls branch to somewhere else, too */
+			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:
+			case UD_Isysret:
+				bt = BT_INT;
+				break;
+			default:
+				break;
+		}
+
+		return bt;
 	}
 
 protected:
