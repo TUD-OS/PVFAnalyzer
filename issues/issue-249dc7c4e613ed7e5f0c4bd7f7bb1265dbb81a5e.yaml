@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: graphviz to stdout
+desc: make cfg_printer print to stdout using "-o -".
+type: :feature
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-13 13:37:23.813173 Z
+references: []
+
+id: 249dc7c4e613ed7e5f0c4bd7f7bb1265dbb81a5e
+log_events: 
+- - 2012-08-13 13:37:24.833539 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
