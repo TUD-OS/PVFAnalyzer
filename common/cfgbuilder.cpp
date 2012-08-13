@@ -247,7 +247,8 @@ void CFGBuilder_priv::build(Address entry)
 				returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
 			} else if (prevBB->branchType == Instruction::BT_RET) {
 				Address retloc = returnLocations[bbi.bb];
-				if (retloc != ~0) {
+				DEBUG(std::cout << std::dec << __LINE__ << ": retloc " << std::hex << retloc << std::endl;);
+				if (retloc) {
 					CFGVertexDescriptor const node = findCFGNodeWithAddress(returnLocations[bbi.bb]);
 					returnLocations[bbi.bb] = returnLocations[_cfg[node].bb];
 				} else
