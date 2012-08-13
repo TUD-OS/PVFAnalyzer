@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "CFGReader: cmd line option to set entry point"
+desc: For binary or command line hexdumps we might want to set the entry point to something different from the initial 0 address.
+type: :bugfix
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-13 13:42:07.630202 Z
+references: []
+
+id: 067f24cb86bed3f43e7c5cc4c0744a89ba10a7f6
+log_events: 
+- - 2012-08-13 13:42:08.647849 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
