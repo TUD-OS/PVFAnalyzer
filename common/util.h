@@ -51,8 +51,8 @@ struct Configuration
 		}
 	}
 
-	Configuration()
-		: verbose(false), debug(false), global_program_version(0,0)
+	Configuration(bool verb = false, bool dbg = false)
+		: verbose(verb), debug(dbg), global_program_version(0,0)
 	{ }
 
 	virtual ~Configuration() { }
