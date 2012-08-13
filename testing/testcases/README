@@ -1,2 +1,7 @@
-callret.bin: function call / return test case
-payload.bin: Julian's buffer overflow shellcode from DOS
+callret.bin: 
+    * function call / return test case
+    * entry point: 0x00000005
+
+payload.bin:
+    * Julian's buffer overflow shellcode from DOS
+    * entry point: 0x00000000
