@@ -98,7 +98,7 @@ public:
 	}
 
 	virtual bool isBranch() = 0;
-	virtual Address branchTarget() = 0;
+	virtual void branchTargets(std::vector<Address>& v) = 0;
 
 protected:
 	Address _ip;   // corresponding instruction pointer

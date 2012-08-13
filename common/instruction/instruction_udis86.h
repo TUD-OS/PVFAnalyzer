@@ -209,7 +209,7 @@ public:
 	}
 
 
-	virtual Address branchTarget()
+	virtual void branchTargets(std::vector<Address>& targets)
 	{
 		assert(isBranch());
 		ud_t *ud = ud_obj();
@@ -219,13 +219,40 @@ public:
 		assert(ud->operand[2].type == UD_NONE);
 
 		int target = Udis86Helper::operandToValue(ud, 0);
-		DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
-		                << "+" << target << "=" << Instruction::ip() + length() + target
-		                << std::endl;);
-		target += Instruction::ip();
-		target += length();
 
-		return target;
+		switch(ud->operand[0].type) {
+			case UD_OP_IMM:  /* Immediate operand. Value available in lval. */
+				DEBUG(std::cout << "branch to: " << target << std::endl;);
+				break;
+			case UD_OP_JIMM: /* Immediate operand to branch instruction (relative offsets).
+			                    Value available in lval */
+				target += Instruction::ip();
+				target += length();
+				DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
+				                << "+" << target << "=" << Instruction::ip() + length() + target
+				                << std::endl;);
+				targets.push_back(target);
+				break;
+			default:
+				DEBUG(std::cout << ud->operand[0].type << std::endl;);
+				throw NotImplementedException("operand to value");
+		}
+
+		switch(ud->mnemonic) {
+			/* The following instructions also have their successor instruction
+			 * as branch target: */
+			case UD_Ija:		case UD_Ijae:	case UD_Ijb:
+			case UD_Ijbe:	case UD_Ijcxz:	case UD_Ijecxz:
+			case UD_Ijg:		case UD_Ijge:	case UD_Ijl:
+			case UD_Ijle:	case UD_Ijno:
+			case UD_Ijnp:	case UD_Ijns:	case UD_Ijnz:
+			case UD_Ijo:		case UD_Ijp:		case UD_Ijs:
+			case UD_Ijz:		case UD_Ijrcxz:	case UD_Iint:
+				targets.push_back(Instruction::ip() + length());
+				break;
+			default:
+				break;
+		}
 	}
 
 protected:

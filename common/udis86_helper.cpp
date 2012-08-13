@@ -31,10 +31,13 @@ int64_t Udis86Helper::operandToValue(ud_t *ud, unsigned opno)
 {
 	ud_operand_t op = ud->operand[opno];
 	switch(op.type) {
+		case UD_OP_CONST:    /* Values are immediately available in lval */
+		case UD_OP_IMM:
 		case UD_OP_JIMM:
 			DEBUG(std::cout << op.lval.sqword << std::endl;);
 			break;
 		default:
+			DEBUG(std::cout << op.type << std::endl;);
 			throw NotImplementedException("operand to value");
 	}
 

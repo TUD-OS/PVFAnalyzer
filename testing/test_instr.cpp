@@ -229,7 +229,10 @@ static void test_int80branch()
 	inputToDisassembler("cd 80", dis, hir, 0, 2);
 	Instruction *i = checkSequentialInstruction(dis, 0, 0, 2, "int 0x80", true, false);
 	WVPASS(i != 0);
-	WVPASSEQ(i->branchTarget(), 3);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 1);
+	WVPASSEQ(btargets[0], 2);
 	delete i;
 }
 

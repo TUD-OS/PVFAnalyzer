@@ -286,9 +286,12 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			offs += i->length();
 
 			if (i->isBranch()) {
+				std::vector<Address> btargets;
 				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
-				Address target = i->branchTarget();
-				bbi.targets.push_back(target);
+				i->branchTargets(btargets);
+				BOOST_FOREACH(Address a, btargets) {
+					bbi.targets.push_back(a);
+				}
 				// XXX: might have more than one branch target!
 				//throw NotImplementedException("Branch target detection");
 				break;
