@@ -4,5 +4,22 @@ version: "0.5"
 components: 
 - !ditz.rubyforge.org,2008-03-06/component 
   name: CFGAnalysis
-releases: []
-
+releases: 
+- !ditz.rubyforge.org,2008-03-06/release 
+  name: "0.1"
+  status: :unreleased
+  release_time: 
+  log_events: 
+  - - 2012-08-13 09:55:54.704006 Z
+    - doebel <doebel@tudos.org>
+    - created
+    - ""
+- !ditz.rubyforge.org,2008-03-06/release 
+  name: "0.2"
+  status: :unreleased
+  release_time: 
+  log_events: 
+  - - 2012-08-13 09:58:09.299057 Z
+    - doebel <doebel@tudos.org>
+    - created
+    - ""

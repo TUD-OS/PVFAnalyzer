@@ -6,7 +6,7 @@ desc: |-
   - calls need to be known for finding the corresponding ret
 type: :feature
 component: CFGAnalysis
-release: 
+release: "0.1"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -19,3 +19,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-13 09:57:10.532845 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.1 from unassigned
+  - ""
+git_branch: 

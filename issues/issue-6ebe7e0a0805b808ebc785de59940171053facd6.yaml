@@ -3,7 +3,7 @@ title: Register PVF analysis
 desc: Analysis run to perform vulnerability analysis against register bit flips
 type: :feature
 component: CFGAnalysis
-release: 
+release: "0.2"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -16,3 +16,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-13 09:58:27.183906 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.2 from unassigned
+  - ""
+git_branch: 

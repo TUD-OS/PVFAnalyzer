@@ -3,7 +3,7 @@ title: Dynamic analysis
 desc: Run code and obtain a dynamic trace e.g., for basic block execution frequencies and analysis of dynamic jump targets.
 type: :feature
 component: CFGAnalysis
-release: 
+release: "0.2"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -16,3 +16,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-13 09:58:23.338957 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.2 from unassigned
+  - ""
+git_branch: 

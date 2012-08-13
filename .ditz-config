@@ -2,3 +2,5 @@
 name: doebel
 email: doebel@tudos.org
 issue_dir: issues
+git_commit_url_prefix: ""
+git_branch_url_prefix: ""

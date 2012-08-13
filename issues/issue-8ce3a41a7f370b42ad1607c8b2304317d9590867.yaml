@@ -3,7 +3,7 @@ title: "Bug: INT80 not identified as branch instruction"
 desc: ""
 type: :bugfix
 component: CFGAnalysis
-release: 
+release: "0.1"
 reporter: doebel <doebel@tudos.org>
 status: :closed
 disposition: :fixed
@@ -24,3 +24,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - closed with disposition fixed
   - added check
+- - 2012-08-13 09:58:43.536502 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.1 from unassigned
+  - ""
+git_branch: 
