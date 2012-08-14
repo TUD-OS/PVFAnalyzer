@@ -236,7 +236,23 @@ static void test_int80branch()
 	delete i;
 }
 
+
+static void
+test_nop_branch()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("90", dis, hir, 0, 1);
+	Instruction* i = checkSequentialInstruction(dis, 0, 0, 1, "nop", false, false);
+	WVPASS(i != 0);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 0);
+	delete i;
+}
+
 WVTEST_MAIN("branch targets")
 {
 	test_int80branch();
+	test_nop_branch();
 }
