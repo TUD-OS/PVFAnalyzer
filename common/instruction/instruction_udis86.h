@@ -276,6 +276,7 @@ public:
 			case UD_OP_IMM:  /* Immediate operand. Value available in lval. */
 				/* The immediate operand for INT xx is not a jump target. */
 				if (ud->mnemonic != UD_Iint) { // XXX is INT xx the special or the common case?
+					target  = Udis86Helper::operandToValue(ud, 0);
 					DEBUG(std::cout << "branch to: " << target << std::endl;);
 					targets.push_back(Udis86Helper::operandToValue(ud, 0));
 				}
