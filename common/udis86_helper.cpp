@@ -1,6 +1,6 @@
 #include "instruction/instruction_udis86.h"
 
-void Udis86Helper::print_ud_op(unsigned op)
+void Udis86Helper::printUDOp(unsigned op)
 {
 	switch(op) {
 		case UD_OP_CONST:

@@ -22,10 +22,12 @@
 #include <udis86.h>
 #include <cstdio>
 
-/*
+/**
+ * @brief Wrapper struct for udis86's data structure
+ *
  * ud_t contains ud_operand members that need to have dedicated
  * serialization routine as well.
- */
+ **/
 struct udop : public ud_operand_t
 {
 	udop(ud_operand_t& op)
@@ -118,13 +120,34 @@ struct udis86_t : public ud_t
 	}
 };
 
+/**
+ * @brief Utility helper for interfacing with UDIS86
+ **/
 class Udis86Helper
 {
 public:
-	static void    print_ud_op(unsigned op);
+	/**
+	 * @brief Print UDIS86 opcode
+	 *
+	 * @param op opcode / operand type / ...
+	 * @return void
+	 **/
+	static void    printUDOp(unsigned op);
+
+	
+	/**
+	 * @brief Get the numeric value of a given operand
+	 *
+	 * @param ud Udis86 instruction
+	 * @param operandNo operand number (0-2)
+	 * @return int64_t
+	 **/
 	static int64_t operandToValue(ud_t *ud, unsigned operandNo);
 };
 
+/**
+ * @brief Udis86-specific instruction information
+ **/
 class Udis86Instruction : public Instruction
 {
 public:
@@ -140,17 +163,34 @@ public:
 	virtual ~Udis86Instruction()
 	{ }
 	
+	/**
+	 * @brief Determine the instruction's length in bytes.
+	 *
+	 * @return unsigned int
+	 **/
 	virtual unsigned length()
 	{
 		return ud_insn_len(_udObj.udptr());
 	}
 	
+	/**
+	 * @brief Set the instruction's address
+	 *
+	 * @param a EIP
+	 * @return void
+	 **/
 	virtual void ip(Address a)
 	{
 		Instruction::ip(a);
 		ud_set_pc(_udObj.udptr(), a);
 	}
 
+	/**
+	 * @brief Set the byte stream this instruction belongs to
+	 *
+	 * @param a buffer address
+	 * @return void
+	 **/
 	virtual void membase(Address a)
 	{
 		Instruction::membase(a);
@@ -161,6 +201,11 @@ public:
 		ud_set_input_buffer(_udObj.udptr(), reinterpret_cast<uint8_t*>(a), 32);
 	}
 
+	/**
+	 * @brief Print the instruction to std::cout
+	 *
+	 * @return void
+	 **/
 	virtual void print()
 	{
 		std::cout << "\033[33m";
@@ -170,6 +215,11 @@ public:
 	}
 
 
+	/**
+	 * @brief Obtain a C-string representation of this instruction.
+	 *
+	 * @return char*
+	 **/
 	virtual char const *c_str() const
 	{
 		return ud_insn_asm(const_cast<ud*>(_udObj.udp()));

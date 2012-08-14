@@ -124,6 +124,17 @@ public:
 	 **/
 	uint32_t bytes() { return _dataIndex; }
 
+	/**
+	 * @brief Get this buffer's relocation address.
+	 * 
+	 * We load binary sections somewhere into memory. However, these sections may belong to
+	 * a different location in their real path of execution, e.g., ELF binary sections may
+	 * be loaded to specific addresses depending on information from the binary file. We store
+	 * this information as relocation info along with the buffer, so that we can perform lookups
+	 * for runtime addresses within the CFG.
+	 *
+	 * @return Address
+	 **/
 	Address relocationAddress() { return _reloc; }
 	void relocationAddress(Address a) { _reloc = a; }
 
@@ -188,26 +199,51 @@ public:
 	 **/
 	virtual void addData(char const *input) = 0;
 
+	/**
+	 * @brief Get the underlying stream's execution entry point.
+	 *
+	 * @return Address
+	 **/
 	Address entry() { return _entry; }
 
-	DataSection* section(unsigned number) // XXX: return a const reference?
+	/**
+	 * @brief Get section at a specific index.
+	 *
+	 * @param number index into section table
+	 * @return DataSection*
+	 **/
+	DataSection* section(unsigned number)
 	{
 		if (number > sectionCount())
 			return 0;
 		return _sections[number];
 	}
 
+	/**
+	 * @brief Search for a section containing an address
+	 *
+	 * Searches for a section that (if correctly relocated!) contains
+	 * the given address.
+	 *
+	 * @param a Relocated address to search for
+	 * @return DataSection*
+	 **/
 	DataSection* sectionForAddress(Address a)
 	{
 		for (unsigned n = 0; n < sectionCount(); ++n) {
 			RelocatedMemRegion mbuf = section(n)->getBuffer();
-			if ((mbuf.base >= a) and
-			    (a < mbuf.base + mbuf.size))
+			if (mbuf.relocContains(a)) {
 				return section(n);
+			}
 		}
 		return 0;
 	}
 
+	/**
+	 * @brief Get count of available binary sections
+	 *
+	 * @return unsigned int
+	 **/
 	unsigned sectionCount() { return _sections.size(); }
 
 private:
@@ -273,5 +309,11 @@ private:
 	 **/
 	bool esELFFile(std::ifstream& str);
 
+	/**
+	 * @brief Parse ELF binary and put all loadable segments into memory.
+	 *
+	 * @param filename binary file to parse
+	 * @return void
+	 **/
 	void parseElf(char const* filename);
 };

@@ -37,6 +37,9 @@ struct Version {
 	{ }
 };
 
+/**
+ * @brief Application configuration, global part
+ **/
 struct Configuration
 {
 	bool    verbose;
@@ -78,7 +81,9 @@ public:
 	do { if (Configuration::get()->debug) { std::cout << "DBG: [" << __func__ << "] "; { x }} } while (0);
 
 
-/* My exceptions */
+/**
+ * @brief Exception indicating that a certain feature has not been implemented yet.
+ **/
 struct NotImplementedException
 {
 	char const *message;
@@ -87,6 +92,14 @@ struct NotImplementedException
 	{ }
 };
 
+
+/**
+ * @brief Node with given properties not found in CFG.
+ **/
 struct NodeNotFoundException { };
 
+
+/**
+ * @brief Error during ELF parsing
+ **/
 struct ELFException { };

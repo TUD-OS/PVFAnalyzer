@@ -27,10 +27,12 @@
 #include <boost/foreach.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
-/*
- * Data that is returned from building a single
- * new basic block.
- */
+/**
+ * @brief Internal BB info used by CFGBuilder_priv
+ *
+ * In addition to the BB itself, this data also incorporates connection
+ * information, which later is stored as edges inside the CFG.
+ **/
 struct BBInfo {
 	BasicBlock          *bb;      // BB pointer
 	std::vector<Address> targets; // list of targets this BB branches to
@@ -47,6 +49,11 @@ struct BBInfo {
 	{ return *this; }
 
 public:
+	/**
+	 * @brief Dump BBInfo
+	 *
+	 * @return void
+	 **/
 	void dump()
 	{
 		std::cout << "BB @ " << (void*)bb << " -> [";
@@ -60,6 +67,9 @@ public:
 };
 
 
+/**
+ * @brief Actual implementation of the CFG builder
+ **/
 class CFGBuilder_priv : public CFGBuilder
 {
 	Udis86Disassembler  dis; ///> underlying disassembler
@@ -77,6 +87,12 @@ class CFGBuilder_priv : public CFGBuilder
 	 */
 	BBInfo exploreSingleBB(Address e);
 
+	/**
+	 * @brief Find the CFG node containing a given EIP
+	 *
+	 * @param a EIP
+	 * @return CFGVertexDescriptor
+	 **/
 	CFGVertexDescriptor const findCFGNodeWithAddress(Address a);
 
 	/**
@@ -166,11 +182,13 @@ CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
 	throw NodeNotFoundException();
 }
 
+
 /* We will find a lot of initially unresolved links by exploring a new
  * basic block and finding its terminating instruction, which points to
  * one or more other addresses. This type represents dangling links.
  */
 typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
+
 
 struct AddressComparator
 {
@@ -347,6 +365,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	Instruction *i;
 
 	dis.buffer(buf);
+	/* We disassemble instructions as long as we find some in the buffer ... */
 	do {
 		i = dis.disassemble(offs);
 
@@ -355,7 +374,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			bbi.bb->addInstruction(i);
 			offs += i->length();
 
-			if (i->isBranch()) {
+			if (i->isBranch()) { // .. except, we find a branch instruction
 				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
 				bbi.bb->branchType = i->branchTargets(bbi.targets);
 				break;
@@ -365,9 +384,13 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			DEBUG(std::cout << "End of input. BB terminates here." << std::endl;);
 			break;
 		}
-
 	} while (i);
 
+	/*
+	 * Bogus: we found a BB with 0 instructions -> delete it right now.
+	 *
+	 * XXX: Should this ever happen?
+	 */
 	if (bbi.bb->instructions.size() == 0) {
 		DEBUG(std::cout << "No instructions in BB?" << std::endl;);
 		delete bbi.bb;

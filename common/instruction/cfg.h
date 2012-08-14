@@ -30,7 +30,7 @@
  **/
 struct CFGNodeInfo
 {
-	BasicBlock* bb; // right now we only store an instruction
+	BasicBlock* bb; // right now we only store a basic block
 
 	CFGNodeInfo(BasicBlock *b = 0)
 		: bb(b)
@@ -43,6 +43,8 @@ struct CFGNodeInfo
 	}
 };
 
+
+/* CFG typedef */
 typedef boost::adjacency_list<boost::vecS,
                               boost::vecS,
                               boost::bidirectionalS,
@@ -52,15 +54,32 @@ typedef boost::graph_traits<ControlFlowGraph>::vertex_descriptor CFGVertexDescri
 typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterator;
 
 
+/**
+ * @brief CFG Creator
+ **/
 class CFGBuilder
 {
 public:
+	/**
+	 * @brief Create a new builder for the given CFG and input sections.
+	 *
+	 * @param input filled in input sections
+	 * @param cfg CFG to build/extend
+	 * @return CFGBuilder*
+	 **/
 	static CFGBuilder* get(std::vector<InputReader*> const & input, ControlFlowGraph& cfg);
 
 	virtual ~CFGBuilder() { }
 
+	/**
+	 * @brief Analyse and build CFG from input.
+	 *
+	 * @param entry Entry point address to start analysing at.
+	 * @return void
+	 **/
 	virtual void build(Address entry) = 0;
 };
+
 
 /**
  * @brief Free the dynamically allocated memory associated with a CFG
@@ -73,8 +92,28 @@ public:
  * @return void
  **/
 void freeCFGNodes(ControlFlowGraph const &cfg);
+
+
+/**
+ * @brief Serialize CFG into a file.
+ *
+ * @param cfg CFG
+ * @param name file name
+ * @return void
+ **/
 void CFGToFile(ControlFlowGraph const & cfg, std::string const &name);
+
+
+/**
+ * @brief Read CFG from a file
+ *
+ * @param cfg CFG
+ * @param name file name
+ * @return void
+ **/
+
 void CFGFromFile(ControlFlowGraph& cfg, std::string const &name);
+
 
 /**
  * @brief Node writer for Graphviz CFG output

@@ -74,12 +74,25 @@ struct BasicBlock
 		a & instructions;
 	}
 
+	/**
+	 * @brief Get the first instruction's address
+	 *
+	 * @return Address
+	 **/
 	Address firstInstruction()
 	{
 		assert(!instructions.empty());
 		return instructions.front()->ip();
 	}
 
+	/**
+	 * @brief Get the address of this BB's _last_ instruction
+	 *
+	 * Note, that the last instruction is _not_ the last byte
+	 * of this BB.
+	 *
+	 * @return Address
+	 **/
 	Address lastInstruction()
 	{
 		assert(!instructions.empty());
