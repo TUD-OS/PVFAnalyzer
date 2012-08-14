@@ -19,16 +19,31 @@
 #include "instruction/instruction.h"
 
 #include <boost/serialization/vector.hpp>
+#include <boost/foreach.hpp>
 #include <vector>
 
+/**
+ * @brief Representation of a single basic block.
+ **/
 struct BasicBlock
 {
-	std::vector<Instruction*> instructions;
-	Instruction::BranchType   branchType;
+	std::vector<Instruction*> instructions; // instructions in this BB
+	Instruction::BranchType   branchType;   // type of branch that terminates this BB
 
 	BasicBlock()
 		: instructions(), branchType(Instruction::BranchType::BT_NONE)
 	{ }
+
+	~BasicBlock()
+	{
+		/*
+		 * Releasing a BB means to also release all memory associated
+		 * with the contained instructions.
+		 */
+		BOOST_FOREACH(Instruction* i, instructions) {
+			delete i;
+		}
+	}
 
 	/**
 	 * @brief Add a single instruction
