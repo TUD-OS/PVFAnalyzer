@@ -3,7 +3,7 @@ title: proper handling of ELF control flow
 desc: ""
 type: :feature
 component: CFGAnalysis
-release: "0.2"
+release: "0.3"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -16,4 +16,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-14 11:59:20.148456 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.3 from 0.2
+  - later...
 git_branch: 

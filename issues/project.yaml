@@ -27,3 +27,12 @@ releases:
     - doebel <doebel@tudos.org>
     - created
     - ""
+- !ditz.rubyforge.org,2008-03-06/release 
+  name: "0.3"
+  status: :unreleased
+  release_time: 
+  log_events: 
+  - - 2012-08-14 11:57:21.773501 Z
+    - doebel <doebel@tudos.org>
+    - created
+    - ""

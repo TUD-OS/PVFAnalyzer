@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Tracing for dynamic jump targets
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 11:57:39.057243 Z
+references: []
+
+id: d0cb1a4f09acabdf5d103df0db59780971814775
+log_events: 
+- - 2012-08-14 11:57:40.276805 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
