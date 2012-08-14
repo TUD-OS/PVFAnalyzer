@@ -17,6 +17,7 @@
 
 #include <iostream>	          // std::cout
 #include <getopt.h>	          // getopt()
+#include <libgen.h>
 #include <boost/foreach.hpp>  // FOREACH
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
@@ -156,7 +157,8 @@ buildCFG(std::vector<InputReader*> const & v)
 
 	/* Store graph */
 	CFGToFile(cfg, conf.output_filename);
-	std::cout << "Wrote CFG to '" << conf.output_filename << "'" << std::endl;
+	std::cout << "Wrote CFG to '" << basename((char*)conf.output_filename.c_str())
+	          << "'" << std::endl;
 
 	/*
 	 * Cleanup: we need to delete the instructions in the
