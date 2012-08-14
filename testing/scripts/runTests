@@ -1,0 +1,33 @@
+#!/bin/bash
+
+if [ -z $BASEDIR ]; then
+	echo -e "\033[31;1mMust set BASEDIR environment variable\033[0m"
+	exit 1
+fi
+
+source $BASEDIR/testing/scripts/global.sh.inc
+if [ $? != 0 ]; then
+#	echo global.sh.inc not found.
+	exit 1;
+fi
+
+# erase previous test output
+mkdir -p $TESTOUT
+rm $TESTOUT/*
+
+for s in $ROOTDIR/testing/scripts/*.sh; do
+	base=$(basename $s | sed -e's/\.sh//g')
+	echo -n $base ": "
+	BASEOUT=$TESTOUT/$base.out
+	EXPECT=$ROOTDIR/testing/scripts/$base.expect
+	DIFFCMD="diff -rub $EXPECT $BASEOUT"
+	$s >$BASEOUT
+	$DIFFCMD >/dev/null
+	ret=$?
+	if [ $ret == 0 ]; then
+		echo -e "\033[32;1mOK\033[0m"
+	else
+		echo -e "\033[31;1mFAIL\033[0m"
+		$DIFFCMD
+	fi
+done

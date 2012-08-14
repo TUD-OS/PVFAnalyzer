@@ -1,0 +1,3 @@
+ROOTDIR=$BASEDIR
+TESTCASES=$ROOTDIR/testing/testcases
+TESTOUT=$ROOTDIR/testing/testout

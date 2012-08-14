@@ -1,0 +1,17 @@
+[34m********************************************[0m
+[33m        CFG Analyzer version 0.0[0m
+[34m********************************************[0m
+Wrote CFG to '/home/doebel/src/cfganalysis/testing/testout/payload.cfg'
+[34m********************************************[0m
+[33m        CFG Printer version 0.0[0m
+[34m********************************************[0m
+digraph G {
+0 [shape=box,fontname=Terminus,label="<empty>"];
+1 [shape=box,fontname=Terminus,label="[@0x0]\ljmp 0x12\l"];
+2 [shape=box,fontname=Terminus,label="[@0x12]\lcall dword 0x2\l"];
+3 [shape=box,fontname=Terminus,label="[@0x2]\lpop ebx\lxor edx, edx\lmov [ebx+0x9], dl\lpush edx\lpush ebx\lmov ecx, esp\lxor eax, eax\lmov al, 0xb\lint 0x80\l"];
+0->1 ;
+1->2 ;
+2->3 ;
+3->2 ;
+}

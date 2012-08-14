@@ -110,6 +110,10 @@ SConscript("testing/SConscript",     variant_dir="build/test",       exports='en
 
 # make a test run after compilation
 env.Append(ENV = {"TERM" : os.environ["TERM"]})
+
 env.testcmd = env.Command("build_always", "", "%s build/test/cfgtest" % wvtestrun)
+env.Append(ENV = {"BASEDIR" : os.environ["PWD"]})
+env.integrationTests = env.Command("build_always2", "", "testing/scripts/runTests")
 
 env.Depends(env.testcmd, env.test)
+env.Depends(env.integrationTests, env.test)
