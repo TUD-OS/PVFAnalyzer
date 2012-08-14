@@ -117,6 +117,13 @@ public:
 	{ }
 
 	virtual void build(Address a);
+
+	/*
+	 * We will find a lot of initially unresolved links by exploring a new
+	 * basic block and finding its terminating instruction, which points to
+	 * one or more other addresses. This type represents dangling links.
+	 */
+	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
 };
 
 /**
@@ -183,19 +190,12 @@ CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
 }
 
 
-/* We will find a lot of initially unresolved links by exploring a new
- * basic block and finding its terminating instruction, which points to
- * one or more other addresses. This type represents dangling links.
- */
-typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
-
-
 struct AddressComparator
 {
 	BasicBlock *_b;
 	AddressComparator(BasicBlock *b) : _b(b) { }
 
-	bool operator() (UnresolvedLink u)
+	bool operator() (CFGBuilder_priv::UnresolvedLink const & u) const
 	{
 		return ((_b->firstInstruction() <= u.second) and (u.second <= _b->lastInstruction()));
 	}
