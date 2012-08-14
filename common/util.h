@@ -61,7 +61,7 @@ struct Configuration
 	}
 
 	Configuration(bool verb = false, bool dbg = false)
-		: verbose(verb), debug(dbg), globalProgramVersion(0,0)
+		: verbose(verb), debug(dbg), globalProgramVersion(0,1)
 	{ }
 
 	virtual ~Configuration() { }

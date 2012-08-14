@@ -1,9 +1,9 @@
 [34m********************************************[0m
-[33m        CFG Analyzer version 0.0[0m
+[33m        CFG Analyzer version 0.1[0m
 [34m********************************************[0m
 Wrote CFG to '/home/doebel/src/cfganalysis/testing/testout/payload.cfg'
 [34m********************************************[0m
-[33m        CFG Printer version 0.0[0m
+[33m        CFG Printer version 0.1[0m
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,label="<empty>"];
