@@ -3,12 +3,9 @@
 *~
 *.kdev4
 *.kate-swp
-cfg
-cfgtest
 .*.swp
 .kdev_include*
 build
 .sconsign.dblite
 config.log
 .sconf_temp
-something.cfg
