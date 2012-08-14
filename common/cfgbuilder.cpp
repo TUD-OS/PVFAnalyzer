@@ -72,6 +72,25 @@ public:
  **/
 class CFGBuilder_priv : public CFGBuilder
 {
+public:
+	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
+		: dis(), _cfg(cfg), inputs(in)
+	{ }
+
+	virtual void build(Address a);
+
+	/*
+	 * We will find a lot of initially unresolved links by exploring a new
+	 * basic block and finding its terminating instruction, which points to
+	 * one or more other addresses. This type represents dangling links.
+	 */
+	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
+
+	typedef std::list<UnresolvedLink>               PendingResolutionList;
+	typedef std::map<Address, Address>              CallSiteMap;
+	typedef std::map<BasicBlock*, Address>          ReturnLocationMap;
+
+private:
 	Udis86Disassembler  dis; ///> underlying disassembler
 	ControlFlowGraph&  _cfg; ///> control flow graph
 
@@ -111,19 +130,113 @@ class CFGBuilder_priv : public CFGBuilder
 		return RelocatedMemRegion();
 	}
 
-public:
-	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: dis(), _cfg(cfg), inputs(in)
-	{ }
+	/**
+	 * @brief Helper: handle incoming edges for newly discovered BB
+	 *
+	 * When discovering a new BB, we need to go through the list of
+	 * pending resolutions to check if there are other unresolved links
+	 * to the newly discovered basic block. If so, we either a) add an
+	 * additional edge or b) need to split the BB.
+	 *
+	 * @param prevVertex vertex we started discovering this BB from
+	 * @param newVertex  new vertex
+	 * @param pending    list of pending connections
+	 * @param bbi        BBInfo descriptor for new BB
+	 * @return void
+	 **/
+	void handleIncomingEdges(CFGVertexDescriptor prevVertex,
+	                         CFGVertexDescriptor newVertex,
+	                         PendingResolutionList& pending,
+	                         BBInfo& bbi);
 
-	virtual void build(Address a);
+	/**
+	 * @brief Helper: handle outgoing edges for a newly discovered BB
+	 *
+	 * Adds outgoing edges for the new BB. If the target address is in
+	 * an already known BB, we add an outgoing edge. If we don't know
+	 * about the target BB yet, we add a new unresolved link.
+	 *
+	 * @param bbi       Basic Block Info
+	 * @param newVertex new vertex
+	 * @param pending   list of pending resolutions
+	 * @return void
+	 **/
+	void handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVertex,
+	                         PendingResolutionList& pending);
 
-	/*
-	 * We will find a lot of initially unresolved links by exploring a new
-	 * basic block and finding its terminating instruction, which points to
-	 * one or more other addresses. This type represents dangling links.
-	 */
-	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
+	/**
+	 * @brief Helper: update call sites with new BB
+	 *
+	 * To properly identify the targets of RET instructions, we need
+	 * to keep a list of call sites and their successor instructions during
+	 * BB discovery. This list needs to be updated for every newly discovered
+	 * BB that is terminated by a CALL.
+	 *
+	 * @param bbi   new Basic Block
+	 * @param calls list of call sites during BB discovery
+	 * @return void
+	 **/
+	void updateCallsites(BBInfo& bbi, CallSiteMap& calls)
+	{
+		/* For each call, store the potential location of a later RET */
+		if (bbi.bb->branchType == Instruction::BT_CALL) {
+			Instruction *lastInst = bbi.bb->instructions.back();
+			DEBUG(std::cout << "storing call site: " << std::hex << bbi.bb->lastInstruction()
+			                << " -> " << lastInst->ip() + lastInst->length() << std::endl;);
+			calls[bbi.bb->lastInstruction()] = lastInst->ip() + lastInst->length();
+		}
+	}
+
+	/**
+	 * @brief Helper: update return locations
+	 *
+	 * When encountering a RET instruction, we need to determine where this
+	 * BB is returning to. To do so, each BB is assigned a RET location. When
+	 * coming from a CALL BB, this RET location is updated to the CALL BB's successor
+	 * instruction (see updateCallsites()). For every other BB, the RET location is
+	 * identical to the RET location of its parent BB.
+	 *
+	 * @param bbi             new basic block
+	 * @param prevBB          parent BB
+	 * @param returnLocations list of potential return sites
+	 * @param callSites       list of call sites
+	 * @return void
+	 **/
+	void updateReturnLocations(BBInfo& bbi, BasicBlock* prevBB,
+	                           ReturnLocationMap& returnLocations,
+	                           CallSiteMap& callSites)
+	{
+		/* 
+		 * If the _previous_ branch was a CALL, this subgraph will have a
+		 * new return location set.
+		 */
+		DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
+
+		if (prevBB->branchType == Instruction::BT_CALL) {
+			returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
+		} else if (prevBB->branchType == Instruction::BT_RET) {
+			Address retloc = returnLocations[bbi.bb];
+			DEBUG(std::cout << std::dec << __LINE__ << ": retloc " << std::hex << retloc << std::endl;);
+			if (retloc) {
+				CFGVertexDescriptor const node = findCFGNodeWithAddress(returnLocations[bbi.bb]);
+				returnLocations[bbi.bb] = returnLocations[_cfg[node].bb];
+			} else
+				returnLocations[bbi.bb] = ~0;
+		} else {
+			returnLocations[bbi.bb] = returnLocations[prevBB];
+		}
+
+		/*
+		 * If the BB is a RETurn, we need to add another target, which the disassembler
+		 * cannot tell us about, because its not encoded in the instruction.
+		 */
+		if (bbi.bb->branchType == Instruction::BT_RET) {
+			Address retloc = returnLocations[bbi.bb];
+			DEBUG(std::cout << "RET to " << std::hex << retloc << std::endl;);
+			if (retloc != ~0)
+				bbi.targets.push_back(retloc);
+		}
+	}
 };
 
 /**
@@ -208,7 +321,7 @@ void CFGBuilder_priv::build(Address entry)
 
 	/* This list stores all yet unresolved links. We work until this
 	 * list becomes empty. */;
-	std::list<UnresolvedLink>      bb_connections;
+	PendingResolutionList bb_connections;
 
 	/* CALL/RET discovery is tricky: we first discover a CALL site, but don't know
 	 * the BB that returns from that call yet. We therefore keep track of 2 maps:
@@ -216,14 +329,14 @@ void CFGBuilder_priv::build(Address entry)
 	 * 1) For each call site, we store a mapping from the location of the CALL to
 	 *    the location the callee is going to return to.
 	 */
-	std::map<Address, Address>     callSites;
+	CallSiteMap           callSites;
 	/*
 	 * 2) For each basic block we keep track of its RET location, which is defined as:
 	 *     RET(initial)  := NONE
 	 *     RET(calleeBB) := callSites[callerBB.lastInstruction()]
 	 *     RET(otherBB)  := RET(parentBB)
 	 */
-	std::map<BasicBlock*, Address> returnLocations;
+	ReturnLocationMap     returnLocations;
 
 	/* Create an initial CFG node */
 	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
@@ -246,98 +359,17 @@ void CFGBuilder_priv::build(Address entry)
 		DEBUG(bbi.dump(); std::cout << std::endl; );
 
 		if (bbi.bb != 0) {
-			/* For each call, store the potential location of a later RET */
-			if (bbi.bb->branchType == Instruction::BT_CALL) {
-				Instruction *lastInst = bbi.bb->instructions.back();
-				DEBUG(std::cout << "storing call site: " << std::hex << bbi.bb->lastInstruction()
-				                << " -> " << lastInst->ip() + lastInst->length() << std::endl;);
-				callSites[bbi.bb->lastInstruction()] = lastInst->ip() + lastInst->length();
-			}
+			updateCallsites(bbi, callSites);
 
-			/* 
-			 * If the _previous_ branch was a CALL, this subgraph will have a
-			 * new return location set.
-			 */
 			BasicBlock* prevBB = _cfg[next.first].bb;
-			DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
-
-			if (prevBB->branchType == Instruction::BT_CALL) {
-				returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
-			} else if (prevBB->branchType == Instruction::BT_RET) {
-				Address retloc = returnLocations[bbi.bb];
-				DEBUG(std::cout << std::dec << __LINE__ << ": retloc " << std::hex << retloc << std::endl;);
-				if (retloc) {
-					CFGVertexDescriptor const node = findCFGNodeWithAddress(returnLocations[bbi.bb]);
-					returnLocations[bbi.bb] = returnLocations[_cfg[node].bb];
-				} else
-					returnLocations[bbi.bb] = ~0;
-			} else {
-				returnLocations[bbi.bb] = returnLocations[prevBB];
-			}
-
-			/*
-			 * If the BB is a RETurn, we need to add another target, which the disassembler
-			 * cannot tell us about, because its not encoded in the instruction.
-			 */
-			if (bbi.bb->branchType == Instruction::BT_RET) {
-				Address retloc = returnLocations[bbi.bb];
-				DEBUG(std::cout << "RET to " << std::hex << retloc << std::endl;);
-				if (retloc != ~0)
-					bbi.targets.push_back(retloc);
-			}
+			updateReturnLocations(bbi, prevBB, returnLocations, callSites);
 
 			DEBUG(std::cout << bbi.bb << std::endl;);
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
 
-			DEBUG(std::cout << "Adding incoming edges..." << std::endl;);
-			/* We need to add an edge from the previous vd */
-			boost::add_edge(next.first, vd, _cfg);
-			/* Also, there might be more BBs with this target BB in the queue. */
-			std::list<UnresolvedLink>::iterator n =
-				std::find_if(bb_connections.begin(), bb_connections.end(), AddressComparator(bbi.bb));
-			while (n != bb_connections.end()) {
-				BasicBlock* b = _cfg[(*n).first].bb;
-				/* If the unresolved link goes to our start address, add an edge, ... */
-				if (b->firstInstruction() == bbi.bb->firstInstruction()) {
-					boost::add_edge((*n).first, vd, _cfg);
-				} else { /* ... otherwise, split right now.*/
-					throw NotImplementedException("split BB");
-				}
-				bb_connections.erase(n);
-				n = std::find_if(bb_connections.begin(), bb_connections.end(), AddressComparator(bbi.bb));
-			}
-
-			DEBUG(std::cout << "Adding outgoing targets." << std::endl;);
-			/* Now establish target links */
-			BOOST_FOREACH(Address a, bbi.targets) {
-				/*
-				 * Is the target within an alreay known BB? The result is one
-				 * of three possible outcomes:
-				 *
-				 * 1) Yes, and the target BB's start address is the target.
-				 *     -> add a vertex between the BBs
-				 * 2) Yes, and the target BB's start address is _not_ the target.
-				 *     -> jump into a middle of a BB -> these are actually
-				 *        two BBs -> split the BBs
-				 * 3) No
-				 *     -> Add an unresolved link and discover later.
-				 */
-				try {
-					CFGVertexDescriptor const node = findCFGNodeWithAddress(a);
-					if (a == _cfg[node].bb->firstInstruction()) {
-						DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
-						boost::add_edge(vd, node, _cfg);
-					} else {
-						DEBUG(std::cout << "need to split BB" << std::endl;);
-						throw NotImplementedException("basic block split");
-					}
-				} catch (NodeNotFoundException) {
-					DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
-					// case 3: need to discover more code first
-					bb_connections.push_back(UnresolvedLink(vd, a));
-				}
-			}
+			handleIncomingEdges(next.first, vd, bb_connections, bbi);
+			handleOutgoingEdges(bbi, vd, bb_connections);
 		} else {
 			// XXX: Actually, we'd insert dummy targets here. The most likely
 			//      use case are code snippets referencing code that is external
@@ -399,4 +431,66 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 
 	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction() << " - " << bbi.bb->lastInstruction() << std::endl;);
 	return bbi;
+}
+
+
+void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
+                                          CFGVertexDescriptor newVertex,
+                                          PendingResolutionList& pending,
+                                          BBInfo& bbi)
+{
+		DEBUG(std::cout << "Adding incoming edges..." << std::endl;);
+
+		/* We need to add an edge from the previous vd */
+		boost::add_edge(prevVertex, newVertex, _cfg);
+
+		PendingResolutionList::iterator n =
+			std::find_if(pending.begin(), pending.end(), AddressComparator(bbi.bb));
+		while (n != pending.end()) {
+			BasicBlock *b = _cfg[(*n).first].bb;
+			/* If the unresolved link goes to our start address, add an edge, ... */
+			if (b->firstInstruction() == bbi.bb->firstInstruction()) {
+				boost::add_edge((*n).first, newVertex, _cfg);
+			} else { /* ... otherwise, split right now.*/
+				throw NotImplementedException("split BB");
+			}
+			pending.erase(n);
+			n = std::find_if(pending.begin(), pending.end(), AddressComparator(bbi.bb));
+		}
+}
+
+
+void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVertex,
+                                          PendingResolutionList& pending)
+{
+	DEBUG(std::cout << "Adding outgoing targets." << std::endl;);
+	/* Now establish target links */
+	BOOST_FOREACH(Address a, bbi.targets) {
+		/*
+		 * Is the target within an alreay known BB? The result is one
+		 * of three possible outcomes:
+		 *
+		 * 1) Yes, and the target BB's start address is the target.
+		 *     -> add a vertex between the BBs
+		 * 2) Yes, and the target BB's start address is _not_ the target.
+		 *     -> jump into a middle of a BB -> these are actually
+		 *        two BBs -> split the BBs
+		 * 3) No
+		 *     -> Add an unresolved link and discover later.
+		 */
+		try {
+			CFGVertexDescriptor const node = findCFGNodeWithAddress(a);
+			if (a == _cfg[node].bb->firstInstruction()) {
+				DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
+				boost::add_edge(newVertex, node, _cfg);
+			} else {
+				DEBUG(std::cout << "need to split BB" << std::endl;);
+				throw NotImplementedException("basic block split");
+			}
+		} catch (NodeNotFoundException) {
+			DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
+			// case 3: need to discover more code first
+			pending.push_back(UnresolvedLink(newVertex, a));
+		}
+	}
 }
