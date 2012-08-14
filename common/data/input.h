@@ -110,17 +110,17 @@ public:
 	Address relocationAddress() { return _reloc; }
 	void relocationAddress(Address a) { _reloc = a; }
 
-	std::string const & name() const 	{ return _name; }
-	void name(char const * n) 			{ _name = std::string(n); }
-	void name(std::string&  n) 			{ _name = n; }
+	std::string const & name() const { return _name; }
+	void name(char const * n)        { _name = std::string(n); }
+	void name(std::string&  n)       { _name = n; }
 
 private:
 	enum { DATA_INCREMENT = 1024, };
 
-	uint8_t* _data;			// buffer ptr
-	uint32_t _data_idx;		// next idx to write to
-	Address  _reloc;		// relocation target address
-	std::string _name;      // dbg: section name
+	uint8_t*    _data;     // buffer ptr
+	uint32_t    _data_idx; // next idx to write to
+	Address     _reloc;    // relocation target address
+	std::string _name;     // dbg: section name
 
 
 	DataSection& operator=(DataSection &) { return *this; }
