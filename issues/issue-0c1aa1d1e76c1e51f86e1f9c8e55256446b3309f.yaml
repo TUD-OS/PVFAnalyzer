@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: BB splitting
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 11:37:28.877586 Z
+references: []
+
+id: 0c1aa1d1e76c1e51f86e1f9c8e55256446b3309f
+log_events: 
+- - 2012-08-14 11:37:29.807738 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

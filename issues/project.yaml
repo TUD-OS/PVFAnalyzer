@@ -7,12 +7,16 @@ components:
 releases: 
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "0.1"
-  status: :unreleased
-  release_time: 
+  status: :released
+  release_time: 2012-08-14 11:53:08.449438 Z
   log_events: 
   - - 2012-08-13 09:55:54.704006 Z
     - doebel <doebel@tudos.org>
     - created
+    - ""
+  - - 2012-08-14 11:53:08.449460 Z
+    - doebel <doebel@tudos.org>
+    - released
     - ""
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "0.2"
