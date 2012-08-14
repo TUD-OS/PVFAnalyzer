@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: docs
+desc: ""
+type: :task
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 06:01:19.781587 Z
+references: []
+
+id: d240ea98471f52b40779c7fd305ae4d8b2f17ca2
+log_events: 
+- - 2012-08-14 06:01:21.025700 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

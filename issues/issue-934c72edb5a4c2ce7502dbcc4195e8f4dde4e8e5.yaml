@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: tests
+desc: bb, cfgbuilder, branch target detection, ...
+type: :task
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 06:01:44.212960 Z
+references: []
+
+id: 934c72edb5a4c2ce7502dbcc4195e8f4dde4e8e5
+log_events: 
+- - 2012-08-14 06:01:45.097240 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
