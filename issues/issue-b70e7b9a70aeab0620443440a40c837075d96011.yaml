@@ -1,0 +1,23 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: mem leak in BasicBlock
+desc: ""
+type: :bugfix
+component: CFGAnalysis
+release: "0.1"
+reporter: doebel <doebel@tudos.org>
+status: :in_progress
+disposition: 
+creation_time: 2012-08-14 11:13:09.236399 Z
+references: []
+
+id: b70e7b9a70aeab0620443440a40c837075d96011
+log_events: 
+- - 2012-08-14 11:13:10.182668 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-08-14 11:13:15.878297 Z
+  - doebel <doebel@tudos.org>
+  - changed status from unstarted to in_progress
+  - ""
+git_branch: 

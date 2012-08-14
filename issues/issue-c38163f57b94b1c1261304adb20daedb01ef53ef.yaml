@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: proper handling of ELF control flow
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 11:13:40.365756 Z
+references: []
+
+id: c38163f57b94b1c1261304adb20daedb01ef53ef
+log_events: 
+- - 2012-08-14 11:13:41.415951 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
