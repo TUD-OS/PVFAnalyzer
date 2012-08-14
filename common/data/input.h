@@ -31,7 +31,9 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <map>
 #include <boost/concept_check.hpp>
+#include <boost/foreach.hpp>
 
 #include "memory.h"
 
@@ -81,6 +83,21 @@ public:
 	 * @return void
 	 **/
 	void addBytes(uint8_t* buf, size_t count);
+
+	/**
+	 * @brief Add an externally allocated buffer
+	 *
+	 * @param buf buffer
+	 * @param count number of bytes in buffers
+	 * @return void
+	 **/
+	void addBuffer(uint8_t *buf, size_t count)
+	{
+		if (_data)
+			free(_data);
+		_data      = buf;
+		_dataIndex = count;
+	}
 
 
 	/**
@@ -144,15 +161,20 @@ private:
 class InputReader
 {
 protected:
-	std::vector<DataSection> _sections;
-	Address                  _entry;
+	std::vector<DataSection*> _sections;
+	Address                   _entry;
 
 public:
 	InputReader()
 		: _sections(), _entry(0)
 	{ }
 
-	virtual ~InputReader();
+	virtual ~InputReader()
+	{
+		BOOST_FOREACH(DataSection* ds, _sections) {
+			delete ds;
+		}
+	}
 
 	/**
 	 * @brief Read input
@@ -172,7 +194,7 @@ public:
 	{
 		if (number > sectionCount())
 			return 0;
-		return &_sections[number];
+		return _sections[number];
 	}
 
 	DataSection* sectionForAddress(Address a)
@@ -212,7 +234,7 @@ public:
 		: InputReader()
 	{
 		// we always have a single DataSection
-		_sections.push_back(DataSection());
+		_sections.push_back(new DataSection());
 		section(0)->name("hex input");
 	}
 
@@ -251,5 +273,5 @@ private:
 	 **/
 	bool esELFFile(std::ifstream& str);
 
-	void parseElf();
+	void parseElf(char const* filename);
 };

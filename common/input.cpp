@@ -18,9 +18,16 @@
 #include "util.h"
 
 #include <iostream>
+#include <iomanip>
 
-InputReader::~InputReader()
-{ }
+#include <cstdio>
+#include <cstdlib>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <gelf.h>
+
+#include <boost/foreach.hpp>
 
 
 /***********************************************************************
@@ -153,10 +160,10 @@ FileInputReader::addData(const char* filename)
 	}
 
 	if (esELFFile(ifs)) {
-		parseElf();
+		parseElf(filename);
 	} else {
 		// single input section, again...
-		_sections.push_back(DataSection());
+		_sections.push_back(new DataSection());
 		std::string secname = "binary: ";
 		secname += filename;
 		section(0)->name(secname);
@@ -170,8 +177,128 @@ FileInputReader::addData(const char* filename)
 	}
 }
 
-
-void FileInputReader::parseElf()
+static char const *
+ptype_str(size_t pt)
 {
-	throw NotImplementedException("ELF parsing");
+	switch(pt) {
+		case PT_NULL:      return "NULL";
+		case PT_LOAD:      return "LOAD";
+		case PT_DYNAMIC:   return "DYNAMIC";
+		case PT_INTERP:    return "INTERP";
+		case PT_NOTE:      return "NOTE";
+		case PT_SHLIB:     return "SHLIB";
+		case PT_PHDR:      return "PHDR";
+		case PT_TLS:       return "TLS";
+		case PT_SUNWBSS:   return "SUNWBSS";
+		case PT_SUNWSTACK: return "STACK";
+		default:           return "unknown";
+	}
+}
+
+void FileInputReader::parseElf(const char* filename)
+{
+	Elf* elf;
+	int i, elffd;
+	GElf_Ehdr ehdr;
+	GElf_Phdr phdr;
+	char *id;
+	
+	if (elf_version(EV_CURRENT) == EV_NONE) {
+		std::cout << "Could not initialize ELF library." << std::endl;
+		throw ELFException();
+	}
+
+	if ((elffd = open(filename, O_RDONLY, 0)) < 0) {
+		perror("file open");
+		throw ELFException();
+	}
+
+	if ((elf = elf_begin(elffd, ELF_C_READ, 0)) == 0) {
+		std::cout << "elf_begin failed." << std::endl;
+		throw ELFException();
+	}
+
+	if (elf_kind(elf) != ELF_K_ELF) {
+		std::cout << "not an ELF object!" << std::endl;
+		throw ELFException();
+	}
+
+	if (gelf_getehdr(elf, &ehdr) == 0) {
+		std::cout << "Could not getehdr()" << std::endl;
+		throw ELFException();
+	}
+	DEBUG(std::cout << "Entry: " << std::hex << ehdr.e_entry << std::endl;);
+	_entry = ehdr.e_entry;
+
+	size_t shnum, phnum;
+	if (elf_getshdrnum(elf, &shnum) != 0) {
+		std::cout << "getshdrnum() failed" << std::endl;
+		throw ELFException();
+	}
+
+	if (elf_getphdrnum(elf, &phnum) != 0) {
+		std::cout << "getphdrnum() failed" << std::endl;
+		throw ELFException();
+	}
+
+	DEBUG(std::cout << "Number of section headers: " << shnum << std::endl;);
+	DEBUG(std::cout << "Number of program headers: " << phnum << std::endl;);
+
+	for (unsigned i = 0; i < phnum; ++i) {
+		if (gelf_getphdr(elf, i, &phdr) != &phdr) {
+			std::cout << "Get PHDR [" << i << "] failed." << std::endl;
+			throw ELFException();
+		}
+		if (Configuration::get()->debug) {
+			std::cout << "PHDR " << i << ":" <<  std::endl;
+			std::cout << "       type  " << std::hex << std::setw(9) << ptype_str(phdr.p_type) << std::endl;
+			std::cout << "     offset  " << std::hex << std::setw(9) << phdr.p_offset << std::endl;
+			std::cout << "      vaddr  " << std::hex << std::setw(9) << phdr.p_vaddr << std::endl;
+			std::cout << "      paddr  " << std::hex << std::setw(9) << phdr.p_paddr << std::endl;
+			std::cout << "    memsize  " << std::hex << std::setw(9) << phdr.p_memsz << std::endl;
+			std::cout << "   filesize  " << std::hex << std::setw(9) << phdr.p_filesz << std::endl;
+			std::cout << "      flags  " << phdr.p_flags << " ( ";
+			if (phdr.p_flags & PF_X) std::cout << "exec ";
+			if (phdr.p_flags & PF_R) std::cout << "read ";
+			if (phdr.p_flags & PF_W) std::cout << "write";
+			std::cout << " )" << std::endl;
+			std::cout << "      align  " << std::hex << std::setw(9) << phdr.p_align << std::endl;
+		}
+
+		if (phdr.p_type == PT_LOAD) {
+			uint8_t *buffer;
+			DEBUG(std::cout << "Allocating mem buffer. Size " << phdr.p_memsz
+			                << ", alignment " << phdr.p_align << std::endl;);
+			int fail = posix_memalign((void**)&buffer, phdr.p_align, phdr.p_memsz);
+			if (fail) {
+				std::cout << "Aligned memory allocation failed: " << fail << std::endl;
+				throw ELFException();
+			}
+			DEBUG(std::cout << "Success: " << std::hex << (void*)buffer << std::endl;);
+
+			memset(buffer, 0, phdr.p_memsz);
+			ssize_t bytes = pread(elffd, buffer, phdr.p_filesz, phdr.p_offset);
+			if (bytes != (ssize_t)phdr.p_filesz) {
+				std::cout << "pread() = " << bytes << ", but should be " << phdr.p_filesz << std::endl;
+				throw ELFException();
+			}
+
+			_sections.push_back(new DataSection());
+			DataSection* ds = section(_sections.size()-1);
+			ds->addBuffer(buffer, phdr.p_memsz);
+			ds->relocationAddress(phdr.p_vaddr);
+			std::cout << (void*)buffer << " -> " << phdr.p_vaddr << std::endl;
+		}
+	}
+
+	BOOST_FOREACH(DataSection *ds, _sections) {
+			RelocatedMemRegion mr = ds->getBuffer();
+			std::cout << "Section mem [";
+			std::cout << mr.base << " - " << mr.base + mr.size;
+			std::cout << "], reloc [" << mr.mappedBase << " - ";
+			std::cout << mr.mappedBase + mr.size << "]" << std::endl;
+	}
+
+	elf_end(elf);
+	close(elffd);
 }

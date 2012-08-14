@@ -48,7 +48,7 @@ struct ReaderConfig : public Configuration
 	Address entryPoint;
 
 	ReaderConfig()
-		: Configuration(), output_filename("output.cfg"), entryPoint(0)
+		: Configuration(), output_filename("output.cfg"), entryPoint(~0)
 	{ }
 };
 
@@ -138,11 +138,18 @@ static void
 buildCFG(std::vector<InputReader*> const & v)
 {
 	ControlFlowGraph cfg;
+	Address entry;
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
+
+	if (conf.entryPoint != ~0)
+		entry = conf.entryPoint;
+	else
+		entry = v[0]->entry();
+
 	try {
-		VERBOSE(std::cout << "Decoding. Entry point 0x" << std::hex << conf.entryPoint << std::endl;);
-		builder->build(conf.entryPoint);
+		VERBOSE(std::cout << "Decoding. Entry point 0x" << std::hex << entry << std::endl;);
+		builder->build(entry);
 	} catch (NotImplementedException e) {
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
 	}
@@ -178,7 +185,13 @@ dump_sections(std::vector<InputReader*> const & rv)
 {
 	BOOST_FOREACH(InputReader* ir, rv) {
 	for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
-			ir->section(sec)->dump();
+			DataSection* d = ir->section(sec);
+			RelocatedMemRegion mr = d->getBuffer();
+			std::cout << "Section " << sec << " mem [";
+			std::cout << mr.base << " - " << mr.base + mr.size;
+			std::cout << "], reloc [" << mr.mappedBase << " - ";
+			std::cout << mr.mappedBase + mr.size << "]" << std::endl;
+			//ir->section(sec)->dump();
 		}
 	}
 }
@@ -201,10 +214,10 @@ main(int argc, char **argv)
 
 	std::vector<InputReader*> input;
 
+	Configuration::setConfig(&conf);
+
 	if (not parseInputFromOptions(argc, argv, input))
 		exit(2);
-
-	Configuration::setConfig(&conf);
 
 	banner();
 
@@ -212,11 +225,13 @@ main(int argc, char **argv)
 		exit(1);
 
 	if (conf.verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
+#if 1
 	if (conf.verbose) {
 		std::cout << "input stream:\n";
 		dump_sections(input);
 		std::cout << "---------\n";
 	}
+#endif
 
 	buildCFG(input);
 

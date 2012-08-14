@@ -85,7 +85,7 @@ createBuildDir()
 env = Environment(CPPPATH = ["#/common"],
                   CCFLAGS = ["-std=c++0x","-Weffc++", "-Wall", "-g"],
                   CPPFLAGS = ["-isystem", "/home/doebel/local/include"],
-                  LIBS = ["analyzer"],
+                  LIBS = ["analyzer", "elf"],
                   LIBPATH = ["#/build/common"],
                  )
 

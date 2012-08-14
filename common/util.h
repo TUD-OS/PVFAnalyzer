@@ -18,6 +18,7 @@
 #pragma once
 
 #include <cassert>
+#include <boost/graph/graph_concepts.hpp>
 
 /* GCC defines _GNU_SOURCE, which in turns defines major() and
  * minor() to be macros. We don't need those macros, but want to
@@ -86,6 +87,6 @@ struct NotImplementedException
 	{ }
 };
 
-struct NodeNotFoundException
-{
-};
+struct NodeNotFoundException { };
+
+struct ELFException { };
