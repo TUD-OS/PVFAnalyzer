@@ -198,10 +198,9 @@ ptype_str(size_t pt)
 void FileInputReader::parseElf(const char* filename)
 {
 	Elf* elf;
-	int i, elffd;
+	int elffd;
 	GElf_Ehdr ehdr;
 	GElf_Phdr phdr;
-	char *id;
 	
 	if (elf_version(EV_CURRENT) == EV_NONE) {
 		std::cout << "Could not initialize ELF library." << std::endl;
