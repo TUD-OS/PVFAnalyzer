@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: more tests
+desc: branching, simple CFG building
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-14 12:02:16.713339 Z
+references: []
+
+id: 1f05b2fdbb658148c7a6b162885fdb19645e6b9e
+log_events: 
+- - 2012-08-14 12:02:17.517758 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
