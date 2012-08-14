@@ -66,11 +66,11 @@ usage(char const *prog)
 static void
 banner()
 {
-	version_t version = conf.global_program_version;
+	Version version = conf.globalProgramVersion;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Printer version " << version.major()
-	          << "." << version.minor() << "\033[0m" << std::endl;
+	std::cout << "\033[33m" << "        CFG Printer version " << version.major
+	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
 }

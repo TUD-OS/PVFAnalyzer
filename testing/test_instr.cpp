@@ -74,13 +74,13 @@ inputToDisassembler(char const *data, Udis86Disassembler& dis, HexbyteInputReade
 		hir.addData(s.c_str());
 	}
 	hir.section(0)->relocationAddress(codeAddress);
-	WVPASSEQ(hir.section_count(), 1);
+	WVPASSEQ(hir.sectionCount(), 1);
 	WVPASSEQ(hir.entry(), 0);
-	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, codeAddress);
+	WVPASSEQ(hir.section(0)->getBuffer().mappedBase, codeAddress);
 
 	dis.buffer(hir.section(0)->getBuffer());
 	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
-	WVPASSEQ(hir.section(0)->getBuffer().mapped_base, dis.buffer().mapped_base);
+	WVPASSEQ(hir.section(0)->getBuffer().mappedBase, dis.buffer().mappedBase);
 }
 
 
@@ -128,7 +128,7 @@ WVTEST_MAIN("Instruction::relocated")
 
 	/* relocate to other base address */
 	RelocatedMemRegion r = dis.buffer();
-	r.mapped_base = 0;
+	r.mappedBase = 0;
 
 	Udis86Disassembler d2;
 	d2.buffer(r);

@@ -57,7 +57,7 @@ struct udis86_t : public ud_t
 		ud_set_syntax(udptr(), UD_SYN_INTEL);
 	}
 
-	ud_t* udptr() { return reinterpret_cast<ud_t*>(this); }
+	ud_t* udptr()           { return reinterpret_cast<ud_t*>(this); }
 	ud_t const *udp() const { return reinterpret_cast<ud_t const *>(this); }
 
 	/**
@@ -121,7 +121,7 @@ struct udis86_t : public ud_t
 class Udis86Helper
 {
 public:
-	static void print_ud_op(unsigned op);
+	static void    print_ud_op(unsigned op);
 	static int64_t operandToValue(ud_t *ud, unsigned operandNo);
 };
 
@@ -129,9 +129,9 @@ class Udis86Instruction : public Instruction
 {
 public:
 	Udis86Instruction()
-		: Instruction(), _ud_obj()
+		: Instruction(), _udObj()
 	{
-		ud_set_input_file(_ud_obj.udptr(), stdin);
+		ud_set_input_file(_udObj.udptr(), stdin);
 
 		ip(_ip);
 		membase(_base);
@@ -142,13 +142,13 @@ public:
 	
 	virtual unsigned length()
 	{
-		return ud_insn_len(_ud_obj.udptr());
+		return ud_insn_len(_udObj.udptr());
 	}
 	
 	virtual void ip(Address a)
 	{
 		Instruction::ip(a);
-		ud_set_pc(_ud_obj.udptr(), a);
+		ud_set_pc(_udObj.udptr(), a);
 	}
 
 	virtual void membase(Address a)
@@ -158,7 +158,7 @@ public:
 		 * As an Instruction always represents exactly one
 		 * instruction, this should suffice.
 		 */
-		ud_set_input_buffer(_ud_obj.udptr(), reinterpret_cast<uint8_t*>(a), 32);
+		ud_set_input_buffer(_udObj.udptr(), reinterpret_cast<uint8_t*>(a), 32);
 	}
 
 	virtual void print()
@@ -172,7 +172,7 @@ public:
 
 	virtual char const *c_str() const
 	{
-		return ud_insn_asm(const_cast<ud*>(_ud_obj.udp()));
+		return ud_insn_asm(const_cast<ud*>(_udObj.udp()));
 	}
 
 
@@ -183,14 +183,14 @@ public:
 	void serialize(Archive& ar, const unsigned int version)
 	{
 		ar & boost::serialization::base_object<Instruction>(*this);
-		ar & _ud_obj;
+		ar & _udObj;
 	}
 
-	ud* ud_obj() { return _ud_obj.udptr(); }
+	ud* udObj() { return _udObj.udptr(); }
 
 	virtual bool isBranch()
 	{
-		switch(ud_obj()->mnemonic) {
+		switch(udObj()->mnemonic) {
 			case UD_Ija:		case UD_Ijae:	case UD_Ijb:
 			case UD_Ijbe:	case UD_Ijcxz:	case UD_Ijecxz:
 			case UD_Ijg:		case UD_Ijge:	case UD_Ijl:
@@ -214,7 +214,7 @@ public:
 		if (!isBranch())
 			return BT_NONE;
 
-		ud_t *ud = ud_obj();
+		ud_t *ud = udObj();
 		DEBUG(std::cout << "jump: " << ud_insn_asm(ud) << std::endl;);
 		/* Assumption: jumps always have a single target. */
 		assert(ud->operand[1].type == UD_NONE);
@@ -305,10 +305,10 @@ public:
 	}
 
 protected:
-	udis86_t _ud_obj;
+	udis86_t _udObj;
 
 private:
-	Udis86Instruction(const Udis86Instruction&) : _ud_obj() { }
+	Udis86Instruction(const Udis86Instruction&) : _udObj() { }
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
 };
 

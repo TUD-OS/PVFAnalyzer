@@ -74,11 +74,11 @@ usage(char const *prog)
 static void
 banner()
 {
-	version_t version = Configuration::get()->global_program_version;
+	Version version = Configuration::get()->globalProgramVersion;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major()
-	          << "." << version.minor() << "\033[0m" << std::endl;
+	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
 }
@@ -164,7 +164,7 @@ count_bytes(std::vector<InputReader*> const & rv)
 {
 	unsigned bytes = 0;
 	BOOST_FOREACH(InputReader* ir, rv) {
-		for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+		for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
 			bytes += ir->section(sec)->bytes();
 		}
 	}
@@ -177,7 +177,7 @@ static void
 dump_sections(std::vector<InputReader*> const & rv)
 {
 	BOOST_FOREACH(InputReader* ir, rv) {
-	for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+	for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
 			ir->section(sec)->dump();
 		}
 	}

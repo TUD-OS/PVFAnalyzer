@@ -19,23 +19,28 @@
 
 #include <cassert>
 
-struct version_t {
-	unsigned _major;
-	unsigned _minor;
+/* GCC defines _GNU_SOURCE, which in turns defines major() and
+ * minor() to be macros. We don't need those macros, but want to
+ * use the names as identifiers below. Hence, we undefine the
+ * macros here.
+ */
+#undef major
+#undef minor
 
-	version_t(unsigned maj, unsigned min)
-		: _major(maj), _minor(min)
+struct Version {
+	unsigned major;
+	unsigned minor;
+
+	Version(unsigned maj, unsigned min)
+		: major(maj), minor(min)
 	{ }
-
-	unsigned major() { return _major; }
-	unsigned minor() { return _minor; }
 };
 
 struct Configuration
 {
-	bool      verbose;
-	bool      debug;
-	version_t global_program_version;
+	bool    verbose;
+	bool    debug;
+	Version globalProgramVersion;
 
 	bool parse_option(int opt)
 	{
@@ -52,7 +57,7 @@ struct Configuration
 	}
 
 	Configuration(bool verb = false, bool dbg = false)
-		: verbose(verb), debug(dbg), global_program_version(0,0)
+		: verbose(verb), debug(dbg), globalProgramVersion(0,0)
 	{ }
 
 	virtual ~Configuration() { }

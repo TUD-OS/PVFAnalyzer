@@ -60,7 +60,6 @@ public:
 	virtual ~CFGBuilder() { }
 
 	virtual void build(Address entry) = 0;
-	/*virtual ControlFlowGraph const& cfg()   = 0;*/
 };
 
 /**

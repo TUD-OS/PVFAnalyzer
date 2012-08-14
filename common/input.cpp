@@ -15,6 +15,7 @@
 
 **********************************************************************/
 #include "data/input.h"
+#include "util.h"
 
 #include <iostream>
 
@@ -29,17 +30,17 @@ InputReader::~InputReader()
  ***********************************************************************/
 
 
-void DataSection::addByte ( uint8_t byte )
+void DataSection::addByte(uint8_t byte)
 {
-	fit_data();
-	_data[_data_idx++] = byte;
+	fitData();
+	_data[_dataIndex++] = byte;
 }
 
 
-void DataSection::addBytes ( uint8_t* buf, size_t count )
+void DataSection::addBytes(uint8_t* buf, size_t count)
 {
 	(void)buf;
-	fit_data(count);
+	fitData(count);
 	assert(false);
 }
 
@@ -53,7 +54,7 @@ void DataSection::dump()
 		return;
 	}
 
-	for (unsigned i = 0; i < _data_idx; ++i) {
+	for (unsigned i = 0; i < _dataIndex; ++i) {
 		std::cout << std::hex << (uint32_t)_data[i] << " ";
 		if ((i % 30 == 29)) {
 			std::cout << std::endl;
@@ -64,26 +65,26 @@ void DataSection::dump()
 
 
 void
-DataSection::fit_data(size_t howmuch)
+DataSection::fitData(size_t howmuch)
 {
 	/*
 	 * We only alloc if a) no data has been allocated yet or b) we have
 	 * less than <howmuch> bytes left. If we need to alloc a new chunk, we always
 	 * increase the data chunk size by DATA_INCREMENT bytes.
 	 */
-	if ( ( _data_idx > 0 ) and ( _data_idx % DATA_INCREMENT < (DATA_INCREMENT-howmuch-1) ) )
+	if ( ( _dataIndex > 0 ) and ( _dataIndex % DATA_INCREMENT < (DATA_INCREMENT-howmuch-1) ) )
 		return;
 
 	/* The (+ DATA_INCREMENT) is to get the actual number of allocated chunks. The (-1) is
 	 * to make sure that the first time we run through here, how_many_chunks is 0.
 	 */
-	unsigned how_many_chunks = ( ( _data_idx + DATA_INCREMENT - 1 ) / DATA_INCREMENT );
+	unsigned how_many_chunks = ( ( _dataIndex + DATA_INCREMENT - 1 ) / DATA_INCREMENT );
 	unsigned newsize = how_many_chunks * DATA_INCREMENT + DATA_INCREMENT;
 
 	_data = static_cast<uint8_t*> ( realloc ( _data, newsize ) );
 	assert ( _data );
 
-	memset ( _data + _data_idx, 0, newsize - _data_idx );
+	memset ( _data + _dataIndex, 0, newsize - _dataIndex );
 }
 
 
@@ -95,7 +96,7 @@ DataSection::fit_data(size_t howmuch)
 
 
 void
-HexbyteInputReader::addData ( const char* byte )
+HexbyteInputReader::addData(const char* byte)
 {
 	/* error handling taken straight from the strol() manpage */
 	errno = 0;
@@ -123,7 +124,7 @@ HexbyteInputReader::addData ( const char* byte )
  ***********************************************************************/
 
 bool
-FileInputReader::is_elf_file ( std::ifstream& str )
+FileInputReader::esELFFile(std::ifstream& str)
 {
 	char first_bytes[4];
 	str.read(first_bytes, sizeof(first_bytes));
@@ -141,7 +142,7 @@ FileInputReader::is_elf_file ( std::ifstream& str )
 }
 
 void
-FileInputReader::addData (const char* filename)
+FileInputReader::addData(const char* filename)
 {
 	std::ifstream ifs;
 
@@ -151,8 +152,8 @@ FileInputReader::addData (const char* filename)
 		return;
 	}
 
-	if (is_elf_file(ifs)) {
-		std::cout << "ELF parsing not implemented yet." << std::endl;
+	if (esELFFile(ifs)) {
+		parseElf();
 	} else {
 		// single input section, again...
 		_sections.push_back(DataSection());
@@ -167,4 +168,10 @@ FileInputReader::addData (const char* filename)
 				section(0)->addByte(static_cast<uint8_t>(c[0]));
 		} while (!ifs.eof());
 	}
+}
+
+
+void FileInputReader::parseElf()
+{
+	throw NotImplementedException("ELF parsing");
 }

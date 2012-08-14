@@ -1,0 +1,70 @@
+Most of the following rules are derived from Genode's coding style
+guidelines, which can be found at
+http://genode.org/documentation/developer-resources/coding_style
+
+
+Variable, class, and function names
+-----------------------------------
+- class names begin with an uppercase letter
+  
+  class DataSection { };
+
+- function names begin with a lowercase letter
+  
+  void DataSection::dump();
+
+- MultiWordIdentifiers are written in camel case
+
+  void DataSection::fitData();
+
+- private and protected class members begin with
+  an underscore character
+
+  uint32_t DataSection::_dataIdx;
+
+- accessor functions are named like their corresponding
+  attributes:
+
+  int _foo;
+  int foo()        { return _foo; }
+  void foo(int f)  { _foo = f; }
+
+
+Whitespace stuff
+----------------
+- Use tabs for indentation only at the beginning of a line.
+- Use spaces for alignment inside code.
+-> These two rules make sure that everyone can use the tab
+   size he is used to without breaking readability of the code.
+
+- Leave two empty lines between class definitions.
+- Leave two empty lines between function definitions, except
+  for those inlined in a class, where you may use one line.
+
+Braces
+------
+- Braces after class or function names are placed on a
+  new line:
+  class Foo
+  {
+  };
+
+- All other braces go on the same line with their corresponding
+  keywords:
+  if (cond) {
+	  ..
+  } else {
+	  ..
+  }
+
+- Inline functions within a class may be placed on a single line.
+
+- *ALWAYS* put braces around blocks, even if they contain only
+  a single statement. This way it is easy to add code to the
+  block later on.
+
+
+Constants
+---------
+
+- Use enums to define compile-time constants.

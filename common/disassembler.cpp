@@ -37,8 +37,8 @@ Instruction* Udis86Disassembler::disassemble(Address offset)
 	 */
 	Address unreloc      = _buffer.base + offset;
 	i->membase(unreloc);
-	i->ip(_buffer.region_to_reloc(unreloc));
+	i->ip(_buffer.regionToReloc(unreloc));
 
-	ud_disassemble(i->ud_obj());
+	ud_disassemble(i->udObj());
 	return i;
 }

@@ -86,9 +86,9 @@ class CFGBuilder_priv : public CFGBuilder
 	{
 		//DEBUG(std::cerr << __func__ << "(" << a << ")" << std::endl;);
 		BOOST_FOREACH(InputReader *ir, inputs) {
-			for (unsigned sec = 0; sec < ir->section_count(); ++sec) {
+			for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
 				RelocatedMemRegion mr = ir->section(sec)->getBuffer();
-				if (mr.reloc_contains(a))
+				if (mr.relocContains(a))
 					return mr;
 			}
 		}
@@ -343,7 +343,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	}
 
 	bbi.bb         = new BasicBlock();
-	unsigned offs  = e - buf.mapped_base;
+	unsigned offs  = e - buf.mappedBase;
 	Instruction *i;
 
 	dis.buffer(buf);
@@ -352,7 +352,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 
 		if (i) {
 			DEBUG(i->print(); std::cout << std::endl;);
-			bbi.bb->add_instruction(i);
+			bbi.bb->addInstruction(i);
 			offs += i->length();
 
 			if (i->isBranch()) {

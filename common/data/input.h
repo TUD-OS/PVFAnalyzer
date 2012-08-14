@@ -42,7 +42,7 @@ class DataSection
 {
 public:
 	DataSection()
-		: _data(0), _data_idx(0), _reloc(0), _name("unnamed")
+		: _data(0), _dataIndex(0), _reloc(0), _name("unnamed")
 	{
 	}
 
@@ -59,7 +59,7 @@ public:
 		RelocatedMemRegion buf = orig.getBuffer();
 		if (buf.base and buf.size) {
 			_data     = static_cast<uint8_t*>(realloc(_data, buf.size));
-			_data_idx = buf.size;
+			_dataIndex = buf.size;
 			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), buf.size);
 		}
 		_name = orig.name();
@@ -90,7 +90,7 @@ public:
 	 **/
 	RelocatedMemRegion const getBuffer() const
 	{
-		return RelocatedMemRegion((Address)(_data), _data_idx, _reloc);
+		return RelocatedMemRegion((Address)(_data), _dataIndex, _reloc);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public:
 	 *
 	 * @return uint32_t number of bytes
 	 **/
-	uint32_t bytes() { return _data_idx; }
+	uint32_t bytes() { return _dataIndex; }
 
 	Address relocationAddress() { return _reloc; }
 	void relocationAddress(Address a) { _reloc = a; }
@@ -118,7 +118,7 @@ private:
 	enum { DATA_INCREMENT = 1024, };
 
 	uint8_t*    _data;     // buffer ptr
-	uint32_t    _data_idx; // next idx to write to
+	uint32_t    _dataIndex; // next idx to write to
 	Address     _reloc;    // relocation target address
 	std::string _name;     // dbg: section name
 
@@ -131,7 +131,7 @@ private:
 	 * Make sure that the input buffer is big enough to read in at
 	 * least one more chunk of input data.
 	 **/
-	void fit_data(size_t count = 1);
+	void fitData(size_t count = 1);
 };
 
 
@@ -170,14 +170,14 @@ public:
 
 	DataSection* section(unsigned number) // XXX: return a const reference?
 	{
-		if (number > section_count())
+		if (number > sectionCount())
 			return 0;
 		return &_sections[number];
 	}
 
 	DataSection* sectionForAddress(Address a)
 	{
-		for (unsigned n = 0; n < section_count(); ++n) {
+		for (unsigned n = 0; n < sectionCount(); ++n) {
 			RelocatedMemRegion mbuf = section(n)->getBuffer();
 			if ((mbuf.base >= a) and
 			    (a < mbuf.base + mbuf.size))
@@ -186,7 +186,7 @@ public:
 		return 0;
 	}
 
-	unsigned section_count() { return _sections.size(); }
+	unsigned sectionCount() { return _sections.size(); }
 
 private:
 	InputReader(InputReader const&) : _sections(), _entry(0) { }
@@ -249,5 +249,7 @@ private:
 	 * @param str input stream
 	 * @return bool true if ELF binary, false otherwise
 	 **/
-	bool is_elf_file(std::ifstream& str);
+	bool esELFFile(std::ifstream& str);
+
+	void parseElf();
 };

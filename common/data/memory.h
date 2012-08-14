@@ -85,7 +85,7 @@ struct RelocatedMemRegion : public MemRegion
 	/**
 	 * @brief Address this region is mapped to
 	 **/
-	Address   mapped_base;
+	Address   mappedBase;
 		
 	/**
 	 * @brief Translate a relocated address to a region address.
@@ -93,11 +93,11 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a Address within [mapped_base, mapped_base+size]
 	 * @return address within [base, base+size]
 	 **/
-	Address reloc_to_region(Address const & a) const
+	Address relocToRegion(Address const & a) const
 	{
-		assert(mapped_base <= a);
-		assert(a <= mapped_base + size);
-		return a - mapped_base + base;
+		assert(mappedBase <= a);
+		assert(a <= mappedBase + size);
+		return a - mappedBase + base;
 	}
 	
 	/**
@@ -106,11 +106,11 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a Address within [base, base+size]
 	 * @return address within [mapped_base, mapped_base+size]
 	 **/
-	Address region_to_reloc(Address const & a) const
+	Address regionToReloc(Address const & a) const
 	{
 		assert(base <= a);
 		assert(a <= base + size);
-		return a - base + mapped_base;
+		return a - base + mappedBase;
 	}
 	
 	/**
@@ -119,20 +119,20 @@ struct RelocatedMemRegion : public MemRegion
 	 * @param a address
 	 * @return true if a is witihn [mapped_base, mapped_base+size], false otherwise
 	 **/
-	bool reloc_contains(Address const a) const
+	bool relocContains(Address const a) const
 	{
-		return contains(reloc_to_region(a));
+		return contains(relocToRegion(a));
 	}
 	
     RelocatedMemRegion()
-	    : MemRegion(), mapped_base(0)
+	    : MemRegion(), mappedBase(0)
 	{ }
 	
 	RelocatedMemRegion (Address base, ptrdiff_t size, Address mapped = 0)
-		: MemRegion(base, size), mapped_base(mapped)
+		: MemRegion(base, size), mappedBase(mapped)
 	{ }
 
 	RelocatedMemRegion(MemRegion const &m, Address mapped = 0)
-		: MemRegion(m.base, m.size), mapped_base(mapped)
+		: MemRegion(m.base, m.size), mappedBase(mapped)
 	{ }
 };

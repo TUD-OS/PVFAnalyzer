@@ -58,8 +58,8 @@ public:
 	 *
 	 * @return Address
 	 **/
-	Address ip()            { return _ip; }
-	virtual void    ip(Address a)   { _ip = a; }
+	Address ip()               { return _ip; }
+	virtual void ip(Address a) { _ip = a; }
 
 
 	/**

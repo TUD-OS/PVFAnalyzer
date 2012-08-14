@@ -36,7 +36,7 @@ struct BasicBlock
 	 * @param i Instruction
 	 * @return void
 	 **/
-	void add_instruction(Instruction* i)
+	void addInstruction(Instruction* i)
 	{
 		instructions.push_back(i);
 	}
@@ -47,7 +47,7 @@ struct BasicBlock
 	 * @param orig instruction list
 	 * @return void
 	 **/
-	void add_instructions(std::vector<Instruction*>& orig)
+	void addInstructions(std::vector<Instruction*>& orig)
 	{
 		instructions.insert(instructions.end(),
 		                    orig.begin(), orig.end());
