@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: CFGBuilder test
+desc: a couple of CFGBuilder tests in testing/cfg_test
+type: :task
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-15 16:42:15.173218 Z
+references: []
+
+id: 9593b9c71e22721dffc318ad124a5ca4c9ead458
+log_events: 
+- - 2012-08-15 16:42:15.785549 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
