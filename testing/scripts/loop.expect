@@ -1,0 +1,19 @@
+[34m********************************************[0m
+[33m        CFG Analyzer version 0.1[0m
+[34m********************************************[0m
+Wrote CFG to 'loop.cfg'
+[34m********************************************[0m
+[33m        CFG Printer version 0.1[0m
+[34m********************************************[0m
+digraph G {
+0 [shape=box,fontname=Terminus,label="<empty>"];
+1 [shape=box,fontname=Terminus,label="[@0x5]\ladc bh, al\linc ebp\lcld \ladd [eax], al\ladd [eax], al\ljmp 0x14\l"];
+2 [shape=box,fontname=Terminus,label="[@0x14]\lcmp dword [ebp-0x4], 0x9\ljle 0xf\l"];
+3 [shape=box,fontname=Terminus,label="[@0xf]\lnop \ladd dword [ebp-0x4], 0x1\l"];
+4 [shape=box,fontname=Terminus,label="[@0x1a]\lmov eax, 0x0\lleave \lret \l"];
+0->1 ;
+1->2 ;
+2->3 ;
+3->2 ;
+2->4 ;
+}
