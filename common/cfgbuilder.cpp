@@ -76,7 +76,7 @@ class CFGBuilder_priv : public CFGBuilder
 {
 public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: _dis(), _cfg(cfg), _bbfound(), _inputs(in)
+		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), returnLocations()
 	{ }
 
 	virtual void build(Address a);
@@ -255,6 +255,8 @@ private:
 				bbi.targets.push_back(retloc);
 		}
 	}
+
+	CFGVertexDescriptor splitBasicBlock(CFGVertexDescriptor splitVertex, Address splitAddress);
 };
 
 /**
@@ -518,6 +520,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		}
 		std::cout << "]" << std::endl;
 	}
+
 	/* Now establish target links */
 	while (!bbi.targets.empty()) {
 		Address a = bbi.targets.front();
@@ -549,65 +552,93 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			boost::add_edge(newVertex, node, _cfg);
 		} else {
 			DEBUG(std::cout << "need to split BB" << std::endl;);
+			CFGVertexDescriptor newVD = splitBasicBlock(node, a);
 
-			// 1) create new empty BB
-			BasicBlock* bb2 = new BasicBlock();
-			bb2->branchType = bbi.bb->branchType;
-			returnLocations[bb2] = returnLocations[bbi.bb];
-
-			DEBUG(std::cout << "split: new BB @ " << bb2 << std::endl;);
-
-			/* ERROR !!!!
-			 *
-			 * The code below splits the _ORIGINATING_ basic block. However, we need to
-			 * split the TARGET basic block, that is _cfg[node].bb !!!!
-			 */
-			std::vector<Instruction*>::iterator iit = std::find_if(bbi.bb->instructions.begin(),
-																bbi.bb->instructions.end(),
-																InstructionAddressComparator(a));
-			assert(iit != bbi.bb->instructions.end());
-			while (iit != bbi.bb->instructions.end()) {
-				DEBUG(std::cout << "split: moving instr. @ " << (*iit)->ip()
-								<< " to bb2" << std::endl;);
-				bb2->instructions.push_back(*iit);
-				iit = bbi.bb->instructions.erase(iit);
-			}
-			DEBUG(bbi.dump(); std::cout << "\n";);
-
-			CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
-
-			// 3) incoming edges for bb1 remain untouched
-			
 			/*
-				* 4) all existing outgoing edges from bb1 are transformed to
-				*    outgoing edges of bb2
-				*/
-			boost::graph_traits<ControlFlowGraph>::out_edge_iterator edge0, edgeEnd;
-			for (boost::tie(edge0, edgeEnd) = boost::out_edges(newVertex, _cfg);
-					edge0 != edgeEnd; ++edge0) {
-				CFGVertexDescriptor v = boost::target(*edge0, _cfg);
-				DEBUG(std::cout << "split: adding: " << vert2 << " -> " << v << std::endl;);
-				boost::add_edge(vert2, v, _cfg);
-				DEBUG(std::cout << "split: removing: " << newVertex << " -> " << v << std::endl;);
-				boost::remove_edge(newVertex, v, _cfg);
-			}
-
-			// 5) add edge from bb1 -> bb2
-			bbi.bb->branchType = Instruction::BT_JUMP_UNCOND;
-			boost::add_edge(newVertex, vert2, _cfg);
-
-			BBInfo bbi2 = bbi;
-			bbi2.bb = bb2;
+			 * We split the BB. This means that
+			 * 1) the currently processed BB does not have any edges to be modified
+			 *    anymore, and
+			 * 2) that any potential remaining jump targets need to be applied to
+			 *    the newly created BB.
+			 */
+			BBInfo bbi2  = bbi;
+			bbi2.bb      = _cfg[newVD].bb;
 			bbi2.targets = bbi.targets;
 			bbi2.targets.push_back(a);
 			bbi.targets.clear();
-			handleOutgoingEdges(bbi2, vert2, pending);
-
-			/*
-				* Problem: we are now done with bb1. All further target handling needs to be performed
-				*          with bb2 -> call ourselves with bb2 and remaining targets?
-				*/
-			//throw NotImplementedException("basic block split");
+			handleOutgoingEdges(bbi2, newVD, pending);
 		}
 	}
+}
+
+
+CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVertex, Address splitAddress)
+{
+	// 1) create new empty BB
+	BasicBlock* bb2       = new BasicBlock();
+	CFGNodeInfo& bbNode   = _cfg[splitVertex];
+
+	/*
+	 * Branch type: new BB inherits the old one's.
+	 * Old BB becomes a JUMP_UNCOND node.
+	 */
+	bb2->branchType       = bbNode.bb->branchType;
+	bbNode.bb->branchType = Instruction::BT_JUMP_UNCOND;
+
+	/*
+	 * Set return location. This is simply the same as for
+	 * the old BB.
+	 */
+	returnLocations[bb2]  = returnLocations[bbNode.bb];
+
+	DEBUG(std::cout << "split: new BB @ " << bb2 << std::endl;);
+
+	/* Find the first instruction of the new BB. */
+	std::vector<Instruction*>::iterator iit = std::find_if(bbNode.bb->instructions.begin(),
+	                                                       bbNode.bb->instructions.end(),
+	                                                       InstructionAddressComparator(splitAddress));
+	/*
+	 * We came here because someone deemed us to split the BB. Hence, we must
+	 * assume that the split instruction is within the BB!
+	 */
+	assert(iit != bbNode.bb->instructions.end());
+
+	/*
+	 * Now move the new BB's instructions over to the new container.
+	 */
+	while (iit != bbNode.bb->instructions.end()) {
+		DEBUG(std::cout << "split: moving instr. @ " << (*iit)->ip()
+		                << " to bb2" << std::endl;);
+		bb2->instructions.push_back(*iit);
+		/*
+		 * C++ trivia: to be sure that your iterator is valid after
+		 *             erasing from a container, you need to obtain
+		 *             it as erase()'s return value.
+		 */
+		iit = bbNode.bb->instructions.erase(iit);
+	}
+
+	/* Ready to add new vertex to the CFG. */
+	CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
+
+	// 3) incoming edges for original BB remain untouched
+
+	/*
+	 * 4) all existing outgoing edges from bb1 are transformed to
+	 *    outgoing edges of bb2
+	 */
+	boost::graph_traits<ControlFlowGraph>::out_edge_iterator edge0, edgeEnd;
+	for (boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg);
+			edge0 != edgeEnd; ++edge0) {
+		CFGVertexDescriptor targetV = boost::target(*edge0, _cfg);
+		DEBUG(std::cout << "split: adding: " << vert2 << " -> " << targetV << std::endl;);
+		boost::add_edge(vert2, targetV, _cfg);
+		DEBUG(std::cout << "split: removing: " << splitVertex << " -> " << targetV << std::endl;);
+		boost::remove_edge(splitVertex, targetV, _cfg);
+	}
+
+	// 5) add edge from bb1 -> bb2
+	boost::add_edge(splitVertex, vert2, _cfg);
+
+	return vert2;
 }
