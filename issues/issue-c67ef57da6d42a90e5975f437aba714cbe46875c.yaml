@@ -1,0 +1,27 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Register modification table
+desc: |-
+  For every instruction, we need information about which of its operands are read/written and which other registers are affected.
+  
+  Thus, we need a table:
+  
+  <instr> -> OP1.desc, OP2.desc, OP3.desc, EIP.desc, FLAGS.desc
+  where desc := { r, w }
+  
+  Later versions might even provide bit-wise access information.
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-15 22:33:32.315009 Z
+references: []
+
+id: c67ef57da6d42a90e5975f437aba714cbe46875c
+log_events: 
+- - 2012-08-15 22:33:32.920214 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
