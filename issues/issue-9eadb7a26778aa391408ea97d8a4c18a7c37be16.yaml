@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "BB discovery: terminate on already known BB"
+desc: "reverse of BB splitting: we might as well hit the situation where a BB's next instruction is the start instruction of an already known BB. In this case, BB discovery terminates and we add a connection between the two BBs."
+type: :bugfix
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-15 08:47:21.983243 Z
+references: []
+
+id: 9eadb7a26778aa391408ea97d8a4c18a7c37be16
+log_events: 
+- - 2012-08-15 08:47:22.788101 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
