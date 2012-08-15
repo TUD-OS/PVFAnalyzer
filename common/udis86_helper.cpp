@@ -44,10 +44,21 @@ int64_t Udis86Helper::operandToValue(ud_t *ud, unsigned opno)
 	int64_t ret = op.lval.sqword;
 
 	switch(op.size) {
-		case  8: ret &= 0xFF; break;
-		case 16: ret &= 0xFFFF; break;
-		case 32: ret &= 0xFFFFFFFF; break;
-		case 64: break;
+		case  8:
+			ret &= 0xFF;
+			if (ret & 0x80) { ret -= 0x100; }
+			break;
+		case 16:
+			ret &= 0xFFFF;
+			if (ret & 0x8000) { ret -= 0x10000; }
+			break;
+		case 32:
+			ret &= 0xFFFFFFFF;
+			if (ret & 0x80000000) { ret-=0x100000000; }
+			break;
+		case 64:
+			throw NotImplementedException("64 bit operand to value");
+			break;
 		default:
 			throw NotImplementedException("Invalid udis86 operand size");
 	}
