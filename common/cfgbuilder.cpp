@@ -23,6 +23,7 @@
 
 #include <map>
 #include <vector>
+#include <set>
 
 #include <boost/foreach.hpp>
 #include <boost/graph/depth_first_search.hpp>
@@ -74,7 +75,7 @@ class CFGBuilder_priv : public CFGBuilder
 {
 public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: dis(), _cfg(cfg), inputs(in)
+		: _dis(), _cfg(cfg), _bbfound(), _inputs(in)
 	{ }
 
 	virtual void build(Address a);
@@ -91,15 +92,16 @@ public:
 	typedef std::map<BasicBlock*, Address>          ReturnLocationMap;
 
 private:
-	Udis86Disassembler  dis; ///> underlying disassembler
-	ControlFlowGraph&  _cfg; ///> control flow graph
+	Udis86Disassembler  _dis;    ///> underlying disassembler
+	ControlFlowGraph&  _cfg;     ///> control flow graph
+	std::set<Address>  _bbfound; ///> start addresses of discovered BBs
 
 	/*
 	 * List of input buffers to read instructions from.
 	 * The builder algorithm ignores all branch targets
 	 * that do not reside within these buffers.
 	 */
-	std::vector<InputReader*> const &inputs;
+	std::vector<InputReader*> const &_inputs;
 
 	/**
 	 * @brief Explore a single basic block
@@ -120,7 +122,7 @@ private:
 	RelocatedMemRegion bufferForAddress(Address a)
 	{
 		//DEBUG(std::cerr << __func__ << "(" << a << ")" << std::endl;);
-		BOOST_FOREACH(InputReader *ir, inputs) {
+		BOOST_FOREACH(InputReader *ir, _inputs) {
 			for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
 				RelocatedMemRegion mr = ir->section(sec)->getBuffer();
 				if (mr.relocContains(a))
@@ -210,7 +212,7 @@ private:
 		 * If the _previous_ branch was a CALL, this subgraph will have a
 		 * new return location set.
 		 */
-		DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
+		//DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
 
 		if (prevBB->branchType == Instruction::BT_CALL) {
 			returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
@@ -240,7 +242,7 @@ private:
 };
 
 /**
- * @brief CFG Builder singleton accessor 
+ * @brief CFG Builder singleton accessor
  */
 CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
 {
@@ -360,6 +362,7 @@ void CFGBuilder_priv::build(Address entry)
 		DEBUG(bbi.dump(); std::cout << std::endl; );
 
 		if (bbi.bb != 0) {
+			DEBUG(std::cout << "Basic block @ " << bbi.bb << std::endl;);
 			DEBUG(std::cout << "--1-- Updating call sites" << std::endl;);
 			updateCallsites(bbi, callSites);
 
@@ -367,7 +370,6 @@ void CFGBuilder_priv::build(Address entry)
 			BasicBlock* prevBB = _cfg[next.first].bb;
 			updateReturnLocations(bbi, prevBB, returnLocations, callSites);
 
-			DEBUG(std::cout << bbi.bb << std::endl;);
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
 
@@ -402,10 +404,10 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	unsigned offs  = e - buf.mappedBase;
 	Instruction *i;
 
-	dis.buffer(buf);
+	_dis.buffer(buf);
 	/* We disassemble instructions as long as we find some in the buffer ... */
 	do {
-		i = dis.disassemble(offs);
+		i = _dis.disassemble(offs);
 
 		if (i) {
 			DEBUG(i->print(); std::cout << std::endl;);
@@ -415,6 +417,18 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			if (i->isBranch()) { // .. except, we find a branch instruction
 				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
 				bbi.bb->branchType = i->branchTargets(bbi.targets);
+				break;
+			}
+
+			if (_bbfound.find(i->ip()) != _bbfound.end()) { // .. or we run into the start of an
+			                                                // already discovered BB
+				DEBUG(std::cout << "Start of already known BB. Terminating discovery." << std::endl;);
+				bbi.targets.push_back(i->ip()); // store connection
+
+				/* remove and delete duplicate instruction right now */
+				bbi.bb->instructions.pop_back(); // we know this was the last inserted instruction
+				delete i;
+
 				break;
 			}
 
@@ -435,6 +449,8 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 		bbi.bb = 0;
 	}
 
+	_bbfound.insert(bbi.bb->firstInstruction());
+
 	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction() << " - " << bbi.bb->lastInstruction() << std::endl;);
 	return bbi;
 }
@@ -445,7 +461,8 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
                                           PendingResolutionList& pending,
                                           BBInfo& bbi)
 {
-		DEBUG(std::cout << "Adding incoming edges..." << std::endl;);
+		DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction()
+		                << "..." << std::endl;);
 
 		/* We need to add an edge from the previous vd */
 		boost::add_edge(prevVertex, newVertex, _cfg);
@@ -454,8 +471,10 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
 			std::find_if(pending.begin(), pending.end(), AddressComparator(bbi.bb));
 		while (n != pending.end()) {
 			BasicBlock *b = _cfg[(*n).first].bb;
+			DEBUG(std::cout << "Unresolved link: " << b->firstInstruction() << " -> "
+			                << (*n).second << std::endl;);
 			/* If the unresolved link goes to our start address, add an edge, ... */
-			if (b->firstInstruction() == bbi.bb->firstInstruction()) {
+			if ((*n).second == bbi.bb->firstInstruction()) {
 				boost::add_edge((*n).first, newVertex, _cfg);
 			} else { /* ... otherwise, split right now.*/
 				throw NotImplementedException("split BB");
