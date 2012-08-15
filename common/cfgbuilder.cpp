@@ -353,14 +353,17 @@ void CFGBuilder_priv::build(Address entry)
 
 		UnresolvedLink next = bb_connections.front();
 		bb_connections.pop_front();
-		DEBUG(std::cout << "Exploring next BB starting @ " << (void*)next.second << std::endl;);
+		DEBUG(std::cout << "\033[36m-0- Exploring next BB starting @ " << (void*)next.second
+		                << "\033[0m" << std::endl;);
 
 		BBInfo bbi = exploreSingleBB(next.second);
 		DEBUG(bbi.dump(); std::cout << std::endl; );
 
 		if (bbi.bb != 0) {
+			DEBUG(std::cout << "--1-- Updating call sites" << std::endl;);
 			updateCallsites(bbi, callSites);
 
+			DEBUG(std::cout << "--2-- Updating return locations" << std::endl;);
 			BasicBlock* prevBB = _cfg[next.first].bb;
 			updateReturnLocations(bbi, prevBB, returnLocations, callSites);
 
@@ -368,8 +371,11 @@ void CFGBuilder_priv::build(Address entry)
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
 
+			DEBUG(std::cout << "--3-- Handling incoming edges" << std::endl;);
 			handleIncomingEdges(next.first, vd, bb_connections, bbi);
+			DEBUG(std::cout << "--4-- Handling outgoing edges" << std::endl;);
 			handleOutgoingEdges(bbi, vd, bb_connections);
+			DEBUG(std::cout << "--5-- BB finished" << std::endl;);
 		} else {
 			// XXX: Actually, we'd insert dummy targets here. The most likely
 			//      use case are code snippets referencing code that is external
@@ -488,7 +494,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				throw NotImplementedException("basic block split");
 			}
 		} catch (NodeNotFoundException) {
-			DEBUG(std::cout << "This is no BB I know about yet. Queuing " << a << " for discovery." << std::endl;);
+			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a << " for discovery." << std::endl;);
 			// case 3: need to discover more code first
 			pending.push_back(UnresolvedLink(newVertex, a));
 		}
