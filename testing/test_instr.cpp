@@ -25,6 +25,9 @@
 #include <boost/foreach.hpp>
 #include <iostream>
 
+/*
+ * Global configuration emulation
+ */
 class init
 {
 	Configuration globalCfg;
@@ -38,6 +41,18 @@ public:
 
 init _i;
 
+/**
+ * @brief Test disassembly of a single instruction
+ *
+ * @param dis disassembler
+ * @param memloc base address of instruction buffer (EIP - offset)
+ * @param offset offset of instruction within buffer
+ * @param len instruction length in bytes
+ * @param repr instruction string representation
+ * @param branch is a branch instruction Defaults to false.
+ * @param release_mem release Instruction memory within this func or return a pointer to caller Defaults to true.
+ * @return Instruction*
+ **/
 static Instruction *
 checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned offset,
                            unsigned len, char const *repr, bool branch = false, bool release_mem = true)
@@ -62,6 +77,16 @@ checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned off
 }
 
 
+/**
+ * @brief Read input string into a disassembler using a Hexbyte input reader
+ *
+ * @param data byte string
+ * @param dis disassembler
+ * @param hir input reader
+ * @param codeAddress code base address
+ * @param expect_bytes number of bytes to read
+ * @return void
+ **/
 static void
 inputToDisassembler(char const *data, Udis86Disassembler& dis, HexbyteInputReader& hir,
                     Address codeAddress, unsigned expect_bytes)
@@ -251,8 +276,76 @@ test_nop_branch()
 	delete i;
 }
 
+static void
+test_call_branch()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("e8 dd 20 00 00", dis, hir, 0x804fd5a, 5);
+	Instruction* i = checkSequentialInstruction(dis, 0x804fd5a, 0, 5, "call dword 0x8051e3c", true, false);
+	WVPASS(i != 0);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 1);
+	WVPASSEQ(btargets[0], 0x8051e3c);
+	delete i;
+}
+
+
+static void
+test_direct_jmp()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("e9 a2 02 00 00", dis, hir, 0x80512d4, 5);
+	Instruction* i = checkSequentialInstruction(dis, 0x80512d4, 0, 5, "jmp dword 0x805157b", true, false);
+	WVPASS(i != 0);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 1);
+	WVPASSEQ(btargets[0], 0x805157b);
+	delete i;
+}
+
+
+static void
+test_condjmp_branch()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("75 02", dis, hir, 0x80515aa, 2);
+	Instruction* i = checkSequentialInstruction(dis, 0x80515aa, 0, 2, "jnz 0x80515ae", true, false);
+	WVPASS(i != 0);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 2);
+	WVPASSEQ(btargets[0], 0x80515ae);
+	WVPASSEQ(btargets[1], 0x80515ac);
+	delete i;
+}
+
+static void
+test_condjmp_neg()
+{
+	Udis86Disassembler dis;
+	HexbyteInputReader hir;
+	inputToDisassembler("7e fa", dis, hir, 0x100, 2);
+	Instruction* i = checkSequentialInstruction(dis, 0x100, 0, 2, "jle 0xfc", true, false);
+	WVPASS(i != 0);
+	std::vector<Address> btargets;
+	i->branchTargets(btargets);
+	WVPASSEQ(btargets.size(), 2);
+	WVPASSEQ(btargets[0], 0xfc);
+	WVPASSEQ(btargets[1], 0x102);
+	delete i;
+}
+
 WVTEST_MAIN("branch targets")
 {
 	test_int80branch();
 	test_nop_branch();
+	test_call_branch();
+	test_direct_jmp();
+	test_condjmp_branch();
+	test_condjmp_neg();
 }
