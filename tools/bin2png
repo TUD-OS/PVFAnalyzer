@@ -1,0 +1,8 @@
+#!/bin/bash
+
+build/cfg_reader/cfg -o foo.cfg -f $@ && \
+build/cfg_printer/cfg_printer -f foo.cfg -o foo.dot && \
+dot -Tpng foo.dot >foo.png && \
+qiv foo.png
+
+rm foo.cfg foo.dot foo.png
