@@ -1,7 +1,18 @@
 callret.bin: 
     * function call / return test case
-    * entry point: 0x00000005
+    * entry point: 0x5
 
 payload.bin:
     * Julian's buffer overflow shellcode from DOS
-    * entry point: 0x00000000
+    * entry point: 0x0
+
+loop.bin:
+    * basic for loop:
+      for (i = 0; i < 10; ++i)
+      { nop(); }
+    * entry point: 0x0
+
+bbsplit.bin:
+    * do/while loop to test BB splitting
+      i = 0; do { nop(); } while (++i < 10);
+    * entry point: 0x0
