@@ -26,6 +26,7 @@
 #include <set>
 
 #include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/graph/depth_first_search.hpp>
 
 /**
@@ -102,6 +103,13 @@ private:
 	 * that do not reside within these buffers.
 	 */
 	std::vector<InputReader*> const &_inputs;
+	/*
+	 * For each basic block we keep track of its RET location, which is defined as:
+	 *     RET(initial)  := NONE
+	 *     RET(calleeBB) := callSites[callerBB.lastInstruction()]
+	 *     RET(otherBB)  := RET(parentBB)
+	 */
+	ReturnLocationMap     returnLocations;
 
 	/**
 	 * @brief Explore a single basic block
@@ -212,7 +220,14 @@ private:
 		 * If the _previous_ branch was a CALL, this subgraph will have a
 		 * new return location set.
 		 */
-		//DEBUG(std::cout << prevBB << " " << prevBB->branchType << std::endl;);
+		if (Configuration::get()->debug) {
+			if (prevBB->instructions.empty()) {
+				std::cout << "XX ";
+			} else {
+				std::cout << prevBB->firstInstruction();
+			}
+			std::cout << " " << prevBB->branchType << std::endl;
+		}
 
 		if (prevBB->branchType == Instruction::BT_CALL) {
 			returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];
@@ -227,6 +242,7 @@ private:
 		} else {
 			returnLocations[bbi.bb] = returnLocations[prevBB];
 		}
+		DEBUG(std::cout << "returnLocations[" << bbi.bb->firstInstruction() << "] := " << returnLocations[bbi.bb] << std::endl;);
 
 		/*
 		 * If the BB is a RETurn, we need to add another target, which the disassembler
@@ -305,14 +321,26 @@ CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
 }
 
 
-struct AddressComparator
+struct AddressInBBComparator
 {
 	BasicBlock *_b;
-	AddressComparator(BasicBlock *b) : _b(b) { }
+	AddressInBBComparator(BasicBlock *b) : _b(b) { }
 
 	bool operator() (CFGBuilder_priv::UnresolvedLink const & u) const
 	{
 		return ((_b->firstInstruction() <= u.second) and (u.second <= _b->lastInstruction()));
+	}
+};
+
+
+struct InstructionAddressComparator
+{
+	Address _a;
+	InstructionAddressComparator(Address a) : _a(a) {}
+
+	bool operator() (Instruction* inst) const
+	{
+		return inst->ip() == _a;
 	}
 };
 
@@ -332,13 +360,6 @@ void CFGBuilder_priv::build(Address entry)
 	 *    the location the callee is going to return to.
 	 */
 	CallSiteMap           callSites;
-	/*
-	 * 2) For each basic block we keep track of its RET location, which is defined as:
-	 *     RET(initial)  := NONE
-	 *     RET(calleeBB) := callSites[callerBB.lastInstruction()]
-	 *     RET(otherBB)  := RET(parentBB)
-	 */
-	ReturnLocationMap     returnLocations;
 
 	/* Create an initial CFG node */
 	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
@@ -449,6 +470,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 		bbi.bb = 0;
 	}
 
+	/* cache BB start address */
 	_bbfound.insert(bbi.bb->firstInstruction());
 
 	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction() << " - " << bbi.bb->lastInstruction() << std::endl;);
@@ -468,7 +490,7 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
 		boost::add_edge(prevVertex, newVertex, _cfg);
 
 		PendingResolutionList::iterator n =
-			std::find_if(pending.begin(), pending.end(), AddressComparator(bbi.bb));
+			std::find_if(pending.begin(), pending.end(), AddressInBBComparator(bbi.bb));
 		while (n != pending.end()) {
 			BasicBlock *b = _cfg[(*n).first].bb;
 			DEBUG(std::cout << "Unresolved link: " << b->firstInstruction() << " -> "
@@ -480,7 +502,7 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
 				throw NotImplementedException("split BB");
 			}
 			pending.erase(n);
-			n = std::find_if(pending.begin(), pending.end(), AddressComparator(bbi.bb));
+			n = std::find_if(pending.begin(), pending.end(), AddressInBBComparator(bbi.bb));
 		}
 }
 
@@ -489,8 +511,18 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
                                           PendingResolutionList& pending)
 {
 	DEBUG(std::cout << "Adding outgoing targets." << std::endl;);
+	if (Configuration::get()->debug) {
+		std::cout << "   [";
+		BOOST_FOREACH(Address a, bbi.targets) {
+			std::cout << a << ",";
+		}
+		std::cout << "]" << std::endl;
+	}
 	/* Now establish target links */
-	BOOST_FOREACH(Address a, bbi.targets) {
+	while (!bbi.targets.empty()) {
+		Address a = bbi.targets.front();
+		bbi.targets.erase(bbi.targets.begin());
+
 		/*
 		 * Is the target within an alreay known BB? The result is one
 		 * of three possible outcomes:
@@ -503,19 +535,79 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		 * 3) No
 		 *     -> Add an unresolved link and discover later.
 		 */
+		CFGVertexDescriptor node;
 		try {
-			CFGVertexDescriptor const node = findCFGNodeWithAddress(a);
-			if (a == _cfg[node].bb->firstInstruction()) {
-				DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
-				boost::add_edge(newVertex, node, _cfg);
-			} else {
-				DEBUG(std::cout << "need to split BB" << std::endl;);
-				throw NotImplementedException("basic block split");
-			}
+			node = findCFGNodeWithAddress(a);
 		} catch (NodeNotFoundException) {
 			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a << " for discovery." << std::endl;);
 			// case 3: need to discover more code first
 			pending.push_back(UnresolvedLink(newVertex, a));
+			continue;
+		}
+		if (a == _cfg[node].bb->firstInstruction()) {
+			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
+			boost::add_edge(newVertex, node, _cfg);
+		} else {
+			DEBUG(std::cout << "need to split BB" << std::endl;);
+
+			// 1) create new empty BB
+			BasicBlock* bb2 = new BasicBlock();
+			bb2->branchType = bbi.bb->branchType;
+			returnLocations[bb2] = returnLocations[bbi.bb];
+
+			DEBUG(std::cout << "split: new BB @ " << bb2 << std::endl;);
+
+			/* ERROR !!!!
+			 *
+			 * The code below splits the _ORIGINATING_ basic block. However, we need to
+			 * split the TARGET basic block, that is _cfg[node].bb !!!!
+			 */
+			std::vector<Instruction*>::iterator iit = std::find_if(bbi.bb->instructions.begin(),
+																bbi.bb->instructions.end(),
+																InstructionAddressComparator(a));
+			assert(iit != bbi.bb->instructions.end());
+			while (iit != bbi.bb->instructions.end()) {
+				DEBUG(std::cout << "split: moving instr. @ " << (*iit)->ip()
+								<< " to bb2" << std::endl;);
+				bb2->instructions.push_back(*iit);
+				iit = bbi.bb->instructions.erase(iit);
+			}
+			DEBUG(bbi.dump(); std::cout << "\n";);
+
+			CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
+
+			// 3) incoming edges for bb1 remain untouched
+			
+			/*
+				* 4) all existing outgoing edges from bb1 are transformed to
+				*    outgoing edges of bb2
+				*/
+			boost::graph_traits<ControlFlowGraph>::out_edge_iterator edge0, edgeEnd;
+			for (boost::tie(edge0, edgeEnd) = boost::out_edges(newVertex, _cfg);
+					edge0 != edgeEnd; ++edge0) {
+				CFGVertexDescriptor v = boost::target(*edge0, _cfg);
+				DEBUG(std::cout << "split: adding: " << vert2 << " -> " << v << std::endl;);
+				boost::add_edge(vert2, v, _cfg);
+				DEBUG(std::cout << "split: removing: " << newVertex << " -> " << v << std::endl;);
+				boost::remove_edge(newVertex, v, _cfg);
+			}
+
+			// 5) add edge from bb1 -> bb2
+			bbi.bb->branchType = Instruction::BT_JUMP_UNCOND;
+			boost::add_edge(newVertex, vert2, _cfg);
+
+			BBInfo bbi2 = bbi;
+			bbi2.bb = bb2;
+			bbi2.targets = bbi.targets;
+			bbi2.targets.push_back(a);
+			bbi.targets.clear();
+			handleOutgoingEdges(bbi2, vert2, pending);
+
+			/*
+				* Problem: we are now done with bb1. All further target handling needs to be performed
+				*          with bb2 -> call ourselves with bb2 and remaining targets?
+				*/
+			//throw NotImplementedException("basic block split");
 		}
 	}
 }

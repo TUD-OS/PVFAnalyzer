@@ -52,6 +52,8 @@ typedef boost::adjacency_list<boost::vecS,
 
 typedef boost::graph_traits<ControlFlowGraph>::vertex_descriptor CFGVertexDescriptor;
 typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterator;
+typedef boost::graph_traits<ControlFlowGraph>::edge_descriptor   CFGEdgeDescriptor;
+typedef boost::graph_traits<ControlFlowGraph>::edge_iterator     CFGEdgeIterator;
 
 
 /**
