@@ -89,6 +89,11 @@ env = Environment(CPPPATH = ["#/common"],
                   LIBPATH = ["#/build/common"],
                  )
 
+if ARGUMENTS.get('CLANG') == '1':
+    env.Replace(CXX=["clang++"])
+    env.Append(CXXFLAGS=["-Weverything", "-Wno-weak-vtables", "-Wno-global-constructors",
+                         "-Wno-exit-time-destructors"])
+
 if ARGUMENTS.get('VERBOSE') != '1':
     env['ARCOMSTR']     = "\033[35m[AR    ]\033[0m $TARGET"
     env['CCCOMSTR']     = "\033[35m[CC    ]\033[0m $TARGET"
