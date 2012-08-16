@@ -20,4 +20,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - changed status from unstarted to in_progress
   - ""
+- - 2012-08-16 23:23:52.444221 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - getting there. 1/2 test cases looks good, but needs validation. Test case 2 (twocalls) seems to be missing a final BB for the return from the second function call.
 git_branch: 
