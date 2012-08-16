@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIRS="analyzer common testing"
+DIRS="cfg_reader cfg_printer common testing"
 
 function find_includes ()
 {
