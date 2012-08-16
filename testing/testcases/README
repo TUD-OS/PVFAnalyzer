@@ -16,3 +16,15 @@ bbsplit.bin:
     * do/while loop to test BB splitting
       i = 0; do { nop(); } while (++i < 10);
     * entry point: 0x0
+
+
+loopif.bin:
+    * loop with an if/else construct:
+        do {
+          if (i % 2 == 0) {
+            asm volatile ("nop");
+          } else {
+            j++;
+          }
+        } while (++i < 10);
+    * entry point: 0x0

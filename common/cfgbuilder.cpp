@@ -160,6 +160,16 @@ private:
 		std::cout << "]" << std::endl;
 	}
 
+	void updatePendingList(CFGVertexDescriptor oldVert, CFGVertexDescriptor newVert)
+	{
+		BOOST_FOREACH(UnresolvedLink& l, _bb_connections) {
+			if (l.first == oldVert) {
+				DEBUG(std::cout << l.first << " ~> " << newVert << std::endl;);
+				l.first = newVert;
+			}
+		}
+	}
+
 	/**
 	 * @brief Helper: handle incoming edges for newly discovered BB
 	 *
@@ -564,8 +574,9 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			_bb_connections.push_back(UnresolvedLink(newVertex, a));
 			continue;
 		}
+
 		if (a == _cfg[targetNode].bb->firstInstruction()) {
-			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG vertex." << std::endl;);
+			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
 			addCFGEdge(newVertex, targetNode);
 		} else {
 			DEBUG(std::cout << "need to split BB " << targetNode << std::endl;);
@@ -594,13 +605,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			 * Adjust pending link list. All non-discovered links that started from
 			 * the non-split block now start from the newly created vertex.
 			 */
-			BOOST_FOREACH(UnresolvedLink& l, _bb_connections) {
-				DEBUG(std::cout << l.first << " " << l.second << " " << targetNode << "?" << std::endl;);
-				if (l.first == targetNode) {
-					DEBUG(std::cout << l.first << " ~> " << splitTailVertex << std::endl;);
-					l.first = splitTailVertex;
-				}
-			}
+			updatePendingList(targetNode, splitTailVertex);
 		}
 	}
 }
