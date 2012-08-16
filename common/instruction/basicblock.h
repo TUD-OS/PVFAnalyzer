@@ -71,6 +71,7 @@ struct BasicBlock
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
+		(void)version;
 		a & instructions;
 	}
 
@@ -99,3 +100,4 @@ struct BasicBlock
 		return instructions.back()->ip();
 	}
 };
+

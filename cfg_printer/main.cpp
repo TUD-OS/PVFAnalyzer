@@ -156,4 +156,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 #include "instruction/instruction_udis86.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");
+#pragma GCC diagnostic pop

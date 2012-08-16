@@ -25,7 +25,7 @@
 #include <cstddef>
 #include <cassert>
 
-typedef ptrdiff_t Address; // address type
+typedef unsigned long Address; // address type
 
 /**
  * @brief Arbitrary memory region
@@ -36,8 +36,8 @@ struct MemRegion
 		: base(0), size(0)
 	{ }
 
-	MemRegion(Address base, ptrdiff_t size)
-		: base(base), size(size)
+	MemRegion(Address _base, ptrdiff_t _size)
+		: base(_base), size(_size)
 	{ }
 
 	virtual ~MemRegion() { }

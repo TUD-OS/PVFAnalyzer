@@ -38,6 +38,8 @@ public:
  * ud_t contains ud_operand members that need to have dedicated
  * serialization routine as well.
  **/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 struct udop : public ud_operand_t
 {
 	udop(ud_operand_t& op)
@@ -57,6 +59,7 @@ struct udop : public ud_operand_t
 		ar & scale;
 	}
 };
+
 
 
 struct udis86_t : public ud_t
@@ -129,6 +132,7 @@ struct udis86_t : public ud_t
 		ar & modrm;
 	}
 };
+#pragma GCC diagnostic pop
 
 /**
  * @brief Utility helper for interfacing with UDIS86

@@ -143,7 +143,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 
-	if (conf.entryPoint != ~0)
+	if (conf.entryPoint != ~0UL)
 		entry = conf.entryPoint;
 	else
 		entry = v[0]->entry();
@@ -242,4 +242,7 @@ main(int argc, char **argv)
 	return 0;
 }
 #include "instruction/instruction_udis86.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");
+#pragma GCC diagnostic pop

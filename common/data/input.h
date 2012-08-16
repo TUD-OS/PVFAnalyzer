@@ -60,9 +60,9 @@ public:
 	{
 		RelocatedMemRegion buf = orig.getBuffer();
 		if (buf.base and buf.size) {
-			_data     = static_cast<uint8_t*>(realloc(_data, buf.size));
-			_dataIndex = buf.size;
-			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), buf.size);
+			_data     = static_cast<uint8_t*>(realloc(_data, static_cast<unsigned int>(buf.size)));
+			_dataIndex = static_cast<unsigned int>(buf.size);
+			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), _dataIndex);
 		}
 		_name = orig.name();
 	}
@@ -107,7 +107,7 @@ public:
 	 **/
 	RelocatedMemRegion const getBuffer() const
 	{
-		return RelocatedMemRegion((Address)(_data), _dataIndex, _reloc);
+		return RelocatedMemRegion((Address)(_data), (int)_dataIndex, _reloc);
 	}
 
 	/**

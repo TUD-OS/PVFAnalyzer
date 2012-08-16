@@ -256,7 +256,7 @@ static void test_int80branch()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 1);
+	WVPASS(btargets.size() == 1);
 	WVPASSEQ(btargets[0], 2);
 	delete i;
 }
@@ -272,7 +272,7 @@ test_nop_branch()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 0);
+	WVPASS(btargets.size() == 0);
 	delete i;
 }
 
@@ -286,7 +286,7 @@ test_call_branch()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 1);
+	WVPASS(btargets.size() == 1);
 	WVPASSEQ(btargets[0], 0x8051e3c);
 	delete i;
 }
@@ -302,7 +302,7 @@ test_direct_jmp()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 1);
+	WVPASS(btargets.size() == 1);
 	WVPASSEQ(btargets[0], 0x805157b);
 	delete i;
 }
@@ -318,7 +318,7 @@ test_condjmp_branch()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 2);
+	WVPASS(btargets.size() == 2);
 	WVPASSEQ(btargets[0], 0x80515ae);
 	WVPASSEQ(btargets[1], 0x80515ac);
 	delete i;
@@ -334,7 +334,7 @@ test_condjmp_neg()
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
-	WVPASSEQ(btargets.size(), 2);
+	WVPASS(btargets.size() == 2);
 	WVPASSEQ(btargets[0], 0xfc);
 	WVPASSEQ(btargets[1], 0x102);
 	delete i;

@@ -148,3 +148,4 @@ protected:
 	Address _ip;   // corresponding instruction pointer
 	Address _base; // where instruction bytes are in memory
 };
+
