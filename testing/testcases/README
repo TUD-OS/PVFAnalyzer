@@ -28,3 +28,8 @@ loopif.bin:
           }
         } while (++i < 10);
     * entry point: 0x0
+
+twocalls.bin:
+    * two calls to the same function from different
+      sources
+    * entry point: 0x5
