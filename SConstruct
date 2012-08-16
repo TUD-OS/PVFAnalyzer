@@ -116,4 +116,4 @@ env.Append(ENV = {"BASEDIR" : os.environ["PWD"]})
 env.integrationTests = env.Command("build_always2", "", "testing/scripts/runTests")
 
 env.Depends(env.testcmd, env.test)
-env.Depends(env.integrationTests, env.test)
+env.Depends(env.integrationTests, env.testcmd)
