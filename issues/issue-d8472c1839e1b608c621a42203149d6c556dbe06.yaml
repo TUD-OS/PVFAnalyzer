@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Store one CFG per function
+desc: Build a separate CFG for every function we encounter. Then have a high-level CFG that may contain links to other CFGs. This could ease management of functions that are called multiple times and make the CFGs more comprehensible.
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-16 20:00:52.544996 Z
+references: []
+
+id: d8472c1839e1b608c621a42203149d6c556dbe06
+log_events: 
+- - 2012-08-16 20:00:53.143056 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

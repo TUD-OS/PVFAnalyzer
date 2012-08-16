@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "CALL/RET: get rid of CallSiteMap"
+desc: we can push the return location into the target BB's return info immediately without having to resort to an additional callsite map.
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-16 19:45:33.850950 Z
+references: []
+
+id: 07a4be652c3307111abecb6018daf77463bc8cce
+log_events: 
+- - 2012-08-16 19:45:34.303065 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
