@@ -30,7 +30,7 @@
  **/
 struct CFGNodeInfo
 {
-	BasicBlock* bb; // right now we only store a basic block
+	BasicBlock* bb; ///> Basic Block this CFG node represents
 
 	CFGNodeInfo(BasicBlock *b = 0)
 		: bb(b)

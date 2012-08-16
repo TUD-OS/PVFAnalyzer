@@ -80,15 +80,41 @@ public:
 #define DEBUG(x) \
 	do { if (Configuration::get()->debug) { std::cout << "DBG: [" << __func__ << "] "; { x }} } while (0);
 
+struct MessageException
+{
+	char const *message;
+	MessageException(char const *msg)
+		: message(msg)
+	{ }
+
+	virtual ~MessageException() { }
+
+	MessageException(MessageException const &orig)
+		: message(orig.message)
+	{ }
+
+	MessageException& operator=(MessageException const &orig)
+	{
+		message = orig.message;
+		return *this;
+	}
+};
 
 /**
  * @brief Exception indicating that a certain feature has not been implemented yet.
  **/
-struct NotImplementedException
+struct NotImplementedException : public MessageException
 {
-	char const *message;
 	NotImplementedException(char const *msg)
-		: message(msg)
+		: MessageException(msg)
+	{ }
+};
+
+
+struct ThisShouldNeverHappenException : public MessageException
+{
+	ThisShouldNeverHappenException (const char* msg)
+		: MessageException(msg)
 	{ }
 };
 
