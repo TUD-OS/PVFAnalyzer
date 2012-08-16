@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Reconstruct instruction byte stream
+desc: instruction bytes are currently not serialized (XXX check). Allow this to happen, so we can rebuild the instruction stream from a given CFG.
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-16 08:37:48.810199 Z
+references: []
+
+id: 4f2f981fa5e53e009a914c476d1819507a9403aa
+log_events: 
+- - 2012-08-16 08:37:49.822139 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
