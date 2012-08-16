@@ -248,14 +248,6 @@ private:
 		 * If the _previous_ branch was a CALL, this subgraph will have a
 		 * new return location set.
 		 */
-		if (Configuration::get()->debug) {
-			if (prevBB->instructions.empty()) {
-				std::cout << "XX ";
-			} else {
-				std::cout << prevBB->firstInstruction();
-			}
-			std::cout << " " << prevBB->branchType << std::endl;
-		}
 
 		if (prevBB->branchType == Instruction::BT_CALL) {
 			returnLocations[bbi.bb] = callSites[prevBB->lastInstruction()];

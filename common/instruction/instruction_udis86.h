@@ -23,15 +23,6 @@
 #include <cstdio>
 
 
-class InstructionPropertyUdis86 : public InstructionProperty
-{
-public:
-	virtual OperandAccessInfo propertyForOperand(Instruction *i, unsigned num);
-
-	virtual ~InstructionPropertyUdis86() { };
-};
-
-
 /**
  * @brief Wrapper struct for udis86's data structure
  *
@@ -367,12 +358,6 @@ public:
 		}
 
 		return bt;
-	}
-
-	virtual InstructionProperty* getProps()
-	{
-		static InstructionPropertyUdis86 props;
-		return &props;
 	}
 
 protected:

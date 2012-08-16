@@ -27,24 +27,6 @@
 
 #include "data/memory.h"
 
-class Instruction;
-
-class InstructionProperty
-{
-public:
-	enum OperandAccessInfo {
-		OAI_NONE,
-		OAI_READ,
-		OAI_WRITE,
-		OAI_READWRITE,
-	};
-
-	virtual OperandAccessInfo propertyForOperand(Instruction* i, unsigned num) = 0;
-
-	virtual ~InstructionProperty() {};
-};
-
-
 /**
  * @brief Generic interface for Instructions.
  **/
@@ -134,6 +116,13 @@ public:
 		BT_INT,
 	};
 
+	enum OperandAccessInfo {
+		OAI_NONE,
+		OAI_READ,
+		OAI_WRITE,
+		OAI_READWRITE,
+	};
+
 	/**
 	 * @brief Determine branch targets and type
 	 *
@@ -141,8 +130,6 @@ public:
 	 * @return :BranchType
 	 **/
 	virtual BranchType branchTargets(std::vector<Address>& v) = 0;
-
-	virtual InstructionProperty* getProps() = 0;
 
 protected:
 	Address _ip;   // corresponding instruction pointer
