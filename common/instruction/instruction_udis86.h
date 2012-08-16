@@ -22,6 +22,16 @@
 #include <udis86.h>
 #include <cstdio>
 
+
+class InstructionPropertyUdis86 : public InstructionProperty
+{
+public:
+	virtual OperandAccessInfo propertyForOperand(Instruction *i, unsigned num);
+
+	virtual ~InstructionPropertyUdis86() { };
+};
+
+
 /**
  * @brief Wrapper struct for udis86's data structure
  *
@@ -355,6 +365,12 @@ public:
 		return bt;
 	}
 
+	virtual InstructionProperty* getProps()
+	{
+		static InstructionPropertyUdis86 props;
+		return &props;
+	}
+
 protected:
 	udis86_t _udObj;
 
@@ -362,4 +378,3 @@ private:
 	Udis86Instruction(const Udis86Instruction&) : _udObj() { }
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
 };
-
