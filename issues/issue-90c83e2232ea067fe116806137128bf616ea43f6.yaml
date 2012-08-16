@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Adjust pending link list on BB split
+desc: When splitting a BB, we need to make sure that any pending links that might start from the split BB now start from the newly created tail BB.
+type: :bugfix
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-16 12:20:18.197215 Z
+references: []
+
+id: 90c83e2232ea067fe116806137128bf616ea43f6
+log_events: 
+- - 2012-08-16 12:20:18.961292 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
