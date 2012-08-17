@@ -282,23 +282,25 @@ public:
 				/* The immediate operand for INT xx is not a jump target. */
 				if (ud->mnemonic != UD_Iint) { // XXX is INT xx the special or the common case?
 					target  = Udis86Helper::operandToValue(ud, 0);
-					DEBUG(std::cout << "branch to: " << target << std::endl;);
+					//DEBUG(std::cout << "branch to: " << target << std::endl;);
 					targets.push_back(Udis86Helper::operandToValue(ud, 0));
 				}
 				break;
 			case UD_OP_JIMM: /* Immediate operand to branch instruction (relative offsets).
 			                    Value available in lval */
 				target  = Udis86Helper::operandToValue(ud, 0);
+#if 0
 				DEBUG(std::cout << "branch to: " << Instruction::ip() << "+" << this->length()
 				                << "+" << std::dec << target << "="
 				                << std::hex << Instruction::ip() + length() + target
 				                << std::endl;);
+#endif
 				target += Instruction::ip();
 				target += length();
 				targets.push_back(target);
 				break;
 			case UD_NONE:
-				DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);
+				//DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);
 				break;
 			default:
 				DEBUG(std::cout << ud->operand[0].type << std::endl;);
@@ -330,23 +332,23 @@ public:
 			case UD_Ijns:	case UD_Ijnz:	case UD_Ijo:		case UD_Ijp:
 			case UD_Ijs:		case UD_Ijz:		case UD_Ijrcxz:
 				bt = BT_JUMP_COND;
-				DEBUG(std::cout << "BT_JUMP_COND" << std::endl;);
+				//DEBUG(std::cout << "BT_JUMP_COND" << std::endl;);
 				break;
 			case UD_Icall:
 				bt = BT_CALL;
-				DEBUG(std::cout << "BT_CALL" << std::endl;);
+				//DEBUG(std::cout << "BT_CALL" << std::endl;);
 				break;
 			case UD_Iret:
 				bt = BT_RET;
-				DEBUG(std::cout << "BT_RET" << std::endl;);
+				//DEBUG(std::cout << "BT_RET" << std::endl;);
 				break;
 			case UD_Iint:
 				bt = BT_INT;
-				DEBUG(std::cout << "BT_INT" << std::endl;);
+				//DEBUG(std::cout << "BT_INT" << std::endl;);
 				break;
 			case UD_Ijmp:
 				bt = BT_JUMP_UNCOND;
-				DEBUG(std::cout << "BT_JUMP_UNCOND" << std::endl;);
+				//DEBUG(std::cout << "BT_JUMP_UNCOND" << std::endl;);
 				break;
 			/* yep, syscalls branch to somewhere else, too */
 			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:

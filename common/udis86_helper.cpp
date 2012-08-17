@@ -34,7 +34,7 @@ int64_t Udis86Helper::operandToValue(ud_t *ud, unsigned opno)
 		case UD_OP_CONST:    /* Values are immediately available in lval */
 		case UD_OP_IMM:
 		case UD_OP_JIMM:
-			DEBUG(std::cout << op.lval.sqword << std::endl;);
+			//DEBUG(std::cout << op.lval.sqword << std::endl;);
 			break;
 		default:
 			DEBUG(std::cout << op.type << std::endl;);
