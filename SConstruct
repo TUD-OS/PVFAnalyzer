@@ -108,10 +108,11 @@ if not env.GetOption("clean"):
     wvtestrun = detect_wv()
 
 banner("Compilation")
-SConscript("common/SConscript",      variant_dir="#/build/common",     exports='env')
-SConscript("cfg_reader/SConscript",  variant_dir="#/build/cfg_reader", exports='env')
-SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer",exports='env')
-SConscript("testing/SConscript",     variant_dir="build/test",       exports='env')
+SConscript("common/SConscript",      variant_dir="#/build/common",      exports='env')
+SConscript("cfg_reader/SConscript",  variant_dir="#/build/cfg_reader",  exports='env')
+SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer", exports='env')
+SConscript("pvf_regs/SConscript",    variant_dir="#/build/pvf_regs",    exports='env')
+SConscript("testing/SConscript",     variant_dir="build/test",          exports='env')
 
 # make a test run after compilation
 env.Append(ENV = {"TERM" : os.environ["TERM"]})

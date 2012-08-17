@@ -1,0 +1,111 @@
+/**********************************************************************
+          DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+ Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+
+ Everyone is permitted to copy and distribute verbatim or modified
+ copies of this license document, and changing it is allowed as long
+ as the name is changed.
+
+            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
+   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+  0. You just DO WHAT THE FUCK YOU WANT TO.
+
+**********************************************************************/
+
+#include <iostream>	          // std::cout
+#include <getopt.h>	          // getopt()
+#include <boost/foreach.hpp>  // FOREACH
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adj_list_serialize.hpp>
+#include <boost/graph/graphviz.hpp>
+#include "instruction/cfg.h"
+#include "util.h"
+
+struct PVFConfig : public Configuration
+{
+	std::string input_filename;
+	std::string output_filename;
+	Address     final;
+
+	PVFConfig()
+		: Configuration(), input_filename("output.cfg"),
+	      output_filename("output.pvf"), final(0)
+	{ }
+};
+
+static PVFConfig config;
+
+
+static void
+usage(char const *prog)
+{
+	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
+	std::cout << prog << " [-h] [-f <file>] [-o <file>] [-v] [-d]"
+	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
+	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
+	std::cout << "\t-o <file>          Write the resulting output to file. [output.pvf]" << std::endl;
+	std::cout << "\t-t <addr>          Set PVF termination address [0x00000000]" << std::endl;
+	std::cout << "\t-d                 Debug output [off]" << std::endl;
+	std::cout << "\t-h                 Display help" << std::endl;
+	std::cout << "\t-v                 Verbose output [off]" << std::endl;
+}
+
+
+static void
+banner()
+{
+	Version version = Configuration::get()->globalProgramVersion;
+	std::cout << "\033[34m" << "********************************************"
+	          << "\033[0m" << std::endl;
+	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	          << "." << version.minor << "\033[0m" << std::endl;
+	std::cout << "\033[34m" << "********************************************"
+	          << "\033[0m" << std::endl;
+}
+
+
+static bool
+parseInputFromOptions(int argc, char **argv)
+{
+	int opt;
+
+	while ((opt = getopt(argc, argv, "df:ho:t:v")) != -1) {
+
+		if (config.parse_option(opt))
+			continue;
+
+		switch(opt) {
+
+			case 'f':
+				config.input_filename = optarg;
+				break;
+
+			case 'h':
+				usage(argv[0]);
+				return false;
+
+			case 'o':
+				config.output_filename = optarg;
+				break;
+
+			case 't':
+				config.final = strtoul(optarg, 0, 0);
+				break;
+		}
+	}
+	return true;
+}
+
+int main(int argc, char **argv)
+{
+	Configuration::setConfig(&config);
+
+	if (not parseInputFromOptions(argc, argv))
+		exit(2);
+
+	banner();
+	return 0;
+}
