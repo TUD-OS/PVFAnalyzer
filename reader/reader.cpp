@@ -29,19 +29,6 @@
 #include "instruction/cfg.h"
 #include "util.h"
 
-/**
- * @brief Command line long options
- **/
-struct option my_opts[] = {
-	{"debug",   no_argument,       0, 'd'},
-	{"entry",   required_argument, 0, 'e'},
-	{"file",    required_argument, 0, 'f'},
-	{"help",    no_argument,       0, 'h'},
-	{"hex",     no_argument,       0, 'x'},
-	{"outfile", required_argument, 0, 'o'},
-	{"verbose", no_argument,       0, 'v'},
-	{0,0,0,0} // this line be last
-};
 
 struct ReaderConfig : public Configuration
 {

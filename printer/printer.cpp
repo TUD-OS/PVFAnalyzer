@@ -25,15 +25,6 @@
 #include "instruction/cfg.h"
 #include "instruction/instruction_udis86.h"
 
-struct option my_opts[] = {
-	{"debug",   no_argument,       0, 'd'},
-	{"file",    required_argument, 0, 'f'},
-	{"help",    no_argument,       0, 'h'},
-	{"outfile", required_argument, 0, 'o'},
-	{"verbose", no_argument,       0, 'v'},
-	{0,0,0,0} // this line be last
-};
-
 
 struct PrinterConfiguration : public Configuration
 {
