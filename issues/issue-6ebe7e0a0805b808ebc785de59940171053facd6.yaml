@@ -5,7 +5,7 @@ type: :feature
 component: CFGAnalysis
 release: "0.2"
 reporter: doebel <doebel@tudos.org>
-status: :unstarted
+status: :in_progress
 disposition: 
 creation_time: 2012-08-13 08:54:37.746439 Z
 references: []
@@ -19,5 +19,9 @@ log_events:
 - - 2012-08-13 09:58:27.183906 Z
   - doebel <doebel@tudos.org>
   - assigned to release 0.2 from unassigned
+  - ""
+- - 2012-08-17 11:09:19.839938 Z
+  - doebel <doebel@tudos.org>
+  - changed status from unstarted to in_progress
   - ""
 git_branch: 

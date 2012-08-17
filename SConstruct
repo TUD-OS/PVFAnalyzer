@@ -1,7 +1,7 @@
 import os, sys
 
 def createBuildDir():
-    targets = """common test cfg_reader  cfg_printer"""
+    targets = """common test reader  printer pvf_regs"""
     if not os.path.exists("build"):
         os.mkdir("build")
     for t in targets.split():
@@ -108,11 +108,11 @@ if not env.GetOption("clean"):
     wvtestrun = detect_wv()
 
 banner("Compilation")
-SConscript("common/SConscript",      variant_dir="#/build/common",      exports='env')
-SConscript("cfg_reader/SConscript",  variant_dir="#/build/cfg_reader",  exports='env')
-SConscript("cfg_printer/SConscript", variant_dir="#/build/cfg_printer", exports='env')
-SConscript("pvf_regs/SConscript",    variant_dir="#/build/pvf_regs",    exports='env')
-SConscript("testing/SConscript",     variant_dir="build/test",          exports='env')
+SConscript("common/SConscript",   variant_dir="#/build/common",   exports='env')
+SConscript("reader/SConscript",   variant_dir="#/build/reader",   exports='env')
+SConscript("printer/SConscript",  variant_dir="#/build/printer",  exports='env')
+SConscript("pvf_regs/SConscript", variant_dir="#/build/pvf_regs", exports='env')
+SConscript("testing/SConscript",  variant_dir="build/test",       exports='env')
 
 # make a test run after compilation
 env.Append(ENV = {"TERM" : os.environ["TERM"]})

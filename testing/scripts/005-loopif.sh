@@ -5,5 +5,5 @@ if [ $? != 0 ]; then
 	exit 1;
 fi
 
-$ROOTDIR/build/cfg_reader/cfg -f $TESTCASES/loopif.bin -o $TESTOUT/loopif.cfg -e 0x5
-$ROOTDIR/build/cfg_printer/cfg_printer -f $TESTOUT/loopif.cfg -o -
+$ROOTDIR/build/reader/reader -f $TESTCASES/loopif.bin -o $TESTOUT/loopif.cfg -e 0x5
+$ROOTDIR/build/printer/printer -f $TESTOUT/loopif.cfg -o -

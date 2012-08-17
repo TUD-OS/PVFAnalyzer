@@ -1,5 +1,5 @@
 files = """
-printer
+reader
 """
 objects = [("%s.o" % f) for f in files.split()]
 
@@ -8,5 +8,5 @@ Import('env')
 for f in files.split():
     env.Object("%s.cpp" %f)
 
+env.reader = env.Program('reader', objects)
 env.Append(LIBS = ["boost_serialization"])
-env.printer = env.Program('cfg_printer', objects)
