@@ -287,7 +287,7 @@ private:
 	void updateRetDoms(CFGVertexDescriptor node)
 	{
 		CFGVertexDescriptor callDom = _callDoms[_cfg[node].bb->firstInstruction()];
-		if (callDom != 0) {
+		if ((callDom != 0) and (_cfg[node].bb->branchType == Instruction::BT_RET)) {
 			Address a = _cfg[callDom].bb->firstInstruction();
 			_retDoms[a].insert(node);
 		}
@@ -301,10 +301,27 @@ private:
 		Address target        = _cfg[callee].bb->firstInstruction();
 		Instruction *ret      = _cfg[caller].bb->instructions.back();
 		Address returnAddress = ret->ip() + ret->length();
+
+		/*
+		 * For recursive functions we can encounter the case where we actually
+		 * return to a BB that has already been discovered.
+		 */
+		CFGVertexDescriptor retVertex;
+		bool haveVertex = false;
+		try {
+			retVertex  = findCFGNodeWithAddress(returnAddress);
+			haveVertex = true;
+		} catch (NodeNotFoundException)
+		{ }
+
 		DEBUG(std::cout << "ret doms [ " << target << "] :" << std::endl;);
 		BOOST_FOREACH(CFGVertexDescriptor vd, _retDoms[target]) {
 			DEBUG(std::cout << vd << std::endl;);
-			_bb_connections.push_back(UnresolvedLink(vd, returnAddress));
+			if (haveVertex) {
+				boost::add_edge(vd, retVertex, _cfg);
+			} else {
+				_bb_connections.push_back(UnresolvedLink(vd, returnAddress));
+			}
 		}
 	}
 
@@ -496,15 +513,8 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 		}
 	} while (i);
 
-	/*
-	 * Bogus: we found a BB with 0 instructions -> delete it right now.
-	 *
-	 * XXX: Should this ever happen?
-	 */
 	if (bbi.bb->instructions.size() == 0) {
-		DEBUG(std::cout << "No instructions in BB?" << std::endl;);
-		delete bbi.bb;
-		bbi.bb = 0;
+		throw ThisShouldNeverHappenException("No instructions in BB");
 	}
 
 	/* cache BB start address */
