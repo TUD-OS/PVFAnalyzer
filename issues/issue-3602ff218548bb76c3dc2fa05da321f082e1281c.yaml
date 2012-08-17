@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: function recursion
+desc: check that the generated graph for recursion is correct
+type: :task
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-17 07:40:08.393626 Z
+references: []
+
+id: 3602ff218548bb76c3dc2fa05da321f082e1281c
+log_events: 
+- - 2012-08-17 07:40:08.949319 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
