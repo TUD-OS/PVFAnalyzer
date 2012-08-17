@@ -76,7 +76,8 @@ class CFGBuilder_priv : public CFGBuilder
 {
 public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), _callDoms(), _callRets(), _bb_connections()
+		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), _callDoms(),
+		  _callRets(), _retDoms(), _bb_connections()
 	{ }
 
 	virtual void build(Address a);
@@ -88,8 +89,10 @@ public:
 	 */
 	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
 	typedef std::list<UnresolvedLink>               PendingResolutionList;
+
 	typedef std::map<Address, CFGVertexDescriptor>  CallDominatorInfo;
 	typedef std::map<Address, std::set<Address> >   CallReturnSites;
+	typedef std::map<Address, std::set<CFGVertexDescriptor> > ReturnDominatorInfo;
 
 private:
 	Udis86Disassembler  _dis;    ///> underlying disassembler
@@ -133,8 +136,9 @@ private:
 	 *   use a mapping from a start address to a vertex / return list. Thereby, we
 	 *   can store info about discovered and undiscovered return edges similarly.
 	 */
-	CallDominatorInfo _callDoms;
-	CallReturnSites   _callRets;
+	CallDominatorInfo   _callDoms;
+	CallReturnSites     _callRets;
+	ReturnDominatorInfo _retDoms;
 
 	/* This list stores all yet unresolved links. We work until this
 	 * list becomes empty. */;
@@ -262,6 +266,7 @@ private:
 		}
 	}
 
+
 	void updateReturnsForCall(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
 		CFGNodeInfo& parentNode = _cfg[parent];
@@ -276,6 +281,31 @@ private:
 		Address startInstr        = newNode.bb->firstInstruction();
 		DEBUG(std::cout << "callrets[" << startInstr << "] += [" << returnAddress << "]" << std::endl;);
 		_callRets[startInstr].insert(returnAddress);
+	}
+
+
+	void updateRetDoms(CFGVertexDescriptor node)
+	{
+		CFGVertexDescriptor callDom = _callDoms[_cfg[node].bb->firstInstruction()];
+		if (callDom != 0) {
+			Address a = _cfg[callDom].bb->firstInstruction();
+			_retDoms[a].insert(node);
+		}
+	}
+
+
+	void addReturnEdgesForCall(CFGVertexDescriptor caller, CFGVertexDescriptor callee)
+	{
+		DEBUG(std::cout << caller << " -> " << callee << std::endl;);
+
+		Address target        = _cfg[callee].bb->firstInstruction();
+		Instruction *ret      = _cfg[caller].bb->instructions.back();
+		Address returnAddress = ret->ip() + ret->length();
+		DEBUG(std::cout << "ret doms [ " << target << "] :" << std::endl;);
+		BOOST_FOREACH(CFGVertexDescriptor vd, _retDoms[target]) {
+			DEBUG(std::cout << vd << std::endl;);
+			_bb_connections.push_back(UnresolvedLink(vd, returnAddress));
+		}
 	}
 
 	CFGVertexDescriptor splitBasicBlock(CFGVertexDescriptor splitVertex, Address splitAddress);
@@ -498,6 +528,7 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
 
 		/* Update the call dominator map */
 		updateCallDoms(prevVertex, newVertex);
+		updateRetDoms(newVertex);
 
 		PendingResolutionList::iterator n =
 			std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
@@ -560,6 +591,8 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		if (a == _cfg[targetNode].bb->firstInstruction()) {
 			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
 			addCFGEdge(newVertex, targetNode);
+			updateReturnsForCall(newVertex, targetNode);
+			addReturnEdgesForCall(newVertex, targetNode);
 		} else {
 			DEBUG(std::cout << "need to split BB " << targetNode << std::endl;);
 			CFGVertexDescriptor splitTailVertex = splitBasicBlock(targetNode, a);
