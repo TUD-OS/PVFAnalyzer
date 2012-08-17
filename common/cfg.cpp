@@ -16,6 +16,7 @@
 **********************************************************************/
 
 #include "instruction/cfg.h"
+#include "util.h"
 
 void freeCFGNodes(ControlFlowGraph const &cfg)
 {
@@ -31,6 +32,8 @@ void freeCFGNodes(ControlFlowGraph const &cfg)
 void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
 {
 	std::ofstream ofs(name);
+	if (!ofs.good())
+		throw FileNotFoundException(name.c_str());
 	boost::archive::binary_oarchive oa(ofs);
 	oa << cfg;
 }
@@ -38,6 +41,8 @@ void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
 void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
 {
 	std::ifstream ifs(name);
+	if (!ifs.good())
+		throw FileNotFoundException(name.c_str());
 	boost::archive::binary_iarchive ia(ifs);
 	ia >> cfg;
 }

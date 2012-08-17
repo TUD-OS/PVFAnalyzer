@@ -119,6 +119,14 @@ struct ThisShouldNeverHappenException : public MessageException
 };
 
 
+struct FileNotFoundException : public MessageException
+{
+	FileNotFoundException(char const* file)
+		: MessageException(file)
+	{ }
+};
+
+
 /**
  * @brief Node with given properties not found in CFG.
  **/

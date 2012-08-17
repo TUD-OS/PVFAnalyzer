@@ -95,7 +95,15 @@ parseInputFromOptions(int argc, char **argv)
 
 void readCFG(ControlFlowGraph& cfg)
 {
-	CFGFromFile(cfg, conf.input_filename);
+	try {
+		CFGFromFile(cfg, conf.input_filename);
+	} catch (FileNotFoundException fne) {
+		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
+		return;
+	} catch (boost::archive::archive_exception ae) {
+		std::cout << "\033[31marchive exception:\033[0m " << ae.what() << std::endl;
+		return;
+	}
 }
 
 void writeCFG(ControlFlowGraph& cfg)

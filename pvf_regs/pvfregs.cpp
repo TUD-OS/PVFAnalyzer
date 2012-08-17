@@ -99,6 +99,21 @@ parseInputFromOptions(int argc, char **argv)
 	return true;
 }
 
+
+static void
+readCFG(ControlFlowGraph& cfg)
+{
+	try {
+		CFGFromFile(cfg, config.input_filename);
+	} catch (FileNotFoundException fne) {
+		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
+		return;
+	} catch (boost::archive::archive_exception ae) {
+		std::cout << "\033[31marchive exception:\033[0m " << ae.what() << std::endl;
+		return;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	Configuration::setConfig(&config);
@@ -107,5 +122,15 @@ int main(int argc, char **argv)
 		exit(2);
 
 	banner();
+
+	ControlFlowGraph cfg;
+	readCFG(cfg);
+
 	return 0;
 }
+
+#include "instruction/instruction_udis86.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+BOOST_CLASS_EXPORT_GUID(Udis86Instruction, "Udis86Instruction");
+#pragma GCC diagnostic pop
