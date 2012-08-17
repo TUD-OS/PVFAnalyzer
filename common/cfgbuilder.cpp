@@ -173,12 +173,24 @@ private:
 		return RelocatedMemRegion();
 	}
 
+	/**
+	 * @brief Add an edge to the CFG
+	 *
+	 * @param start start vertex
+	 * @param target end vertex
+	 * @return void
+	 **/
 	void addCFGEdge(CFGVertexDescriptor start, CFGVertexDescriptor target)
 	{
 		DEBUG(std::cout << "\033[34m[add_edge]\033[0m " << start << " -> " << target << std::endl;);
 		boost::add_edge(start, target, _cfg);
 	}
 
+	/**
+	 * @brief Debugging: dump the list of currently unresolved links
+	 *
+	 * @return void
+	 **/
 	void dumpUnresolvedLinks()
 	{
 		std::cout << "\033[35mBB_CONN:\033[0m [ ";
@@ -188,6 +200,17 @@ private:
 		std::cout << "]" << std::endl;
 	}
 
+	/**
+	 * @brief Update list of unresolved links after a BB split
+	 *
+	 * After splitting a BB, all pending unresolved links from the original
+	 * BB need to be updated to become pending unresolved links from the
+	 * newly created tail BB.
+	 *
+	 * @param oldVert old BB
+	 * @param newVert new split BB
+	 * @return void
+	 **/
 	void updatePendingList(CFGVertexDescriptor oldVert, CFGVertexDescriptor newVert)
 	{
 		BOOST_FOREACH(UnresolvedLink& l, _bb_connections) {
@@ -231,6 +254,13 @@ private:
 	void handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVertex);
 
 
+	/**
+	 * @brief Update CALL Dominator information
+	 *
+	 * @param parent node we came from
+	 * @param newDesc new node
+	 * @return void
+	 **/
 	void updateCallDoms(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
 		CFGNodeInfo& parentNode       = _cfg[parent];
@@ -267,6 +297,13 @@ private:
 	}
 
 
+	/**
+	 * @brief Given a CALL instruction, update the call target's list of return locations.
+	 *
+	 * @param parent parent node (e.g., the CALL)
+	 * @param newDesc target node (the callee)
+	 * @return void
+	 **/
 	void updateReturnsForCall(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
 		CFGNodeInfo& parentNode = _cfg[parent];
@@ -284,6 +321,14 @@ private:
 	}
 
 
+	/**
+	 * @brief Update the list of return dominators
+	 *
+	 * that is, the list of RET nodes belonging to a callee node.
+	 *
+	 * @param node node to insert (if it is RET)
+	 * @return void
+	 **/
 	void updateRetDoms(CFGVertexDescriptor node)
 	{
 		CFGVertexDescriptor callDom = _callDoms[_cfg[node].bb->firstInstruction()];
@@ -294,6 +339,20 @@ private:
 	}
 
 
+	/**
+	 * @brief For a given call, add the return edges.
+	 *
+	 * Given a CALL edge, update the callee's return edges. This
+	 * may require two different steps
+	 *   1) If the return target is already a CFG node, add an edge between
+	 *      all the callee's RET nodes and the return target.
+	 *   2) If the return target is not a vertex yet, add new unresolved
+	 *      links from the RET nodes.
+	 *
+	 * @param caller caller CFG node
+	 * @param callee callee CFG node
+	 * @return void
+	 **/
 	void addReturnEdgesForCall(CFGVertexDescriptor caller, CFGVertexDescriptor callee)
 	{
 		DEBUG(std::cout << caller << " -> " << callee << std::endl;);
@@ -325,6 +384,13 @@ private:
 		}
 	}
 
+	/**
+	 * @brief Split a basic block at the given address
+	 *
+	 * @param splitVertex CFG node to split
+	 * @param splitAddress address to split at
+	 * @return CFGVertexDescriptor
+	 **/
 	CFGVertexDescriptor splitBasicBlock(CFGVertexDescriptor splitVertex, Address splitAddress);
 };
 
