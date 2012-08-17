@@ -1,22 +1,17 @@
+bbsplit.bin:
+    * do/while loop to test BB splitting
+      i = 0; do { nop(); } while (++i < 10);
+    * entry point: 0x0
+
 callret.bin: 
     * function call / return test case
     * entry point: 0x5
-
-payload.bin:
-    * Julian's buffer overflow shellcode from DOS
-    * entry point: 0x0
 
 loop.bin:
     * basic for loop:
       for (i = 0; i < 10; ++i)
       { nop(); }
     * entry point: 0x0
-
-bbsplit.bin:
-    * do/while loop to test BB splitting
-      i = 0; do { nop(); } while (++i < 10);
-    * entry point: 0x0
-
 
 loopif.bin:
     * loop with an if/else construct:
@@ -28,6 +23,19 @@ loopif.bin:
           }
         } while (++i < 10);
     * entry point: 0x0
+
+loopcall.bin
+    * loop with an if branch that calls a function with
+      different arguments
+    * entry point: 0x5
+
+payload.bin:
+    * Julian's buffer overflow shellcode from DOS
+    * entry point: 0x0
+
+recursion.bin:
+    * call into a recursive function
+    * entry point: 0x1D
 
 twocalls.bin:
     * two calls to the same function from different
