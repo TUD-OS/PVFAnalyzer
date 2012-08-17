@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Own Address data type that cannot be mistaken for a CFGVertexDescriptor!
+desc: it really sucks that I don't immediately see if a CFGVD is used instead of an Address and vice versa.
+type: :bugfix
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-17 08:20:45.767797 Z
+references: []
+
+id: f4519dbb9d7565d580194814e6c6ca2d554891d6
+log_events: 
+- - 2012-08-17 08:20:46.363941 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
