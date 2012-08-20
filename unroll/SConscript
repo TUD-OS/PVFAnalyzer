@@ -1,0 +1,12 @@
+files = """
+unroll
+"""
+
+objects = [("%s.o" % f) for f in files.split()]
+
+Import('env')
+for f in files.split():
+    env.Object('%s.cpp' % f)
+
+env.Append(LIBS=['boost_serialization'])
+env.unroll = env.Program('unroll', objects)

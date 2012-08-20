@@ -111,7 +111,8 @@ banner("Compilation")
 SConscript("common/SConscript",  variant_dir="#/build/common",   exports='env')
 SConscript("reader/SConscript",  variant_dir="#/build/reader",   exports='env')
 SConscript("printer/SConscript", variant_dir="#/build/printer",  exports='env')
-SConscript("pvfregs/SConscript", variant_dir="#/build/pvfregs", exports='env')
+SConscript("pvfregs/SConscript", variant_dir="#/build/pvfregs",  exports='env')
+SConscript("unroll/SConscript",  variant_dir="#/build/unroll",   exports='env')
 SConscript("testing/SConscript", variant_dir="build/test",       exports='env')
 
 # make a test run after compilation
