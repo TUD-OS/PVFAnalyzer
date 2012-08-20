@@ -86,7 +86,11 @@ struct udis86_t : public ud_t
 		 * -> inp* are only used during disassembly -> we don't store them
 		 *    as we assume an already disassembled instruction
 		 *
+		 * Exception: inp_ctr is used to store the length of the instruction!
 		 */
+
+		ar & inp_ctr;
+
 		ar & insn_offset;
 		ar & insn_hexcode;
 		ar & insn_buffer;

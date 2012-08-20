@@ -73,6 +73,7 @@ struct BasicBlock
 	{
 		(void)version;
 		a & instructions;
+		a & branchType;
 	}
 
 	/**
