@@ -6,13 +6,13 @@ Wrote CFG to 'callhierarchy.cfg'
 [33m        CFG Printer version 0.1[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="<empty>"];
-1 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x16]\lpush ebp\lmov ebp, esp\lcall dword 0xc\l"];
-2 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0xc]\lpush ebp\lmov ebp, esp\lcall dword 0x0\l"];
-3 [shape=box,fontname=Terminus,style=filled,color=orange2,label="[@0x0]\lpush ebp\lmov ebp, esp\lsub esp, 0x10\ladd dword [ebp-0x4], 0x1\lleave \lret \l"];
-4 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0x14]\lpop ebp\lret \l"];
-5 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x1e]\lcall dword 0x0\l"];
-6 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x23]\lmov eax, 0x0\lpop ebp\lret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x16]\l0x00000016: push ebp\l0x00000017: mov ebp, esp\l0x00000019: call dword 0xc\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(2) [@0xc]\l0x0000000c: push ebp\l0x0000000d: mov ebp, esp\l0x0000000f: call dword 0x0\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=orange2,label="(3) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: sub esp, 0x10\l0x00000006: add dword [ebp-0x4], 0x1\l0x0000000a: leave \l0x0000000b: ret \l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(4) [@0x14]\l0x00000014: pop ebp\l0x00000015: ret \l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(5) [@0x1e]\l0x0000001e: call dword 0x0\l"];
+6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(6) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: pop ebp\l0x00000029: ret \l"];
 0->1 ;
 1->2 ;
 2->3 ;

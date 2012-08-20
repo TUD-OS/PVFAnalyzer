@@ -17,6 +17,7 @@
 
 #include <getopt.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 #include <boost/archive/binary_iarchive.hpp>
@@ -275,18 +276,20 @@ struct ExtendedGraphvizInstructionWriter
 
 	void operator() (std::ostream& out, const CFGVertexDescriptor &v)
 	{
-		out << " [shape=box,fontname=Terminus,style=filled,color=";
+		out << " [shape=box,fontname=Terminus,fontsize=8,style=filled,color=";
 		out << _callDepthColors[_strategy.selectColorIndex(v, _maxCallDepthColor)] << ",";
+
 		BasicBlock* bb = g[v].bb;
 		if (!bb->instructions.empty()) {
-			out << "label=\"[@0x";
+			out << "label=\"(" << v << ") [@0x";
 			out << std::hex << bb->firstInstruction() << "]\\l";
 			BOOST_FOREACH(Instruction* i, bb->instructions) {
-				out << i->c_str() << "\\l";
+				out << "0x" << std::setw(8) << std::hex << std::setfill('0')
+				    << i->ip() << ": " << i->c_str() << "\\l";
 			}
 			out << "\"";
 		} else {
-			out << "label=\"<empty>\"";
+			out << "label=\"(" << v << ")\"";
 		}
 		out << "]";
 		}

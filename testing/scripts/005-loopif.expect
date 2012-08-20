@@ -6,13 +6,13 @@ Wrote CFG to 'loopif.cfg'
 [33m        CFG Printer version 0.1[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="<empty>"];
-1 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x5]\ladc bh, al\linc ebp\lcld \ladd [eax], al\ladd [eax], al\lmov dword [ebp-0x8], 0x0\l"];
-2 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x21]\ladd dword [ebp-0x8], 0x1\l"];
-3 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x14]\lmov eax, [ebp-0x4]\land eax, 0x1\ltest eax, eax\ljnz 0x21\l"];
-4 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x1e]\lnop \ljmp 0x25\l"];
-5 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x25]\ladd dword [ebp-0x4], 0x1\lcmp dword [ebp-0x4], 0x9\ljle 0x14\l"];
-6 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x2f]\lmov eax, 0x0\lleave \lret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x5]\l0x00000005: adc bh, al\l0x00000007: inc ebp\l0x00000008: cld \l0x00000009: add [eax], al\l0x0000000b: add [eax], al\l0x0000000d: mov dword [ebp-0x8], 0x0\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(2) [@0x21]\l0x00000021: add dword [ebp-0x8], 0x1\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(3) [@0x14]\l0x00000014: mov eax, [ebp-0x4]\l0x00000017: and eax, 0x1\l0x0000001a: test eax, eax\l0x0000001c: jnz 0x21\l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(4) [@0x1e]\l0x0000001e: nop \l0x0000001f: jmp 0x25\l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(5) [@0x25]\l0x00000025: add dword [ebp-0x4], 0x1\l0x00000029: cmp dword [ebp-0x4], 0x9\l0x0000002d: jle 0x14\l"];
+6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(6) [@0x2f]\l0x0000002f: mov eax, 0x0\l0x00000034: leave \l0x00000035: ret \l"];
 0->1 ;
 3->2 ;
 1->3 ;
