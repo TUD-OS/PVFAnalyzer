@@ -1,0 +1,26 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Make printer output configurable
+desc: |-
+  - option to set font size
+  - option to set font
+  - option to set color map
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-20 15:46:45.290871 Z
+references: []
+
+id: 7dbee52ffe56d77b895c3b7e116bd0dcae0cfafa
+log_events: 
+- - 2012-08-20 15:46:45.822738 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-08-20 15:49:15.104724 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.4 from 0.3
+  - ""
+git_branch: 

@@ -3,7 +3,7 @@ title: Store one CFG per function
 desc: Build a separate CFG for every function we encounter. Then have a high-level CFG that may contain links to other CFGs. This could ease management of functions that are called multiple times and make the CFGs more comprehensible.
 type: :feature
 component: CFGAnalysis
-release: "0.3"
+release: "0.4"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -15,5 +15,9 @@ log_events:
 - - 2012-08-16 20:00:53.143056 Z
   - doebel <doebel@tudos.org>
   - created
+  - ""
+- - 2012-08-20 15:48:19.761228 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.4 from 0.3
   - ""
 git_branch: 
