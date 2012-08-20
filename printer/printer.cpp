@@ -125,7 +125,7 @@ struct ExtendedGraphvizInstructionWriter
 	int                                _maxCallDepthColor;
 
 	ExtendedGraphvizInstructionWriter(ControlFlowGraph& _g)
-		: g(_g), _callDepth(), _callDepthColors(), _callDominators(), _maxCallDepthColor(10)
+		: g(_g), _callDepth(), _callDepthColors(), _callDominators(), _maxCallDepthColor(11)
 	{
 		_callDepthColors[ 0] = "steelblue";
 		_callDepthColors[ 1] = "crimson";
@@ -173,7 +173,7 @@ struct ExtendedGraphvizInstructionWriter
 			}
 		}
 
-		return _callDepthColors[depth];
+		return _callDepthColors[depth % _maxCallDepthColor];
 	}
 
 	void operator() (std::ostream& out, const CFGVertexDescriptor &v)

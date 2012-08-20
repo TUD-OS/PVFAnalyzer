@@ -1,8 +1,12 @@
 #!/bin/bash
 
+if [ -z $DOT ]; then
+	DOT=dot
+fi
+
 build/reader/reader -o foo.cfg -f $@ && \
 build/printer/printer -f foo.cfg -o foo.dot -c && \
-dot -Tpng foo.dot >foo.png && \
+$DOT -Tpng foo.dot >foo.png && \
 qiv foo.png
 
 rm foo.cfg foo.dot foo.png
