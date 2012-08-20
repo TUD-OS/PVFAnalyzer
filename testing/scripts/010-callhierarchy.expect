@@ -1,0 +1,23 @@
+[34m********************************************[0m
+[33m        CFG Analyzer version 0.1[0m
+[34m********************************************[0m
+Wrote CFG to 'callhierarchy.cfg'
+[34m********************************************[0m
+[33m        CFG Printer version 0.1[0m
+[34m********************************************[0m
+digraph G {
+0 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="<empty>"];
+1 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x16]\lpush ebp\lmov ebp, esp\lcall dword 0xc\l"];
+2 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0xc]\lpush ebp\lmov ebp, esp\lcall dword 0x0\l"];
+3 [shape=box,fontname=Terminus,style=filled,color=orange2,label="[@0x0]\lpush ebp\lmov ebp, esp\lsub esp, 0x10\ladd dword [ebp-0x4], 0x1\lleave \lret \l"];
+4 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0x14]\lpop ebp\lret \l"];
+5 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x1e]\lcall dword 0x0\l"];
+6 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x23]\lmov eax, 0x0\lpop ebp\lret \l"];
+0->1 ;
+1->2 ;
+2->3 ;
+3->4 ;
+4->5 ;
+5->3 ;
+3->6 ;
+}

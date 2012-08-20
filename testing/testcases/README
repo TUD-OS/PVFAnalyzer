@@ -3,6 +3,16 @@ bbsplit.bin:
       i = 0; do { nop(); } while (++i < 10);
     * entry point: 0x0
 
+callchain.bin:
+    * chain of 6 function calls with returns
+    * entry point: 0x2D
+
+callhierarchy.bin:
+    * two functions, where one is called from different
+      levels of the call hierarchy. tests proper coloring
+      of the return nodes.
+    * entry point: 0x19
+
 callret.bin: 
     * function call / return test case
     * entry point: 0x5

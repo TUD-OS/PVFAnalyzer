@@ -1,0 +1,32 @@
+[34m********************************************[0m
+[33m        CFG Analyzer version 0.1[0m
+[34m********************************************[0m
+Wrote CFG to 'callchain.cfg'
+[34m********************************************[0m
+[33m        CFG Printer version 0.1[0m
+[34m********************************************[0m
+digraph G {
+0 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="<empty>"];
+1 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x2d]\lpush ebp\lmov ebp, esp\lcall dword 0x23\l"];
+2 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0x23]\lpush ebp\lmov ebp, esp\lcall dword 0x19\l"];
+3 [shape=box,fontname=Terminus,style=filled,color=orange2,label="[@0x19]\lpush ebp\lmov ebp, esp\lcall dword 0xf\l"];
+4 [shape=box,fontname=Terminus,style=filled,color=palegreen2,label="[@0xf]\lpush ebp\lmov ebp, esp\lcall dword 0x5\l"];
+5 [shape=box,fontname=Terminus,style=filled,color=lightsalmon,label="[@0x5]\lpush ebp\lmov ebp, esp\lcall dword 0x0\l"];
+6 [shape=box,fontname=Terminus,style=filled,color=palevioletred3,label="[@0x0]\lpush ebp\lmov ebp, esp\lpop ebp\lret \l"];
+7 [shape=box,fontname=Terminus,style=filled,color=lightsalmon,label="[@0xd]\lpop ebp\lret \l"];
+8 [shape=box,fontname=Terminus,style=filled,color=palegreen2,label="[@0x17]\lpop ebp\lret \l"];
+9 [shape=box,fontname=Terminus,style=filled,color=orange2,label="[@0x21]\lpop ebp\lret \l"];
+10 [shape=box,fontname=Terminus,style=filled,color=crimson,label="[@0x2b]\lpop ebp\lret \l"];
+11 [shape=box,fontname=Terminus,style=filled,color=steelblue,label="[@0x35]\lpop ebp\lret \l"];
+0->1 ;
+1->2 ;
+2->3 ;
+3->4 ;
+4->5 ;
+5->6 ;
+6->7 ;
+7->8 ;
+8->9 ;
+9->10 ;
+10->11 ;
+}
