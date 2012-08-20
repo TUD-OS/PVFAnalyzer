@@ -1,0 +1,29 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Graph Unrolling Tool
+desc: |-
+  PVF analysis needs a single instruction stream, so unroll the CFG.
+  
+  Syntax:
+  ./unroll -f file.cfg -b 1,2,3,2,3,4
+  
+  with
+    -f -> CFG file
+    -b -> comma-separated list of BBs (tool asserts they are indeed connected!)
+  
+  Later, dynamic analysis can be used to generate the BB list.
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-20 15:53:00.044195 Z
+references: []
+
+id: 674fcf49cef99942a585dfdc51db6ad94b5be3e5
+log_events: 
+- - 2012-08-20 15:53:00.592507 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
