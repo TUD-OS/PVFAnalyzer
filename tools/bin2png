@@ -1,7 +1,7 @@
 #!/bin/bash
 
 build/reader/reader -o foo.cfg -f $@ && \
-build/printer/printer -f foo.cfg -o foo.dot && \
+build/printer/printer -f foo.cfg -o foo.dot -c && \
 dot -Tpng foo.dot >foo.png && \
 qiv foo.png
 
