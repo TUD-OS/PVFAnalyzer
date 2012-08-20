@@ -4,8 +4,12 @@ if [ -z $DOT ]; then
 	DOT=dot
 fi
 
+if [ -z $COLOR ]; then
+    COLOR=simple
+fi
+
 build/reader/reader -o foo.cfg -f $@ && \
-build/printer/printer -f foo.cfg -o foo.dot -c && \
+build/printer/printer -f foo.cfg -o foo.dot -c$COLOR && \
 $DOT -Tpng foo.dot >foo.png && \
 qiv foo.png
 

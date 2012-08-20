@@ -20,6 +20,7 @@
 #include <boost/foreach.hpp>  // FOREACH
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
+#include <boost/graph/strong_components.hpp>
 #include <boost/graph/graphviz.hpp>
 #include "instruction/cfg.h"
 #include "util.h"
@@ -125,6 +126,24 @@ int main(int argc, char **argv)
 
 	ControlFlowGraph cfg;
 	readCFG(cfg);
+
+	int numVert = boost::num_vertices(cfg);
+	std::vector<int> component(numVert), discoverTime(numVert);
+	std::vector<boost::default_color_type> color(numVert);
+	std::vector<CFGVertexDescriptor> root(numVert);
+
+	int compCount = boost::strong_components(cfg, &component[0],
+	                                         boost::root_map(&root[0]).
+	                                         color_map(&color[0]).
+	                                         discover_time_map(&discoverTime[0]));
+
+	std::cout << "Number of vertices: "   << numVert << std::endl;
+	std::cout << "Number of components: " << compCount << std::endl;
+	std::cout << std::endl;
+
+	for (unsigned i = 0; i < component.size(); ++i) {
+		std::cout << "   Vertex " << i << " is in component " << component[i] << std::endl;
+	}
 
 	return 0;
 }
