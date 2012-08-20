@@ -106,7 +106,7 @@ WVTEST_MAIN("hex input, large")
 
 WVTEST_MAIN("file input reader")
 {
-	char const *file = "testing/testcases/payload.bin";
+	char const *file = "testing/testcases/cfgbuilding/payload.bin";
 	FileInputReader fr;
 	fr.addData(file);
 	WVPASSEQ(fr.sectionCount(), 1);
