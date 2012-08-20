@@ -1,0 +1,23 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Colorize functions
+desc: coloring with -c=call currently colorizes by call depth. I'd like to be able to identify single functions as well.
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-20 15:00:39.998756 Z
+references: []
+
+id: 1163357d898fcd25e114ecb350f6bb4f2019e1a7
+log_events: 
+- - 2012-08-20 15:00:52.385992 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - This will require identifying the basic blocks of a single function.
+- - 2012-08-20 15:01:11.628257 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - Option should be named -c=func
+git_branch: 
