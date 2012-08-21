@@ -23,7 +23,7 @@ Instruction* Udis86Disassembler::disassemble(Address offset)
 	if (_buffer == MemRegion()) // no memregion set?
 		return 0;
 
-	if (offset >= _buffer.size)
+	if (offset >= (Address)_buffer.size)
 		return 0;
 
 	Udis86Instruction* i = new Udis86Instruction();
