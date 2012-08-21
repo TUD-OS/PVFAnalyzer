@@ -1,7 +1,23 @@
 #!/bin/bash
 
+if [ $1 == "-h" ]; then
+    echo "Convert binary to viewable CFG."
+    echo ""
+    echo "Usage:"
+    echo "<ENVIRONMENT> $0 <file> <options>"
+    echo ""
+    echo "<file>            Binary file to work on"
+    echo "<options>         Command line options for CFG reader"
+    echo "<ENVIRONMENT>     Environment variables influencing output:"
+    echo "                   DOT     - select GraphViz tool to use"
+    echo "                   COLOR   - color option for CFG printer"
+    echo "                   RM      - if set to anything except an empty"
+    echo "                             string, removes generated output files"
+    exit 0;
+fi
+
 if [ -z $DOT ]; then
-	DOT=dot
+    DOT=dot
 fi
 
 if [ -z $COLOR ]; then
@@ -13,4 +29,6 @@ build/printer/printer -f foo.cfg -o foo.dot -c$COLOR && \
 $DOT -Tpng foo.dot >foo.png && \
 qiv foo.png
 
-rm foo.cfg foo.dot foo.png
+if [ -z $RM ]; then
+    rm foo.cfg foo.dot foo.png
+fi
