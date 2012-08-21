@@ -1,0 +1,23 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "PVF Analysis: memory operands"
+desc: If the instruction access info tells us that an operand is written to, but the operand has OP_MEM type, then the corresponding registers are only read.
+type: :bugfix
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :closed
+disposition: :fixed
+creation_time: 2012-08-21 16:00:41.836965 Z
+references: []
+
+id: 83cd0d319c1d01cd0ed88831a1c61738660f145c
+log_events: 
+- - 2012-08-21 16:00:42.481766 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-08-21 16:00:54.974936 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - ""
+git_branch: 

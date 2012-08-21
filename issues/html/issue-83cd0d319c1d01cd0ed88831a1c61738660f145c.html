@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>PVF Analysis: handle commonly known false positives (e.g., xor REG, REG)</title>
+<title>PVF Analysis: memory operands</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -13,12 +13,12 @@
 
 <div class="main">
 
-<h1>PVF Analysis: handle commonly known false positives (e.g., xor REG, REG)</h1>
+<h1>PVF Analysis: memory operands</h1>
 <div class="backptr"><a href="index.html">&laquo; CFGAnalysis project page</a></div>
 
 
   <div class="description">
-  <p>"xor REG,REG" seems to read from its input register and write to the output. This would mean that REG was important previously and gets written to now.</p><p>However, for the example where REG == REG, this is simply a write to the register and we should ignore the read, because any previous content is overwritten regardless.</p>
+  <p>If the instruction access info tells us that an operand is written to, but the operand has OP_MEM type, then the corresponding registers are only read.</p>
   </div>
 
 
@@ -27,22 +27,22 @@
   <tbody>
     <tr>
       <td class="attrname">Id:</td>
-      <td class="attrval"><span class="id">8d27be72fc773b698b94787bd9620c5004e7cf83</span></td>
+      <td class="attrval"><span class="id">83cd0d319c1d01cd0ed88831a1c61738660f145c</span></td>
     </tr>
 
     <tr>
       <td class="attrname">Type:</td>
-      <td class="attrval">feature</td>
+      <td class="attrval">bugfix</td>
     </tr>
 
     <tr>
       <td class="attrname">Creation time:</td>
-      <td class="attrval">2012-08-21 14:51 GMT</td>
+      <td class="attrval">2012-08-21 16:00 GMT</td>
     </tr>
 
     <tr>
       <td class="attrname">Creator:</td>
-      <td class="attrval"><span class="person">.</span></td>
+      <td class="attrval"><span class="person">doebel &lt;doebel@...&gt;</span></td>
     </tr>
 
     
@@ -51,7 +51,7 @@
       <td class="attrname">Release:</td>
       <td class="attrval">
         
-          <a href="release-0.3.html">0.3</a>
+          <a href="release-0.2.html">0.2</a>
           
             (unreleased)
           
@@ -92,7 +92,7 @@
     <tr><td></td></tr>
   
     <tr class="odd-row">
-      <td class="date">2012-08-21 14:51 GMT</td>
+      <td class="date">2012-08-21 16:00 GMT</td>
       <td class="person">doebel &lt;doebel@...&gt;</td>
       <td class="message">created</td>
     </tr>
