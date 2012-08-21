@@ -1,0 +1,22 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "PVF Analysis: handle commonly known false positives (e.g., xor REG, REG)"
+desc: |-
+  "xor REG,REG" seems to read from its input register and write to the output. This would mean that REG was important previously and gets written to now.
+  
+  However, for the example where REG == REG, this is simply a write to the register and we should ignore the read, because any previous content is overwritten regardless.
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: .
+status: :unstarted
+disposition: 
+creation_time: 2012-08-21 14:51:41.252254 Z
+references: []
+
+id: 8d27be72fc773b698b94787bd9620c5004e7cf83
+log_events: 
+- - 2012-08-21 14:51:43.321471 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
