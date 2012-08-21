@@ -1,0 +1,23 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Help for bin2png
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :closed
+disposition: :fixed
+creation_time: 2012-08-21 06:51:09.905619 Z
+references: []
+
+id: 42e9a9dd47cf80353dfe9680a562d54d9f46fde0
+log_events: 
+- - 2012-08-21 06:51:10.741571 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-08-21 06:51:19.684662 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - ""
+git_branch: 
