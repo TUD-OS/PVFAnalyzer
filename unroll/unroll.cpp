@@ -21,22 +21,24 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/tokenizer.hpp>
+#include <boost/lexical_cast.hpp>
 #include "instruction/cfg.h"
 #include "util.h"
 
-struct PVFConfig : public Configuration
+struct UnrollConfig : public Configuration
 {
 	std::string input_filename;
 	std::string output_filename;
-	Address     final;
+	std::vector<int> bbList;
 
-	PVFConfig()
+	UnrollConfig()
 		: Configuration(), input_filename("output.cfg"),
-	      output_filename("output.pvf"), final(0)
+	      output_filename("output.ilist"), bbList()
 	{ }
 };
 
-static PVFConfig config;
+static UnrollConfig config;
 
 
 static void
@@ -46,8 +48,8 @@ usage(char const *prog)
 	std::cout << prog << " [-h] [-f <file>] [-o <file>] [-v] [-d]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
-	std::cout << "\t-o <file>          Write the resulting output to file. [output.pvf]" << std::endl;
-	std::cout << "\t-t <addr>          Set PVF termination address [0x00000000]" << std::endl;
+	std::cout << "\t-o <file>          Write the resulting output to file. [output.ilist]" << std::endl;
+	std::cout << "\t-b BB1,BB2,...     Comma-separated list of BBs to unrolll [empty]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -60,10 +62,28 @@ banner()
 	Version version = Configuration::get()->globalProgramVersion;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	std::cout << "\033[33m" << "        CFG Unroller version " << version.major
 	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
+}
+
+
+static void
+parseBBList(UnrollConfig& conf, char const *optarg)
+{
+	std::string s(optarg);
+	boost::tokenizer<> tokens(s);
+	for (boost::tokenizer<>::iterator it = tokens.begin();
+	     it != tokens.end(); ++it) {
+		try {
+			int i = boost::lexical_cast<int>(*it);
+			std::cout << "BB: " << i << std::endl;
+			conf.bbList.push_back(i);
+		} catch (boost::bad_lexical_cast) {
+			std::cout << "Error casting '" << *it << "' to int. Skipping." << std::endl;
+		}
+	}
 }
 
 
@@ -72,12 +92,15 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "df:ho:t:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:df:ho:v")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
 
 		switch(opt) {
+			case 'b':
+				parseBBList(config, optarg);
+				break;
 
 			case 'f':
 				config.input_filename = optarg;
@@ -89,10 +112,6 @@ parseInputFromOptions(int argc, char **argv)
 
 			case 'o':
 				config.output_filename = optarg;
-				break;
-
-			case 't':
-				config.final = strtoul(optarg, 0, 0);
 				break;
 		}
 	}
@@ -125,6 +144,27 @@ int main(int argc, char **argv)
 
 	ControlFlowGraph cfg;
 	readCFG(cfg);
+
+	std::vector<Instruction*> iList;
+	BOOST_FOREACH(int node, config.bbList) {
+		BOOST_FOREACH(Instruction *instr, cfg[node].bb->instructions) {
+			if (config.debug) {
+				instr->print();
+				std::cout << "\n";
+			}
+			iList.push_back(instr);
+		}
+	}
+
+	std::ofstream outFile(config.output_filename);
+	if (!outFile.good()) {
+		std::cout << "Could not open file '" << config.output_filename << "'" << std::endl;
+		return 1;
+	}
+	boost::archive::binary_oarchive oa(outFile);
+	oa << iList;
+	outFile.close();
+	std::cout << "Written to " << config.output_filename << std::endl;
 
 	return 0;
 }
