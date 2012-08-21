@@ -152,6 +152,9 @@ public:
 	 * @return int64_t
 	 **/
 	static int64_t operandToValue(ud_t *ud, unsigned operandNo);
+
+	static unsigned operandCount(ud_t *ud);
+	static bool     modifiesOperand(ud_t *ud, unsigned num);
 };
 
 /**
@@ -366,10 +369,17 @@ public:
 		return bt;
 	}
 
+	virtual void getRegisterRWInfo(std::vector<RegisterAccessInfo>& readSet,
+	                               std::vector<RegisterAccessInfo>& writeSet);
+
 protected:
 	udis86_t _udObj;
 
 private:
 	Udis86Instruction(const Udis86Instruction&) : _udObj() { }
 	Udis86Instruction& operator=(Udis86Instruction&) { return *this; }
+
+	void adjustFalsePositives(std::vector<RegisterAccessInfo>& readSet,
+	                          std::vector<RegisterAccessInfo>& writeSet);
+	void fillAccessInfo(unsigned opno, std::vector<RegisterAccessInfo>& vec);
 };

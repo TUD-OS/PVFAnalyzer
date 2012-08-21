@@ -26,6 +26,7 @@
 #include <boost/graph/graph_concepts.hpp>
 
 #include "data/memory.h"
+#include "platform/platform.h"
 
 /**
  * @brief Generic interface for Instructions.
@@ -35,7 +36,8 @@ class Instruction
 public:
 	Instruction() : _ip(0), _base(0) { }
 	virtual ~Instruction() { }
-	
+
+
 	/**
 	 * @brief Get the length of the instruction in bytes.
 	 *
@@ -43,13 +45,15 @@ public:
 	 **/
 	virtual unsigned length() = 0;
 
+
 	/**
 	 * @brief Print the instruction
 	 *
 	 * @return void
 	 **/
 	virtual void     print()  = 0;
-	
+
+
 	/**
 	 * @brief Obtain the instruction's address
 	 * 
@@ -116,12 +120,6 @@ public:
 		BT_INT,
 	};
 
-	enum OperandAccessInfo {
-		OAI_NONE,
-		OAI_READ,
-		OAI_WRITE,
-		OAI_READWRITE,
-	};
 
 	/**
 	 * @brief Determine branch targets and type
@@ -130,6 +128,19 @@ public:
 	 * @return :BranchType
 	 **/
 	virtual BranchType branchTargets(std::vector<Address>& v) = 0;
+
+
+	typedef std::pair<int, int> RegisterAccessInfo;
+
+	/**
+	 * @brief Obtain information about read and written registers
+	 *
+	 * @param readSet ...
+	 * @param writeSet ...
+	 * @return void
+	 **/
+	virtual void getRegisterRWInfo(std::vector<RegisterAccessInfo>& readSet,
+	                               std::vector<RegisterAccessInfo>& writeSet) = 0;
 
 protected:
 	Address _ip;   // corresponding instruction pointer

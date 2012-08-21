@@ -19,17 +19,10 @@
 
 #include "util.h"
 
-class Platform
-{
-public:
-	virtual ~Platform()  { }
-	virtual int numGPRs() = 0;
-};
-
 #include <udis86.h>
 #include <boost/graph/graph_concepts.hpp>
 
-class PlatformX8632 : public Platform
+class PlatformX8632
 {
 public:
 	enum Register {
@@ -40,9 +33,23 @@ public:
 
 	virtual ~PlatformX8632() { }
 
-	virtual int numGPRs()
+	static  unsigned numGPRs()
 	{
 		return REGMAX;
+	}
+
+	static char const* RegisterToString(Register r)
+	{
+#define CASE(x) case x : return #x;
+		switch(r) {
+			CASE(EAX); CASE(EBX); CASE(ECX); CASE(EDX);
+			CASE(ESP); CASE(ESI); CASE(EBP); CASE(EDI);
+			case EFLAGS: return "flags";
+			CASE(EIP);
+			default:
+				return "???";
+		}
+#undef CASE
 	}
 
 	static Register UdisToPlatformRegister(unsigned udreg)

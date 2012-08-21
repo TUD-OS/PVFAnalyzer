@@ -32,7 +32,7 @@ struct PVFConfig : public Configuration
 	Address     final;
 
 	PVFConfig()
-		: Configuration(), input_filename("output.cfg"),
+		: Configuration(), input_filename("output.ilist"),
 	      output_filename("output.pvf"), final(0)
 	{ }
 };
@@ -46,7 +46,7 @@ usage(char const *prog)
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
 	std::cout << prog << " [-h] [-f <file>] [-o <file>] [-v] [-d]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
-	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
+	std::cout << "\t-f <file>          Set input file [output.ilist]" << std::endl;
 	std::cout << "\t-o <file>          Write the resulting output to file. [output.pvf]" << std::endl;
 	std::cout << "\t-t <addr>          Set PVF termination address [0x00000000]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
@@ -61,7 +61,7 @@ banner()
 	Version version = Configuration::get()->globalProgramVersion;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	std::cout << "\033[33m" << "      PVF::Regs Analyzer version " << version.major
 	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
@@ -101,11 +101,30 @@ parseInputFromOptions(int argc, char **argv)
 }
 
 
+typedef std::vector<Instruction::RegisterAccessInfo> RegisterAccessInfoList;
+typedef std::vector<Instruction*> InstructionList;
+typedef std::vector<int*> RegisterHistory;
+
+enum States {
+	UNKNOWN,
+	DONTCARE,
+	IMPORTANT,
+	READINSTANT,
+	WRITEINSTANT,
+};
+
+
 static void
-readCFG(ControlFlowGraph& cfg)
+readIList(InstructionList& ilist)
 {
 	try {
-		CFGFromFile(cfg, config.input_filename);
+		std::ifstream ifs(config.input_filename);
+		if (!ifs.good()) {
+			throw FileNotFoundException(config.input_filename.c_str());
+		}
+		boost::archive::binary_iarchive ia(ifs);
+		ia >> ilist;
+		ifs.close();
 	} catch (FileNotFoundException fne) {
 		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
 		return;
@@ -114,6 +133,157 @@ readCFG(ControlFlowGraph& cfg)
 		return;
 	}
 }
+
+
+static void obtainRegisterAccessInfo(Instruction *i, RegisterAccessInfoList& read, RegisterAccessInfoList& write)
+{
+	try {
+		i->getRegisterRWInfo(read, write);
+	} catch (NotImplementedException e) {
+		std::cout << "ERROR: " << e.message << std::endl;
+		exit(1);
+	}
+
+	if (Configuration::get()->debug) {
+		std::cout << "  READ  regs: [ ";
+		BOOST_FOREACH(Instruction::RegisterAccessInfo info, read) {
+			std::cout << std::dec << "(" << info.first << "," << info.second << ") ";
+		}
+		std::cout << "]" << std::endl;
+
+		std::cout << "  WRITE regs: [ ";
+		BOOST_FOREACH(Instruction::RegisterAccessInfo info, write) {
+			std::cout << std::dec << "(" << info.first << "," << info.second << ") ";
+		}
+		std::cout << "]" << std::endl;
+	}
+}
+
+
+static void dumpHistory(InstructionList& ilist, RegisterHistory& hist)
+{
+	for (unsigned t = 0; t < hist.size(); ++t) {
+		std::cout << std::setfill(' ') << std::setw(30) << ilist[t]->c_str();
+		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
+			std::cout << std::setw(6);
+			switch(hist[t][i]) {
+				case DONTCARE:     std::cout << " "; break;
+				case UNKNOWN:      std::cout << "?"; break;
+				case IMPORTANT:    std::cout << "X"; break;
+				case READINSTANT:  std::cout << "R"; break;
+				case WRITEINSTANT: std::cout << "W"; break;
+			}
+		}
+		std::cout << std::endl;
+	}
+}
+
+
+static void
+pvfAnalysis(InstructionList& ilist)
+{
+	std::cout << std::setw(30) << "Instruction";
+	for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i)
+	{
+		std::cout << std::setw(6) << PlatformX8632::RegisterToString((PlatformX8632::Register)i);
+	}
+	std::cout << std::endl;
+
+	RegisterHistory hist;
+	unsigned timestamp = 0;
+
+	BOOST_FOREACH(Instruction* i, ilist) {
+		if (Configuration::get()->debug) {
+			i->print();
+			std::cout << std::endl;
+		}
+
+		std::vector<Instruction::RegisterAccessInfo> read, write;
+		obtainRegisterAccessInfo(i, read, write);
+
+		int *state = new int[PlatformX8632::numGPRs()];
+
+		DEBUG(std::cout << "1  [new st @ " << (void*)state << std::endl;);
+		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
+			state[i] = UNKNOWN;
+		}
+
+		DEBUG(std::cout << "2" << std::endl;);
+		BOOST_FOREACH(Instruction::RegisterAccessInfo info, write) {
+			state[info.first] = WRITEINSTANT;
+			/*
+			 * This value was written to. All previous instants since
+			 * the last READ are DONTCARE.
+			 */
+			int check = timestamp-1;
+			while (check >= 0) {
+				DEBUG(std::cout << "2." << check << std::endl;);
+				int *st = hist[check];
+				DEBUG(std::cout << " st @ " << (void*)st << std::endl;);
+				DEBUG(std::cout << " st = " << st[0] << std::endl;);
+				if (st[info.first] == READINSTANT) {
+					break;
+				}
+				st[info.first] = DONTCARE;
+				check--;
+			}
+		}
+
+		DEBUG(std::cout << "3" << std::endl;);
+		BOOST_FOREACH(Instruction::RegisterAccessInfo info, read) {
+			state[info.first] = READINSTANT;
+			/*
+			 * The value was read, so we assume everything since the last
+			 * write access to be important.
+			 */
+			int check = timestamp - 1;
+			while (check >= 0) {
+				int* st = hist[check];
+				if (st[info.first] == WRITEINSTANT) {
+					break;
+				}
+				st[info.first] = IMPORTANT;
+				check--;
+			}
+		}
+
+		DEBUG(std::cout << "4" << std::endl;);
+		if (hist.size() > 0) {
+			int* prevState = hist.back();
+			for (unsigned i; i < PlatformX8632::numGPRs(); ++i) {
+
+				if ((state[i] == READINSTANT) or (state[i] == WRITEINSTANT)) {
+					continue;
+				}
+
+				switch (prevState[i]) {
+					case DONTCARE:
+					case UNKNOWN:
+					case IMPORTANT:
+						state[i] = prevState[i];
+						break;
+					case READINSTANT:
+						state[i] = UNKNOWN;
+						break;
+					case WRITEINSTANT:
+						state[i] = UNKNOWN;
+				}
+			}
+		}
+
+		DEBUG(std::cout << "5" << std::endl;);
+		hist.push_back(state);
+		dumpHistory(ilist, hist);
+		std::cout << "--------------------------------------------------------" << std::endl;
+		timestamp += 1;
+	}
+
+	assert(timestamp == hist.size());
+	assert(hist.size() == ilist.size());
+
+	dumpHistory(ilist, hist);
+};
+
 
 int main(int argc, char **argv)
 {
@@ -124,26 +294,9 @@ int main(int argc, char **argv)
 
 	banner();
 
-	ControlFlowGraph cfg;
-	readCFG(cfg);
-
-	int numVert = boost::num_vertices(cfg);
-	std::vector<int> component(numVert), discoverTime(numVert);
-	std::vector<boost::default_color_type> color(numVert);
-	std::vector<CFGVertexDescriptor> root(numVert);
-
-	int compCount = boost::strong_components(cfg, &component[0],
-	                                         boost::root_map(&root[0]).
-	                                         color_map(&color[0]).
-	                                         discover_time_map(&discoverTime[0]));
-
-	std::cout << "Number of vertices: "   << numVert << std::endl;
-	std::cout << "Number of components: " << compCount << std::endl;
-	std::cout << std::endl;
-
-	for (unsigned i = 0; i < component.size(); ++i) {
-		std::cout << "   Vertex " << i << " is in component " << component[i] << std::endl;
-	}
+	InstructionList ilist;
+	readIList(ilist);
+	pvfAnalysis(ilist);
 
 	return 0;
 }
