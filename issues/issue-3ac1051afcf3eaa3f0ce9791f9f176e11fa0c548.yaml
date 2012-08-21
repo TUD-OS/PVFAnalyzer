@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Valgrind for 0.2
+desc: ""
+type: :task
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-21 16:02:04.004184 Z
+references: []
+
+id: 3ac1051afcf3eaa3f0ce9791f9f176e11fa0c548
+log_events: 
+- - 2012-08-21 16:02:04.592418 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
