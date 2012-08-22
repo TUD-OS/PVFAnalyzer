@@ -96,14 +96,18 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 #define MODIFY_SINGLE(x) \
 	m[x] = ModificationInfo(true, false, false);
 
+	MODIFY_SINGLE(UD_Iadd);
 	NO_MODIFICATION(UD_Icall);
+	NO_MODIFICATION(UD_Icmp);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
 	NO_MODIFICATION(UD_Iint3);
 	NO_MODIFICATION(UD_Ijmp);
+	NO_MODIFICATION(UD_Ijle);
 	MODIFY_SINGLE(UD_Imov);
 	MODIFY_SINGLE(UD_Ipop);
 	NO_MODIFICATION(UD_Ipush);
+	MODIFY_SINGLE(UD_Isub);
 	MODIFY_SINGLE(UD_Ixor);
 
 #undef NO_MODIFICATION
