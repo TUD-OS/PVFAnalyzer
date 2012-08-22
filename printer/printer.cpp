@@ -321,6 +321,7 @@ void writeCFG(ControlFlowGraph& cfg)
 	ExtendedGraphvizInstructionWriter gnw(cfg, *colStrat);
 	boost::write_graphviz(out, cfg, gnw);
 
+	delete colStrat;
 	freeCFGNodes(cfg);
 }
 

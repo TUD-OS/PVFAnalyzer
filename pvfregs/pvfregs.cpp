@@ -273,8 +273,10 @@ pvfAnalysis(InstructionList& ilist)
 
 		DEBUG(std::cout << "5" << std::endl;);
 		hist.push_back(state);
-		dumpHistory(ilist, hist);
-		std::cout << "--------------------------------------------------------" << std::endl;
+		if (Configuration::get()->debug) {
+			dumpHistory(ilist, hist);
+			std::cout << "--------------------------------------------------------" << std::endl;
+		}
 		timestamp += 1;
 	}
 
@@ -282,6 +284,9 @@ pvfAnalysis(InstructionList& ilist)
 	assert(hist.size() == ilist.size());
 
 	dumpHistory(ilist, hist);
+	BOOST_FOREACH(int* r, hist) {
+		delete []r;
+	}
 };
 
 
@@ -297,6 +302,12 @@ int main(int argc, char **argv)
 	InstructionList ilist;
 	readIList(ilist);
 	pvfAnalysis(ilist);
+
+#if 0
+	BOOST_FOREACH(Instruction* i, ilist) {
+		delete i;
+	}
+#endif
 
 	return 0;
 }
