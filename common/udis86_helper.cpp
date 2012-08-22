@@ -97,6 +97,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	m[x] = ModificationInfo(true, false, false);
 
 	MODIFY_SINGLE(UD_Iadd);
+	MODIFY_SINGLE(UD_Iand);
 	NO_MODIFICATION(UD_Icall);
 	NO_MODIFICATION(UD_Icmp);
 	NO_MODIFICATION(UD_Iint);
@@ -104,10 +105,13 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Iint3);
 	NO_MODIFICATION(UD_Ijmp);
 	NO_MODIFICATION(UD_Ijle);
+	NO_MODIFICATION(UD_Ijnz);
+	NO_MODIFICATION(UD_Ijz);
 	MODIFY_SINGLE(UD_Imov);
 	MODIFY_SINGLE(UD_Ipop);
 	NO_MODIFICATION(UD_Ipush);
 	MODIFY_SINGLE(UD_Isub);
+	NO_MODIFICATION(UD_Itest);
 	MODIFY_SINGLE(UD_Ixor);
 
 #undef NO_MODIFICATION
