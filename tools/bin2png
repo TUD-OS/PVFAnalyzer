@@ -9,10 +9,11 @@ if [ $1 == "-h" ]; then
     echo "<file>            Binary file to work on"
     echo "<options>         Command line options for CFG reader"
     echo "<ENVIRONMENT>     Environment variables influencing output:"
-    echo "                   DOT     - select GraphViz tool to use"
-    echo "                   COLOR   - color option for CFG printer"
-    echo "                   RM      - if set to anything except an empty"
-    echo "                             string, removes generated output files"
+    echo "                   DOT    - select GraphViz tool to use"
+    echo "                   COLOR  - color option for CFG printer"
+    echo "                   RM     - if set to anything except an empty"
+    echo "                            string, removes generated output files"
+	echo "                   DEBUG  - debug/verbosity options"
     exit 0;
 fi
 
@@ -24,11 +25,11 @@ if [ -z $COLOR ]; then
     COLOR=simple
 fi
 
-build/reader/reader -o foo.cfg -f $@ && \
-build/printer/printer -f foo.cfg -o foo.dot -c$COLOR && \
-$DOT -Tpng foo.dot >foo.png && \
-qiv foo.png
+build/reader/reader -o bin2PNG.cfg -f $@ $DEBUG && \
+build/printer/printer -f bin2PNG.cfg -o bin2PNG.dot -c$COLOR $DEBUG && \
+$DOT -Tpng bin2PNG.dot >bin2PNG.png && \
+qiv bin2PNG.png
 
 if [ -z $RM ]; then
-    rm foo.cfg foo.dot foo.png
+    rm bin2PNG.cfg bin2PNG.dot bin2PNG.png
 fi

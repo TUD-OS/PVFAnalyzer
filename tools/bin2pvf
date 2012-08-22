@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ $1 == "-h" ]; then
+    echo "Perform PVF analysis on a binary"
+    echo ""
+    echo "Usage:"
+    echo "<ENVIRONMENT> $0 <file> <options>"
+    echo ""
+    echo "<file>            Binary file to work on"
+    echo "<options>         Command line options for CFG reader"
+    echo "<ENVIRONMENT>     Environment variables influencing output:"
+	echo "                   BBLIST - basic block chain to use for PVF"
+	echo "                            analysis (unroll's -b option)"
+	echo "                   DEBUG  - debug/verbosity options"
+	exit 0;
+fi
+
+if [ -z $BBLIST ]; then
+  BBLIST=1
+fi
+
+build/reader/reader -o binToPVF.cfg -f $@ $DEBUG && \
+build/unroll/unroll -f binToPVF.cfg -o binToPVF.ilist -b $BBLIST $DEBUG && \
+build/pvfregs/pvfregs -f binToPVF.ilist $DEBUG
+
+if [ -z $RM ]; then
+	rm binToPVF.cfg binToPVF.ilist
+fi
