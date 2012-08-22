@@ -1,0 +1,26 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "Register analysis: heuristic for determining vulnerability *type*"
+desc: |-
+  Pure register analysis only allows us to determine _when_ to inject a fault, but we still require FI runs to actually determine the outcome.
+  
+  Heuristics may help here:
+    - if a register is used to compute a memory address, perform a jump etc.,
+      it is most likely to lead to a crash
+    - if a register is solely used for computation and ends up e.g., as a system
+      call parameter, it is more likely to lead to SDC
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 20:28:54.983521 Z
+references: []
+
+id: 246f59f8e2ba7bfe312fc8f38878dd8d4b857ee1
+log_events: 
+- - 2012-08-22 20:28:55.870761 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

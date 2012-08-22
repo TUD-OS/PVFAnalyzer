@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: use rsync for uploading issues
+desc: ""
+type: :task
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 19:59:11.909966 Z
+references: []
+
+id: fc6b8a9234fb754bb1231237323ae5f682d2d839
+log_events: 
+- - 2012-08-22 19:59:12.502109 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

@@ -1,0 +1,24 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Memory error analysis
+desc: |-
+  In addition to register effects, model the influence of memory-accessing instructions.
+  Examples:
+  - instruction memory is always to be secured
+  - stack frames have a life time in which errors may lead to problems
+  - other memory regions might also have windows of vulnerability
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 20:27:11.185630 Z
+references: []
+
+id: a051948180d78702f894cfe52ada8f6870720382
+log_events: 
+- - 2012-08-22 20:27:11.863309 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

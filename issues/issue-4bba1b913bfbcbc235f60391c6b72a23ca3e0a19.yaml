@@ -1,0 +1,28 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "Register analysis: tainting"
+desc: |-
+  Registers are not independent from each other. Data written to one register is later used in an operation writing to another one. Therefore, these values depend on each other.
+  Use taint analysis to model these dependencies.
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 20:23:34.519635 Z
+references: []
+
+id: 4bba1b913bfbcbc235f60391c6b72a23ca3e0a19
+log_events: 
+- - 2012-08-22 20:23:35.109668 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-08-22 20:25:44.070353 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - |-
+    Use cases:
+    - memory access analysis: figure out if a certain register error is more likely to lead to silent data corruption or to a crash
+    - identify values that are used in a long chain of register accesses and hence more likely w.r.t. errors (data profiling)
+git_branch: 

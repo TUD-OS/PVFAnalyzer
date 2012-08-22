@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>Script for PVF analysis</title>
+<title>Register analysis: heuristic for determining vulnerability *type*</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -13,9 +13,17 @@
 
 <div class="main">
 
-<h1>Script for PVF analysis</h1>
+<h1>Register analysis: heuristic for determining vulnerability *type*</h1>
 <div class="backptr"><a href="index.html">&laquo; CFGAnalysis project page</a></div>
 
+
+  <div class="description">
+  <p>Pure register analysis only allows us to determine _when_ to inject a fault, but we still require FI runs to actually determine the outcome.</p><p>Heuristics may help here:
+  - if a register is used to compute a memory address, perform a jump etc.,
+    it is most likely to lead to a crash
+  - if a register is solely used for computation and ends up e.g., as a system
+    call parameter, it is more likely to lead to SDC</p>
+  </div>
 
 
 <h2>Details</h2>
@@ -23,7 +31,7 @@
   <tbody>
     <tr>
       <td class="attrname">Id:</td>
-      <td class="attrval"><span class="id">2bdeba4b496cd613c81d5c1b7848876ff6f01708</span></td>
+      <td class="attrval"><span class="id">246f59f8e2ba7bfe312fc8f38878dd8d4b857ee1</span></td>
     </tr>
 
     <tr>
@@ -33,7 +41,7 @@
 
     <tr>
       <td class="attrname">Creation time:</td>
-      <td class="attrval">2012-08-22 19:49 GMT</td>
+      <td class="attrval">2012-08-22 20:28 GMT</td>
     </tr>
 
     <tr>
@@ -47,7 +55,7 @@
       <td class="attrname">Release:</td>
       <td class="attrval">
         
-          <a href="release-0.2.html">0.2</a>
+          <a href="release-0.4.html">0.4</a>
           
             (unreleased)
           
@@ -63,8 +71,8 @@
     <tr>
       <td class="attrname">Status:</td>
       <td class="attrval">
-        closed: fixed
-        <img class="inline-status-image" src="green-check.png" alt="fixed" title="fixed"/>
+        unstarted
+        
       </td>
     </tr>
 
@@ -80,15 +88,7 @@
   <tbody>
   
     <tr class="even-row">
-      <td class="date">2012-08-22 19:59 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">closed with disposition fixed</td>
-    </tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="odd-row">
-      <td class="date">2012-08-22 19:49 GMT</td>
+      <td class="date">2012-08-22 20:28 GMT</td>
       <td class="person">doebel &lt;doebel@...&gt;</td>
       <td class="message">created</td>
     </tr>
