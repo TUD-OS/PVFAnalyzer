@@ -1,9 +1,9 @@
 [34m********************************************[0m
-[33m        CFG Analyzer version 0.1[0m
+[33m        CFG Analyzer version 0.2[0m
 [34m********************************************[0m
 Wrote CFG to 'loop.cfg'
 [34m********************************************[0m
-[33m        CFG Printer version 0.1[0m
+[33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
