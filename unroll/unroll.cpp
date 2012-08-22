@@ -166,9 +166,7 @@ int main(int argc, char **argv)
 	outFile.close();
 	std::cout << "Written to " << config.output_filename << std::endl;
 
-	BOOST_FOREACH(Instruction* i, iList) {
-		delete i;
-	}
+	freeCFGNodes(cfg);
 
 	return 0;
 }

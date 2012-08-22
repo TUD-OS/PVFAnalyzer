@@ -303,11 +303,21 @@ int main(int argc, char **argv)
 	readIList(ilist);
 	pvfAnalysis(ilist);
 
-#if 0
+	/*
+	 * Boost::Serialization tries to be clever w.r.t. the 
+	 * pointers we store in the serialized file. If a pointer
+	 * occurs multiple times, we only get one instance in the
+	 * deserialized version as well. Therefore, we now need to
+	 * make sure that we also only release the respective memory
+	 * only once.
+	 */
+	std::map<Instruction*, bool> delMap;
 	BOOST_FOREACH(Instruction* i, ilist) {
-		delete i;
+		if (!delMap[i]) {
+			delete i;
+			delMap[i] = true;
+		}
 	}
-#endif
 
 	return 0;
 }
