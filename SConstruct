@@ -124,3 +124,7 @@ env.integrationTests = env.Command("build_always2", "", "testing/scripts/runTest
 
 env.Depends(env.testcmd, env.test)
 env.Depends(env.integrationTests, env.testcmd)
+env.Depends(env.integrationTests, env.printer)
+env.Depends(env.integrationTests, env.reader)
+env.Depends(env.integrationTests, env.pvf)
+env.Depends(env.integrationTests, env.unroll)
