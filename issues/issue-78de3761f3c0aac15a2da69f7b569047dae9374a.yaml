@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: get all testcases to run through pvf analysis
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 19:49:10.829640 Z
+references: []
+
+id: 78de3761f3c0aac15a2da69f7b569047dae9374a
+log_events: 
+- - 2012-08-22 19:49:11.404699 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

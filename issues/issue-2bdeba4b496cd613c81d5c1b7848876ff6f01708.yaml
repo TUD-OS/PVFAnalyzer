@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Script for PVF analysis
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.2"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-22 19:49:29.164985 Z
+references: []
+
+id: 2bdeba4b496cd613c81d5c1b7848876ff6f01708
+log_events: 
+- - 2012-08-22 19:49:30.089426 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
