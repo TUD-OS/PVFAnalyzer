@@ -62,7 +62,7 @@ public:
 		BOOST_FOREACH(Address a, targets) {
 			if (a != *targets.begin())
 				std::cout << ", ";
-			std::cout << a;
+			std::cout << a.v;
 		}
 		std::cout << "]";
 	}
@@ -195,7 +195,7 @@ private:
 	{
 		std::cout << "\033[35mBB_CONN:\033[0m [ ";
 		BOOST_FOREACH(UnresolvedLink l, _bb_connections) {
-			std::cout << "(" << l.first << ", " << l.second << ") ";
+			std::cout << "(" << l.first << ", " << l.second.v << ") ";
 		}
 		std::cout << "]" << std::endl;
 	}
@@ -278,19 +278,19 @@ private:
 		 * that is.
 		 */
 		if (parentNode.bb->branchType == Instruction::BT_CALL) {
-			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction()
+			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction().v
 			                << "] := " << newDesc << std::endl;);
 			_callDoms[newNode.bb->firstInstruction()] = newDesc;
 
 			Instruction* callInstr   = parentNode.bb->instructions.back();
 			Address returnAddress    = callInstr->ip() + callInstr->length();
-			DEBUG(std::cout << "   _callDoms[" << returnAddress
+			DEBUG(std::cout << "   _callDoms[" << returnAddress.v
 			                << "] := " << _callDoms[parentNode.bb->firstInstruction()] << std::endl;);
 			_callDoms[returnAddress] = _callDoms[parentNode.bb->firstInstruction()];
 		} else if (parentNode.bb->branchType == Instruction::BT_RET) {
 			/* Do nothing! Already done during BT_CALL handling */
 		} else {
-			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction()
+			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction().v
 			                << "] := " << _callDoms[parentNode.bb->firstInstruction()] << std::endl;);
 			_callDoms[newNode.bb->firstInstruction()] = _callDoms[parentNode.bb->firstInstruction()];
 		}
@@ -316,7 +316,7 @@ private:
 		Instruction* callingInstr = parentNode.bb->instructions.back();
 		Address returnAddress     = callingInstr->ip() + callingInstr->length();
 		Address startInstr        = newNode.bb->firstInstruction();
-		DEBUG(std::cout << "callrets[" << startInstr << "] += [" << returnAddress << "]" << std::endl;);
+		DEBUG(std::cout << "callrets[" << startInstr.v << "] += [" << returnAddress.v << "]" << std::endl;);
 		_callRets[startInstr].insert(returnAddress);
 	}
 
@@ -359,7 +359,7 @@ private:
 
 		Address target        = _cfg[callee].bb->firstInstruction();
 		Instruction *ret      = _cfg[caller].bb->instructions.back();
-		Address returnAddress = ret->ip() + ret->length();
+		Address returnAddress = ret->ip() + Address(ret->length());
 
 		/*
 		 * For recursive functions we can encounter the case where we actually
@@ -373,7 +373,7 @@ private:
 		} catch (NodeNotFoundException)
 		{ }
 
-		DEBUG(std::cout << "ret doms [ " << target << "] :" << std::endl;);
+		DEBUG(std::cout << "ret doms [ " << target.v << "] :" << std::endl;);
 		BOOST_FOREACH(CFGVertexDescriptor vd, _retDoms[target]) {
 			DEBUG(std::cout << vd << std::endl;);
 			if (haveVertex) {
@@ -438,8 +438,8 @@ public:
 		// skip empty basic blocks (which only appear in the initial BB)
 		if (bb->instructions.size() > 0) {
 			DEBUG(std::cout << "Vertex " << v << " "
-	                         << bb->firstInstruction() << "-" << bb->lastInstruction()
-	                         << " srch " << _a << std::endl;);
+	                         << bb->firstInstruction().v << "-" << bb->lastInstruction().v
+	                         << " srch " << _a.v << std::endl;);
 			if ((_a >= bb->firstInstruction()) and (_a <= bb->lastInstruction()))
 				throw CFGVertexFoundException(v);
 		}
@@ -487,7 +487,7 @@ struct InstructionAddressComparator
 
 void CFGBuilder_priv::build(Address entry)
 {
-	DEBUG(std::cout << __func__ << "(" << std::hex << entry << ")" << std::endl;);
+	DEBUG(std::cout << __func__ << "(" << std::hex << entry.v << ")" << std::endl;);
 
 	/* Create an initial CFG node */
 	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
@@ -502,7 +502,7 @@ void CFGBuilder_priv::build(Address entry)
 		DEBUG(dumpUnresolvedLinks(););
 		UnresolvedLink next = _bb_connections.front();
 		_bb_connections.pop_front();
-		DEBUG(std::cout << "\033[36m-0- Exploring next BB starting @ " << (void*)next.second
+		DEBUG(std::cout << "\033[36m-0- Exploring next BB starting @ " << (void*)next.second.v
 		                << "\033[0m" << std::endl;);
 
 		BBInfo bbi = exploreSingleBB(next.second);
@@ -537,12 +537,12 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	RelocatedMemRegion buf = bufferForAddress(e);
 
 	if (buf.size == 0) { // no buffer found
-		DEBUG(std::cout << "Did not find code for entry point " << (void*)e << std::endl;);
+		DEBUG(std::cout << "Did not find code for entry point " << (void*)e.v << std::endl;);
 		return bbi;
 	}
 
 	bbi.bb         = new BasicBlock();
-	unsigned offs  = e - buf.mappedBase;
+	Address offs   = e - buf.mappedBase;
 	Instruction *i;
 
 	_dis.buffer(buf);
@@ -586,7 +586,8 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	/* cache BB start address */
 	_bbfound.insert(bbi.bb->firstInstruction());
 
-	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction() << " - " << bbi.bb->lastInstruction() << std::endl;);
+	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction().v
+	                << " - " << bbi.bb->lastInstruction().v << std::endl;);
 	return bbi;
 }
 
@@ -595,7 +596,7 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
                                           CFGVertexDescriptor newVertex,
                                           BBInfo& bbi)
 {
-		DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction()
+		DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction().v
 		                << "..." << std::endl;);
 
 		/* We need to add an edge from the previous vd */
@@ -610,8 +611,8 @@ void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
 			std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
 		while (n != _bb_connections.end()) {
 			BasicBlock *b = _cfg[(*n).first].bb;
-			DEBUG(std::cout << "Unresolved link: " << b->firstInstruction() << " -> "
-			                << (*n).second << std::endl;);
+			DEBUG(std::cout << "Unresolved link: " << b->firstInstruction().v << " -> "
+			                << (*n).second.v << std::endl;);
 			/* If the unresolved link goes to our start address, add an edge, ... */
 			if ((*n).second == bbi.bb->firstInstruction()) {
 				addCFGEdge((*n).first, newVertex);
@@ -631,7 +632,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 	if (Configuration::get()->debug) {
 		std::cout << "   [";
 		BOOST_FOREACH(Address a, bbi.targets) {
-			std::cout << a << ",";
+			std::cout << a.v << ",";
 		}
 		std::cout << "]" << std::endl;
 	}
@@ -640,7 +641,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 	while (!bbi.targets.empty()) {
 		Address a = bbi.targets.front();
 		bbi.targets.erase(bbi.targets.begin());
-		DEBUG(std::cout << "Next outgoing target address: " << a << std::endl;);
+		DEBUG(std::cout << "Next outgoing target address: " << a.v << std::endl;);
 
 		/*
 		 * Is the target within an alreay known BB? The result is one
@@ -658,7 +659,8 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		try {
 			targetNode = findCFGNodeWithAddress(a);
 		} catch (NodeNotFoundException) {
-			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a << " for discovery." << std::endl;);
+			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
+			                << " for discovery." << std::endl;);
 			// case 3: need to discover more code first
 			_bb_connections.push_back(UnresolvedLink(newVertex, a));
 			continue;
@@ -713,12 +715,13 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		CFGNodeInfo& cNode = _cfg[callee];
 		std::set<Address>& returns = _callRets[cNode.bb->firstInstruction()];
 		BOOST_FOREACH(Address a, returns) {
-			DEBUG(std::cout << "return to " << a << std::endl;);
+			DEBUG(std::cout << "return to " << a.v << std::endl;);
 			CFGVertexDescriptor targetNode;
 			try {
 				targetNode = findCFGNodeWithAddress(a);
 			} catch (NodeNotFoundException) {
-				DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a << " for discovery." << std::endl;);
+				DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
+					            << " for discovery." << std::endl;);
 				// case 3: need to discover more code first
 				_bb_connections.push_back(UnresolvedLink(newVertex, a));
 				continue;
@@ -764,7 +767,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 	 * Now move the new BB's instructions over to the new container.
 	 */
 	while (iit != bbNode.bb->instructions.end()) {
-		DEBUG(std::cout << "split: moving instr. @ " << (*iit)->ip()
+		DEBUG(std::cout << "split: moving instr. @ " << (*iit)->ip().v
 		                << " to bb2" << std::endl;);
 		bb2->instructions.push_back(*iit);
 		/*

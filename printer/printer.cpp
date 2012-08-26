@@ -282,10 +282,10 @@ struct ExtendedGraphvizInstructionWriter
 		BasicBlock* bb = g[v].bb;
 		if (!bb->instructions.empty()) {
 			out << "label=\"(" << v << ") [@0x";
-			out << std::hex << bb->firstInstruction() << "]\\l";
+			out << std::hex << bb->firstInstruction().v << "]\\l";
 			BOOST_FOREACH(Instruction* i, bb->instructions) {
 				out << "0x" << std::setw(8) << std::hex << std::setfill('0')
-				    << i->ip() << ": " << i->c_str() << "\\l";
+				    << i->ip().v << ": " << i->c_str() << "\\l";
 			}
 			out << "\"";
 		} else {

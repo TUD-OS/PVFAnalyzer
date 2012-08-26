@@ -115,7 +115,7 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 				break;
 
 			case 'e':
-				conf.entryPoint = strtoul(optarg, 0, 0);
+				conf.entryPoint = Address(strtoul(optarg, 0, 0));
 				break;
 		}
 	}
@@ -130,13 +130,13 @@ buildCFG(std::vector<InputReader*> const & v)
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 
-	if (conf.entryPoint != ~0UL)
+	if (conf.entryPoint != Address(~0UL))
 		entry = conf.entryPoint;
 	else
 		entry = v[0]->entry();
 
 	try {
-		VERBOSE(std::cout << "Decoding. Entry point 0x" << std::hex << entry << std::endl;);
+		VERBOSE(std::cout << "Decoding. Entry point 0x" << std::hex << entry.v << std::endl;);
 		builder->build(entry);
 	} catch (NotImplementedException e) {
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
@@ -177,9 +177,9 @@ dump_sections(std::vector<InputReader*> const & rv)
 			DataSection* d = ir->section(sec);
 			RelocatedMemRegion mr = d->getBuffer();
 			std::cout << "Section " << sec << " mem [";
-			std::cout << mr.base << " - " << mr.base + mr.size;
-			std::cout << "], reloc [" << mr.mappedBase << " - ";
-			std::cout << mr.mappedBase + mr.size << "]" << std::endl;
+			std::cout << mr.base.v << " - " << mr.base.v + mr.size;
+			std::cout << "], reloc [" << mr.mappedBase.v << " - ";
+			std::cout << mr.mappedBase.v + mr.size << "]" << std::endl;
 			//ir->section(sec)->dump();
 		}
 	}

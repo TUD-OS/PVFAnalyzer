@@ -59,10 +59,10 @@ public:
 		: DataSection()
 	{
 		RelocatedMemRegion buf = orig.getBuffer();
-		if (buf.base and buf.size) {
+		if (buf.base.v and buf.size) {
 			_data     = static_cast<uint8_t*>(realloc(_data, static_cast<unsigned int>(buf.size)));
 			_dataIndex = static_cast<unsigned int>(buf.size);
-			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base), _dataIndex);
+			memcpy(_data, reinterpret_cast<uint8_t*>(buf.base.v), _dataIndex);
 		}
 		_name = orig.name();
 	}
@@ -76,7 +76,7 @@ public:
 	void addByte(uint8_t byte);
 
 	/**
-	 * @brief Add multiple bytes at once
+	  @brief Add multiple bytes at once
 	 *
 	 * @param buf buffer containing bytes to add
 	 * @param count number of bytes to add from buffer
@@ -107,7 +107,8 @@ public:
 	 **/
 	RelocatedMemRegion const getBuffer() const
 	{
-		return RelocatedMemRegion((Address)(_data), (int)_dataIndex, _reloc);
+		return RelocatedMemRegion(Address(reinterpret_cast<unsigned long>(_data)),
+		                          (int)_dataIndex, _reloc);
 	}
 
 	/**

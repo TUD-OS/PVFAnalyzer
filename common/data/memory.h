@@ -25,7 +25,75 @@
 #include <cstddef>
 #include <cassert>
 
-typedef unsigned long Address; // address type
+struct Address
+{
+	unsigned long v;
+	explicit Address(unsigned long x = 0) : v(x) { }
+
+	bool operator< (const Address& other) const { return v <  other.v; }
+	bool operator> (const Address& other) const { return v >  other.v; }
+	bool operator>=(const Address& other) const { return v >= other.v; }
+	bool operator<=(const Address& other) const { return v <= other.v; }
+	bool operator!=(const Address& other) const { return v != other.v; }
+	bool operator==(const Address& other) const { return v == other.v; }
+
+	Address& operator=(Address const &other)
+	{
+		v = other.v;
+		return *this;
+	}
+
+
+	Address operator+(Address const &other) const
+	{
+		return Address(v + other.v);
+	}
+
+	Address operator+(unsigned long const &other) const
+	{
+		return Address(v + other);
+	}
+
+	Address& operator+=(Address const &other)
+	{
+		v += other.v;
+		return *this;
+	}
+
+	Address& operator+=(unsigned long const &other)
+	{
+		v += other;
+		return *this;
+	}
+
+	Address operator-(Address const &other) const
+	{
+		return Address(v - other.v);
+	}
+
+	Address operator-(unsigned long const &other) const
+	{
+		return Address(v - other);
+	}
+
+	Address& operator-=(Address const &other)
+	{
+		v -= other.v;
+		return *this;
+	}
+
+	Address& operator-=(unsigned long const &other)
+	{
+		v -= other;
+		return *this;
+	}
+
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		ar & v;
+	}
+};
 
 /**
  * @brief Arbitrary memory region
@@ -96,7 +164,7 @@ struct RelocatedMemRegion : public MemRegion
 	Address relocToRegion(Address const & a) const
 	{
 		assert(mappedBase <= a);
-		assert(a <= mappedBase + size);
+		assert(a.v <= mappedBase.v + size);
 		return a - mappedBase + base;
 	}
 	
@@ -109,7 +177,7 @@ struct RelocatedMemRegion : public MemRegion
 	Address regionToReloc(Address const & a) const
 	{
 		assert(base <= a);
-		assert(a <= base + size);
+		assert(a.v <= base.v + size);
 		return a - base + mappedBase;
 	}
 	

@@ -57,10 +57,10 @@ static Instruction *
 checkSequentialInstruction(Udis86Disassembler& dis, Address memloc, unsigned offset,
                            unsigned len, char const *repr, bool branch = false, bool release_mem = true)
 {
-	Instruction *i = dis.disassemble(offset);
+	Instruction *i = dis.disassemble(Address(offset));
 	WVPASS(i);
-	WVPASSEQ(i->ip(), memloc + offset);
-	WVPASSEQ(i->membase(), dis.buffer().base + offset);
+	WVPASSEQ(i->ip().v, memloc.v + offset);
+	WVPASSEQ(i->membase().v, dis.buffer().base.v + offset);
 	WVPASSEQ(i->length(), len);
 	std::string str(i->c_str());
 	boost::trim(str);
@@ -100,12 +100,12 @@ inputToDisassembler(char const *data, Udis86Disassembler& dis, HexbyteInputReade
 	}
 	hir.section(0)->relocationAddress(codeAddress);
 	WVPASSEQ(hir.sectionCount(), 1);
-	WVPASSEQ(hir.entry(), 0);
-	WVPASSEQ(hir.section(0)->getBuffer().mappedBase, codeAddress);
+	WVPASSEQ(hir.entry().v, 0);
+	WVPASSEQ(hir.section(0)->getBuffer().mappedBase.v, codeAddress.v);
 
 	dis.buffer(hir.section(0)->getBuffer());
-	WVPASSEQ(hir.section(0)->getBuffer().base, dis.buffer().base);
-	WVPASSEQ(hir.section(0)->getBuffer().mappedBase, dis.buffer().mappedBase);
+	WVPASSEQ(hir.section(0)->getBuffer().base.v, dis.buffer().base.v);
+	WVPASSEQ(hir.section(0)->getBuffer().mappedBase.v, dis.buffer().mappedBase.v);
 }
 
 
@@ -114,11 +114,11 @@ WVTEST_MAIN("single disassembly")
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
 
-	inputToDisassembler("c3", dis, hir, 0, 1);
-	checkSequentialInstruction(dis, 0, 0, 1, "ret", true);
+	inputToDisassembler("c3", dis, hir, Address(0), 1);
+	checkSequentialInstruction(dis, Address(0), 0, 1, "ret", true);
 
 	/* there is no further instruction...*/
-	Instruction *i = dis.disassemble(1);
+	Instruction *i = dis.disassemble(Address(1));
 	WVPASS(i == 0);
 }
 
@@ -130,13 +130,13 @@ WVTEST_MAIN("two instr. disassembly")
 	inputToDisassembler(
 		"89 44 24 04 "          /* mov [esp+4], eax */
 		"c7 04 24 00 00 00 00", /* movl [esp], 0 */
-		dis, hir, 0, 11);
+		dis, hir, Address(0), 11);
 
-	checkSequentialInstruction(dis, 0, 0, 4, "mov [esp+0x4], eax");
-	checkSequentialInstruction(dis, 0, 4, 7, "mov dword [esp], 0x0");
+	checkSequentialInstruction(dis, Address(0), 0, 4, "mov [esp+0x4], eax");
+	checkSequentialInstruction(dis, Address(0), 4, 7, "mov dword [esp], 0x0");
 
 	/* there is no further instruction...*/
-	Instruction *i = dis.disassemble(11);
+	Instruction *i = dis.disassemble(Address(11));
 	WVPASS(i == 0);
 }
 
@@ -147,24 +147,24 @@ WVTEST_MAIN("Instruction::relocated")
 	HexbyteInputReader hir;
 
 	inputToDisassembler("e8 bf 0a 00 00", /* call 804d454 */
-	                    dis, hir, 0x804c990, 5);
+	                    dis, hir, Address(0x804c990), 5);
 
-	checkSequentialInstruction(dis, 0x804c990, 0, 5, "call dword 0x804d454", true);
+	checkSequentialInstruction(dis, Address(0x804c990), 0, 5, "call dword 0x804d454", true);
 
 	/* relocate to other base address */
 	RelocatedMemRegion r = dis.buffer();
-	r.mappedBase = 0;
+	r.mappedBase = Address(0);
 
 	Udis86Disassembler d2;
 	d2.buffer(r);
 
-	checkSequentialInstruction(d2, 0, 0, 5, "call dword 0xac4", true);
+	checkSequentialInstruction(d2, Address(0), 0, 5, "call dword 0xac4", true);
 
 	/* there is no further instruction...*/
-	Instruction *i = dis.disassemble(5);
+	Instruction *i = dis.disassemble(Address(5));
 	WVPASS(i == 0);
 
-	i = d2.disassemble(5);
+	i = d2.disassemble(Address(5));
 	std::cout << (void*)i << std::endl;
 	WVPASS(i == 0);
 }
@@ -174,8 +174,8 @@ test_jnz()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("0f 85 16 01 00 00", dis, hir, 0x804c5fc, 6);
-	checkSequentialInstruction(dis, 0x804c5fc, 0, 6, "jnz dword 0x804c718", true);
+	inputToDisassembler("0f 85 16 01 00 00", dis, hir, Address(0x804c5fc), 6);
+	checkSequentialInstruction(dis, Address(0x804c5fc), 0, 6, "jnz dword 0x804c718", true);
 }
 
 static void
@@ -183,8 +183,8 @@ test_call()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("e8 7c ff ff ff", dis, hir, 0x804bfdf, 5);
-	checkSequentialInstruction(dis, 0x804bfdf, 0, 5, "call dword 0x804bf60", true);
+	inputToDisassembler("e8 7c ff ff ff", dis, hir, Address(0x804bfdf), 5);
+	checkSequentialInstruction(dis, Address(0x804bfdf), 0, 5, "call dword 0x804bf60", true);
 }
 
 
@@ -193,8 +193,8 @@ test_call2()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("ff d0", dis, hir, 0, 2);
-	checkSequentialInstruction(dis, 0, 0, 2, "call eax", true);
+	inputToDisassembler("ff d0", dis, hir, Address(0), 2);
+	checkSequentialInstruction(dis, Address(0), 0, 2, "call eax", true);
 }
 
 
@@ -203,8 +203,8 @@ test_ret()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("c3", dis, hir, 0x804bfdf, 1);
-	checkSequentialInstruction(dis, 0x804bfdf, 0, 1, "ret", true);
+	inputToDisassembler("c3", dis, hir, Address(0x804bfdf), 1);
+	checkSequentialInstruction(dis, Address(0x804bfdf), 0, 1, "ret", true);
 }
 
 
@@ -213,8 +213,8 @@ test_jmp()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("ff 25 60 e1 07 08", dis, hir, 0, 6);
-	checkSequentialInstruction(dis, 0, 0, 6, "jmp dword [0x807e160]", true);
+	inputToDisassembler("ff 25 60 e1 07 08", dis, hir, Address(0), 6);
+	checkSequentialInstruction(dis, Address(0), 0, 6, "jmp dword [0x807e160]", true);
 }
 
 static void
@@ -222,8 +222,8 @@ test_nop()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("90", dis, hir, 0, 1);
-	checkSequentialInstruction(dis, 0, 0, 1, "nop", false);
+	inputToDisassembler("90", dis, hir, Address(0), 1);
+	checkSequentialInstruction(dis, Address(0), 0, 1, "nop", false);
 }
 
 static void
@@ -231,8 +231,8 @@ test_int80()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("cd 80", dis, hir, 0, 2);
-	checkSequentialInstruction(dis, 0, 0, 2, "int 0x80", true);
+	inputToDisassembler("cd 80", dis, hir, Address(0), 2);
+	checkSequentialInstruction(dis, Address(0), 0, 2, "int 0x80", true);
 }
 
 WVTEST_MAIN("branch checks")
@@ -251,13 +251,13 @@ static void test_int80branch()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("cd 80", dis, hir, 0, 2);
-	Instruction *i = checkSequentialInstruction(dis, 0, 0, 2, "int 0x80", true, false);
+	inputToDisassembler("cd 80", dis, hir, Address(0), 2);
+	Instruction *i = checkSequentialInstruction(dis, Address(0), 0, 2, "int 0x80", true, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
 	WVPASS(btargets.size() == 1);
-	WVPASSEQ(btargets[0], 2);
+	WVPASSEQ(btargets[0].v, 2);
 	delete i;
 }
 
@@ -267,8 +267,8 @@ test_nop_branch()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("90", dis, hir, 0, 1);
-	Instruction* i = checkSequentialInstruction(dis, 0, 0, 1, "nop", false, false);
+	inputToDisassembler("90", dis, hir, Address(0), 1);
+	Instruction* i = checkSequentialInstruction(dis, Address(0), 0, 1, "nop", false, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
@@ -281,13 +281,13 @@ test_call_branch()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("e8 dd 20 00 00", dis, hir, 0x804fd5a, 5);
-	Instruction* i = checkSequentialInstruction(dis, 0x804fd5a, 0, 5, "call dword 0x8051e3c", true, false);
+	inputToDisassembler("e8 dd 20 00 00", dis, hir, Address(0x804fd5a), 5);
+	Instruction* i = checkSequentialInstruction(dis, Address(0x804fd5a), 0, 5, "call dword 0x8051e3c", true, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
 	WVPASS(btargets.size() == 1);
-	WVPASSEQ(btargets[0], 0x8051e3c);
+	WVPASSEQ(btargets[0].v, 0x8051e3c);
 	delete i;
 }
 
@@ -297,13 +297,13 @@ test_direct_jmp()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("e9 a2 02 00 00", dis, hir, 0x80512d4, 5);
-	Instruction* i = checkSequentialInstruction(dis, 0x80512d4, 0, 5, "jmp dword 0x805157b", true, false);
+	inputToDisassembler("e9 a2 02 00 00", dis, hir, Address(0x80512d4), 5);
+	Instruction* i = checkSequentialInstruction(dis, Address(0x80512d4), 0, 5, "jmp dword 0x805157b", true, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
 	WVPASS(btargets.size() == 1);
-	WVPASSEQ(btargets[0], 0x805157b);
+	WVPASSEQ(btargets[0].v, 0x805157b);
 	delete i;
 }
 
@@ -313,14 +313,14 @@ test_condjmp_branch()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("75 02", dis, hir, 0x80515aa, 2);
-	Instruction* i = checkSequentialInstruction(dis, 0x80515aa, 0, 2, "jnz 0x80515ae", true, false);
+	inputToDisassembler("75 02", dis, hir, Address(0x80515aa), 2);
+	Instruction* i = checkSequentialInstruction(dis, Address(0x80515aa), 0, 2, "jnz 0x80515ae", true, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
 	WVPASS(btargets.size() == 2);
-	WVPASSEQ(btargets[0], 0x80515ae);
-	WVPASSEQ(btargets[1], 0x80515ac);
+	WVPASSEQ(btargets[0].v, 0x80515ae);
+	WVPASSEQ(btargets[1].v, 0x80515ac);
 	delete i;
 }
 
@@ -329,14 +329,14 @@ test_condjmp_neg()
 {
 	Udis86Disassembler dis;
 	HexbyteInputReader hir;
-	inputToDisassembler("7e fa", dis, hir, 0x100, 2);
-	Instruction* i = checkSequentialInstruction(dis, 0x100, 0, 2, "jle 0xfc", true, false);
+	inputToDisassembler("7e fa", dis, hir, Address(0x100), 2);
+	Instruction* i = checkSequentialInstruction(dis, Address(0x100), 0, 2, "jle 0xfc", true, false);
 	WVPASS(i != 0);
 	std::vector<Address> btargets;
 	i->branchTargets(btargets);
 	WVPASS(btargets.size() == 2);
-	WVPASSEQ(btargets[0], 0xfc);
-	WVPASSEQ(btargets[1], 0x102);
+	WVPASSEQ(btargets[0].v, 0xfc);
+	WVPASSEQ(btargets[1].v, 0x102);
 	delete i;
 }
 

@@ -194,7 +194,7 @@ public:
 	virtual void ip(Address a)
 	{
 		Instruction::ip(a);
-		ud_set_pc(_udObj.udptr(), a);
+		ud_set_pc(_udObj.udptr(), a.v);
 	}
 
 	/**
@@ -210,7 +210,7 @@ public:
 		 * As an Instruction always represents exactly one
 		 * instruction, this should suffice.
 		 */
-		ud_set_input_buffer(_udObj.udptr(), reinterpret_cast<uint8_t*>(a), 32);
+		ud_set_input_buffer(_udObj.udptr(), reinterpret_cast<uint8_t*>(a.v), 32);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public:
 	virtual void print()
 	{
 		std::cout << "\033[33m";
-		std::cout << std::hex << "0x" << std::setfill('0') << std::setw(8) << Instruction::ip();
+		std::cout << std::hex << "0x" << std::setfill('0') << std::setw(8) << Instruction::ip().v;
 		std::cout << "    " << "\033[0m";
 		std::cout << c_str();
 	}
@@ -290,7 +290,7 @@ public:
 				if (ud->mnemonic != UD_Iint) { // XXX is INT xx the special or the common case?
 					target  = Udis86Helper::operandToValue(ud, 0);
 					//DEBUG(std::cout << "branch to: " << target << std::endl;);
-					targets.push_back(Udis86Helper::operandToValue(ud, 0));
+					targets.push_back(Address(Udis86Helper::operandToValue(ud, 0)));
 				}
 				break;
 			case UD_OP_JIMM: /* Immediate operand to branch instruction (relative offsets).
@@ -302,9 +302,9 @@ public:
 				                << std::hex << Instruction::ip() + length() + target
 				                << std::endl;);
 #endif
-				target += Instruction::ip();
+				target += Instruction::ip().v;
 				target += length();
-				targets.push_back(target);
+				targets.push_back(Address(target));
 				break;
 			case UD_NONE:
 				//DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);

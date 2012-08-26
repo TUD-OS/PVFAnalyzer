@@ -93,7 +93,7 @@ parseInputFromOptions(int argc, char **argv)
 				break;
 
 			case 't':
-				config.final = strtoul(optarg, 0, 0);
+				config.final = Address(strtoul(optarg, 0, 0));
 				break;
 		}
 	}

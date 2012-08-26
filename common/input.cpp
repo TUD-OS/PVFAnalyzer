@@ -227,7 +227,7 @@ void FileInputReader::parseElf(const char* filename)
 		throw ELFException();
 	}
 	DEBUG(std::cout << "Entry: " << std::hex << ehdr.e_entry << std::endl;);
-	_entry = ehdr.e_entry;
+	_entry = Address(ehdr.e_entry);
 
 	size_t shnum, phnum;
 	if (elf_getshdrnum(elf, &shnum) != 0) {
@@ -285,7 +285,7 @@ void FileInputReader::parseElf(const char* filename)
 			_sections.push_back(new DataSection());
 			DataSection* ds = section(_sections.size()-1);
 			ds->addBuffer(buffer, phdr.p_memsz);
-			ds->relocationAddress(phdr.p_vaddr);
+			ds->relocationAddress(Address(phdr.p_vaddr));
 			std::cout << (void*)buffer << " -> " << phdr.p_vaddr << std::endl;
 		}
 	}
@@ -293,9 +293,9 @@ void FileInputReader::parseElf(const char* filename)
 	BOOST_FOREACH(DataSection *ds, _sections) {
 			RelocatedMemRegion mr = ds->getBuffer();
 			std::cout << "Section mem [";
-			std::cout << mr.base << " - " << mr.base + mr.size;
-			std::cout << "], reloc [" << mr.mappedBase << " - ";
-			std::cout << mr.mappedBase + mr.size << "]" << std::endl;
+			std::cout << mr.base.v << " - " << mr.base.v + mr.size;
+			std::cout << "], reloc [" << mr.mappedBase.v << " - ";
+			std::cout << mr.mappedBase.v + mr.size << "]" << std::endl;
 	}
 
 	elf_end(elf);
