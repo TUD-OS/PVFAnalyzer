@@ -47,6 +47,10 @@ recursion.bin:
     * call into a recursive function
     * entry point: 0x1D
 
+sum_rec.bin:
+    * ELF binary recursively counting numbers
+    * entry point: 0x8048400
+
 twocalls.bin:
     * two calls to the same function from different
       sources
