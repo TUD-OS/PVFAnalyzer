@@ -306,6 +306,16 @@ public:
 				target += length();
 				targets.push_back(Address(target));
 				break;
+			case UD_OP_REG:
+				std::cout << "\033[31mSkipping register jump\033[0m (";
+				std::cout << ud->operand[0].base << " ";
+				std::cout << ud->operand[0].index << " ";
+				std::cout << (int)ud->operand[0].scale << ")" << std::endl;
+				/* For now, ignore the jmp target and simply step over the call */
+				target = Instruction::ip().v;
+				target += length();
+				targets.push_back(Address(target));
+				return BT_JUMP_UNCOND;
 			case UD_OP_MEM:
 				if (Configuration::get()->debug) {
 					std::cout << "memory operand" << std::endl;
@@ -337,10 +347,13 @@ public:
 					std::cout << "\033[31mJump through memory target: 0x"
 					          << std::hex << target << "\033[0m" << std::endl;
 				}
-				//throw NotImplementedException("Memory/SIB jump target");
-				return BT_NONE;
+
+				/* For now, ignore the jmp target and simply step over the call */
+				target = Instruction::ip().v;
+				target += length();
+				targets.push_back(Address(target));
+				return BT_JUMP_UNCOND;
 			case UD_NONE:
-				//DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);
 				break;
 			default:
 				DEBUG(std::cout << ud->operand[0].type << std::endl;);
