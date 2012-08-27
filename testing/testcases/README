@@ -17,6 +17,10 @@ callret.bin:
     * function call / return test case
     * entry point: 0x5
 
+hello.bin:
+    * statically linked ELF binary simply calling printf("hello world");
+    * main entry point: 0x8048254
+
 loop.bin:
     * basic for loop:
       for (i = 0; i < 10; ++i)
