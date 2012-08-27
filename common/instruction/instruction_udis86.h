@@ -306,6 +306,39 @@ public:
 				target += length();
 				targets.push_back(Address(target));
 				break;
+			case UD_OP_MEM:
+				if (Configuration::get()->debug) {
+					std::cout << "memory operand" << std::endl;
+
+#define FIELD(x) do { \
+					for (unsigned i = 0; i < 3; ++i) { \
+						std::cout << std::setfill(' ') << std::setw(10) << (int)ud->operand[i].x << " "; \
+					} \
+					std::cout << std::endl; \
+				} while (0);
+
+					std::cout << "   base  ";
+					FIELD(base);
+					std::cout << "   index ";
+					FIELD(index);
+					std::cout << "   scale ";
+					FIELD(scale);
+					std::cout << "  offset ";
+					FIELD(offset);
+					std::cout << "    size ";
+					FIELD(size);
+#undef FIELD
+				}
+
+				if ((ud->operand[0].base == 0) and
+					(ud->operand[0].index == 0) and
+					(ud->operand[0].scale == 0)) {
+					target = ud->operand[0].lval.sdword;
+					std::cout << "\033[31mJump through memory target: 0x"
+					          << std::hex << target << "\033[0m" << std::endl;
+				}
+				//throw NotImplementedException("Memory/SIB jump target");
+				return BT_NONE;
 			case UD_NONE:
 				//DEBUG(std::cout << "BRANCH to UD_NONE." << std::endl;);
 				break;
