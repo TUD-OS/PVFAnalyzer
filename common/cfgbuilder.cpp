@@ -438,9 +438,11 @@ public:
 
 		// skip empty basic blocks (which only appear in the initial BB)
 		if (bb->instructions.size() > 0) {
+#if 0
 			DEBUG(std::cout << "Vertex " << v << " "
 	                         << bb->firstInstruction().v << "-" << bb->lastInstruction().v
 	                         << " srch " << _a.v << std::endl;);
+#endif
 			if ((_a >= bb->firstInstruction()) and (_a <= bb->lastInstruction()))
 				throw CFGVertexFoundException(v);
 		}
@@ -451,13 +453,16 @@ public:
 
 CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
 {
+	DEBUG(std::cout << "FIND(" << a.v << ") -> ";);
 	try {
 		BBForAddressFinder vis(a);
 		boost::depth_first_search(_cfg, boost::visitor(vis));
 	} catch (CFGVertexFoundException cvfe) {
+		DEBUG(std::cout << cvfe._vd << std::endl;);
 		return cvfe._vd;
 	}
 
+	DEBUG(std::cout << "[]" << std::endl;);
 	throw NodeNotFoundException();
 }
 
@@ -588,6 +593,10 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	return bbi;
 }
 
+bool compareUnresolvedLinks(CFGBuilder_priv::UnresolvedLink const & l1, CFGBuilder_priv::UnresolvedLink const & l2)
+{
+	return l1.second < l2.second;
+}
 
 CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
                                                          CFGVertexDescriptor newVertex,
@@ -605,7 +614,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	updateCallDoms(prevVertex, newVertex);
 	updateRetDoms(newVertex);
 
-	std::set<Address> splitPoints;
+	std::vector<UnresolvedLink> splitPoints;
 
 	PendingResolutionList::iterator n =
 		std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
@@ -624,7 +633,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 			 * split points (because other pending links may still point to
 			 * the start address) and handle them below.
 			 */
-			splitPoints.insert((*n).second);
+			splitPoints.push_back(*n);
 		}
 		_bb_connections.erase(n);
 		n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
@@ -632,13 +641,32 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 
 	// No handling of multiple split points yet
 	if (splitPoints.size() >= 2) {
-		throw NotImplementedException("BB::split(): more than 1 split point");
+		std::sort(splitPoints.begin(), splitPoints.end(), compareUnresolvedLinks);
+		if (Configuration::get()->debug) {
+			std::cout << "Splitting BB from incoming links:" << std::endl;
+			BOOST_FOREACH(UnresolvedLink l, splitPoints) {
+				std::cout << l.first << " -> " << l.second.v << std::endl;
+			}
+		}
+		//throw NotImplementedException("BB::split(): more than 1 split point");
 	}
 
-	if (splitPoints.size() == 1) {
-		CFGVertexDescriptor splitTailVertex = splitBasicBlock(newVertex, *(splitPoints.begin()));
-		if (splitTailVertex == newVertex)
-			throw NotImplementedException("split == start");
+	while (!splitPoints.empty()) {
+		UnresolvedLink& link = splitPoints.front();
+		CFGVertexDescriptor source = link.first;
+		Address splitAddress       = link.second;
+		CFGVertexDescriptor splitTailVertex = splitBasicBlock(newVertex, splitAddress);
+		assert(splitTailVertex != newVertex);
+
+		do {
+			addCFGEdge(link.first, splitTailVertex);
+			link = splitPoints.front();
+			splitPoints.erase(splitPoints.begin());
+			std::cout << "..." << splitPoints.size() << std::endl;
+		} while ((splitPoints.size() > 0) and (link.second == splitAddress));
+
+		newVertex = splitTailVertex;
+
 		/*
 		 * Next, we want to continue working on the tail of the BB chain. Everything upfront
 		 * is done.
