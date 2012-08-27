@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>proper handling of ELF control flow</title>
+<title>Support for analyzing shared library code as well</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -13,9 +13,13 @@
 
 <div class="main">
 
-<h1>proper handling of ELF control flow</h1>
+<h1>Support for analyzing shared library code as well</h1>
 <div class="backptr"><a href="index.html">&laquo; CFGAnalysis project page</a></div>
 
+
+  <div class="description">
+  <p>Support following jumps to libC &amp; co.</p><p>This requires knowing the library mappings at runtime (e.g., through /proc/&lt;pid&gt;/mappings) and then loading the respective libs into the ELF reader.</p>
+  </div>
 
 
 <h2>Details</h2>
@@ -23,7 +27,7 @@
   <tbody>
     <tr>
       <td class="attrname">Id:</td>
-      <td class="attrval"><span class="id">c38163f57b94b1c1261304adb20daedb01ef53ef</span></td>
+      <td class="attrval"><span class="id">be63b77120437f1a1300b520bbc510883898709b</span></td>
     </tr>
 
     <tr>
@@ -33,7 +37,7 @@
 
     <tr>
       <td class="attrname">Creation time:</td>
-      <td class="attrval">2012-08-14 11:13 GMT</td>
+      <td class="attrval">2012-08-27 08:06 GMT</td>
     </tr>
 
     <tr>
@@ -47,7 +51,7 @@
       <td class="attrname">Release:</td>
       <td class="attrval">
         
-          <a href="release-0.3.html">0.3</a>
+          <a href="release-0.4.html">0.4</a>
           
             (unreleased)
           
@@ -63,8 +67,8 @@
     <tr>
       <td class="attrname">Status:</td>
       <td class="attrval">
-        in progress
-        <img class="inline-status-image" src="green-bar.png" alt="in progress" title="in progress"/>
+        unstarted
+        
       </td>
     </tr>
 
@@ -80,39 +84,7 @@
   <tbody>
   
     <tr class="even-row">
-      <td class="date">2012-08-27 08:05 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">commented</td>
-    </tr>
-    
-      <tr><td colspan="3" class="logcomment">
-      need to handle jumps to external (shared lib) code
-      </td></tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="odd-row">
-      <td class="date">2012-08-27 08:00 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">changed status from unstarted to in_progress</td>
-    </tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="even-row">
-      <td class="date">2012-08-14 11:59 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">assigned to release 0.3 from 0.2</td>
-    </tr>
-    
-      <tr><td colspan="3" class="logcomment">
-      later...
-      </td></tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="odd-row">
-      <td class="date">2012-08-14 11:13 GMT</td>
+      <td class="date">2012-08-27 08:06 GMT</td>
       <td class="person">doebel &lt;doebel@...&gt;</td>
       <td class="message">created</td>
     </tr>

@@ -1,0 +1,22 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Support for analyzing shared library code as well
+desc: |-
+  Support following jumps to libC & co.
+  
+  This requires knowing the library mappings at runtime (e.g., through /proc/<pid>/mappings) and then loading the respective libs into the ELF reader.
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-27 08:06:48.762156 Z
+references: []
+
+id: be63b77120437f1a1300b520bbc510883898709b
+log_events: 
+- - 2012-08-27 08:06:49.486210 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
