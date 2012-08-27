@@ -5,8 +5,8 @@ type: :feature
 component: CFGAnalysis
 release: "0.3"
 reporter: doebel <doebel@tudos.org>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2012-08-14 11:13:40.365756 Z
 references: []
 
@@ -28,4 +28,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - commented
   - need to handle jumps to external (shared lib) code
+- - 2012-08-27 12:53:13.411593 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - Works by ignoring jumps to unknown code for now. PLT is not yet handled correctly, so don't parse code using shared libraries.
 git_branch: 
