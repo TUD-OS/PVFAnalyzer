@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "Tool: function names in CFG"
+desc: Add a tool that scans a DOT file created by the printer and replaces BB addresses with the respective function name (e.g., found using nm or addr2line).
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-27 12:58:11.675201 Z
+references: []
+
+id: 6ce0766ee8216688adf38af0bce3ed3904ef4540
+log_events: 
+- - 2012-08-27 12:58:12.151863 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
