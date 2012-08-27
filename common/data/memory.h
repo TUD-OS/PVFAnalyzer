@@ -189,7 +189,8 @@ struct RelocatedMemRegion : public MemRegion
 	 **/
 	bool relocContains(Address const a) const
 	{
-		return contains(relocToRegion(a));
+		return ((mappedBase <= a) and
+		        (a.v <= mappedBase.v + size));
 	}
 	
     RelocatedMemRegion()
