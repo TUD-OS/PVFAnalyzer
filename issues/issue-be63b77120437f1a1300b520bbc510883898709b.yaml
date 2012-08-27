@@ -19,4 +19,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-27 11:28:37.259165 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - it also requires identifying the PLT and special-handling code in there, because it contains dummy jmps in the static case which can only be resolved dynamically.
 git_branch: 

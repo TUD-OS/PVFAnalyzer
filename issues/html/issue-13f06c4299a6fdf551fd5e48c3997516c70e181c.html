@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>Support for analyzing shared library code as well</title>
+<title>Implement BB::split() for incoming edges</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -13,13 +13,9 @@
 
 <div class="main">
 
-<h1>Support for analyzing shared library code as well</h1>
+<h1>Implement BB::split() for incoming edges</h1>
 <div class="backptr"><a href="index.html">&laquo; CFGAnalysis project page</a></div>
 
-
-  <div class="description">
-  <p>Support following jumps to libC &amp; co.</p><p>This requires knowing the library mappings at runtime (e.g., through /proc/&lt;pid&gt;/mappings) and then loading the respective libs into the ELF reader.</p>
-  </div>
 
 
 <h2>Details</h2>
@@ -27,17 +23,17 @@
   <tbody>
     <tr>
       <td class="attrname">Id:</td>
-      <td class="attrval"><span class="id">be63b77120437f1a1300b520bbc510883898709b</span></td>
+      <td class="attrval"><span class="id">13f06c4299a6fdf551fd5e48c3997516c70e181c</span></td>
     </tr>
 
     <tr>
       <td class="attrname">Type:</td>
-      <td class="attrval">feature</td>
+      <td class="attrval">bugfix</td>
     </tr>
 
     <tr>
       <td class="attrname">Creation time:</td>
-      <td class="attrval">2012-08-27 08:06 GMT</td>
+      <td class="attrval">2012-08-27 12:05 GMT</td>
     </tr>
 
     <tr>
@@ -51,7 +47,7 @@
       <td class="attrname">Release:</td>
       <td class="attrval">
         
-          <a href="release-0.4.html">0.4</a>
+          <a href="release-0.3.html">0.3</a>
           
             (unreleased)
           
@@ -84,19 +80,7 @@
   <tbody>
   
     <tr class="even-row">
-      <td class="date">2012-08-27 11:28 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">commented</td>
-    </tr>
-    
-      <tr><td colspan="3" class="logcomment">
-      it also requires identifying the PLT and special-handling code in there, because it contains dummy jmps in the static case which can only be resolved dynamically.
-      </td></tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="odd-row">
-      <td class="date">2012-08-27 08:06 GMT</td>
+      <td class="date">2012-08-27 12:05 GMT</td>
       <td class="person">doebel &lt;doebel@...&gt;</td>
       <td class="message">created</td>
     </tr>

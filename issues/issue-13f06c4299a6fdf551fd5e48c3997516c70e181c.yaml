@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Implement BB::split() for incoming edges
+desc: ""
+type: :bugfix
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-27 12:05:15.234328 Z
+references: []
+
+id: 13f06c4299a6fdf551fd5e48c3997516c70e181c
+log_events: 
+- - 2012-08-27 12:05:15.743001 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
