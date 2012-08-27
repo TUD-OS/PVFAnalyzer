@@ -233,11 +233,12 @@ private:
 	 * @param newVertex  new vertex
 	 * @param pending    list of pending connections
 	 * @param bbi        BBInfo descriptor for new BB
-	 * @return void
+	 * @return vertex descriptor -- by default the same as newVertex; if the vertex had
+	 *                              to be split, returns the tail BB.
 	 **/
-	void handleIncomingEdges(CFGVertexDescriptor prevVertex,
-	                         CFGVertexDescriptor newVertex,
-	                         BBInfo& bbi);
+	CFGVertexDescriptor handleIncomingEdges(CFGVertexDescriptor prevVertex,
+	                                        CFGVertexDescriptor newVertex,
+	                                        BBInfo& bbi);
 
 	/**
 	 * @brief Helper: handle outgoing edges for a newly discovered BB
@@ -515,16 +516,12 @@ void CFGBuilder_priv::build(Address entry)
 			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
 
 			DEBUG(std::cout << "--1-- Handling incoming edges" << std::endl;);
-			handleIncomingEdges(next.first, vd, bbi);
+			vd = handleIncomingEdges(next.first, vd, bbi);
 			DEBUG(std::cout << "--2-- Handling outgoing edges" << std::endl;);
 			handleOutgoingEdges(bbi, vd);
 			DEBUG(std::cout << "--3-- BB finished" << std::endl;);
 		} else {
-			// XXX: Actually, we'd insert dummy targets here. The most likely
-			//      use case are code snippets referencing code that is external
-			//      from the input buffers' view.
-			std::cout << "An error happened while parsing a BB?" << std::endl;
-			throw NotImplementedException(__func__);
+			std::cout << "Ignoring empty BB. (Most likely, no code found.)" << std::endl;
 		}
 	}
 	DEBUG(std::cout << "\033[32m" << "BB construction finished." << "\033[0m" << std::endl;);
@@ -592,37 +589,63 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 }
 
 
-void CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
-                                          CFGVertexDescriptor newVertex,
-                                          BBInfo& bbi)
+CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
+                                                         CFGVertexDescriptor newVertex,
+                                                         BBInfo& bbi)
 {
-		DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction().v
-		                << "..." << std::endl;);
+	CFGVertexDescriptor retVD = newVertex;
+	DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction().v
+	                << "..." << std::endl;);
 
-		/* We need to add an edge from the previous vd */
-		addCFGEdge(prevVertex, newVertex);
-		updateReturnsForCall(prevVertex, newVertex);
+	/* We need to add an edge from the previous vd */
+	addCFGEdge(prevVertex, newVertex);
+	updateReturnsForCall(prevVertex, newVertex);
 
-		/* Update the call dominator map */
-		updateCallDoms(prevVertex, newVertex);
-		updateRetDoms(newVertex);
+	/* Update the call dominator map */
+	updateCallDoms(prevVertex, newVertex);
+	updateRetDoms(newVertex);
 
-		PendingResolutionList::iterator n =
-			std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
-		while (n != _bb_connections.end()) {
-			BasicBlock *b = _cfg[(*n).first].bb;
-			DEBUG(std::cout << "Unresolved link: " << b->firstInstruction().v << " -> "
-			                << (*n).second.v << std::endl;);
-			/* If the unresolved link goes to our start address, add an edge, ... */
-			if ((*n).second == bbi.bb->firstInstruction()) {
-				addCFGEdge((*n).first, newVertex);
-				updateReturnsForCall((*n).first, newVertex);
-			} else { /* ... otherwise, split right now.*/
-				throw NotImplementedException("split BB");
-			}
-			_bb_connections.erase(n);
-			n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
+	std::set<Address> splitPoints;
+
+	PendingResolutionList::iterator n =
+		std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
+	while (n != _bb_connections.end()) {
+		BasicBlock *b = _cfg[(*n).first].bb;
+		DEBUG(std::cout << "Unresolved link: " << b->firstInstruction().v << " -> "
+		                << (*n).second.v << std::endl;);
+		/* If the unresolved link goes to our start address, add an edge, ... */
+		if ((*n).second == bbi.bb->firstInstruction()) {
+			addCFGEdge((*n).first, newVertex);
+			updateReturnsForCall((*n).first, newVertex);
+		} else {
+			/*
+			 * Otherwise, we found a jump that goes into the middle of this
+			 * newly found BB, requiring a split. However, we first collect
+			 * split points (because other pending links may still point to
+			 * the start address) and handle them below.
+			 */
+			splitPoints.insert((*n).second);
 		}
+		_bb_connections.erase(n);
+		n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
+	}
+
+	// No handling of multiple split points yet
+	if (splitPoints.size() >= 2) {
+		throw NotImplementedException("BB::split(): more than 1 split point");
+	}
+
+	if (splitPoints.size() == 1) {
+		CFGVertexDescriptor splitTailVertex = splitBasicBlock(newVertex, *(splitPoints.begin()));
+		if (splitTailVertex == newVertex)
+			throw NotImplementedException("split == start");
+		/*
+		 * Next, we want to continue working on the tail of the BB chain. Everything upfront
+		 * is done.
+		 */
+		retVD = splitTailVertex;
+	}
+	return retVD;
 }
 
 
