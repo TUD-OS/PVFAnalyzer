@@ -17,7 +17,7 @@ rm $TESTOUT/*
 
 for s in $ROOTDIR/testing/scripts/*.sh; do
 	base=$(basename $s | sed -e's/\.sh//g')
-	printf "%-16s: " $base
+	printf "%-20s: " $base
 #	echo -n $base ": "
 	BASEOUT=$TESTOUT/$base.out
 	EXPECT=$ROOTDIR/testing/scripts/$base.expect
