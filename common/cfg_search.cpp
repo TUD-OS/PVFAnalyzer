@@ -53,7 +53,7 @@ public:
 CFGVertexDescriptor const
 findCFGNodeWithAddress(ControlFlowGraph const &cfg, Address a, CFGVertexDescriptor startSearch)
 {
-	DEBUG(std::cout << "FIND(" << a.v << ") -> ";);
+	DEBUG(std::cout << "FIND(" << a.v << ") -> " << std::endl;);
 	try {
 		BBForAddressFinder vis(a);
 		boost::depth_first_search(cfg, boost::visitor(vis).root_vertex(startSearch));
@@ -62,6 +62,6 @@ findCFGNodeWithAddress(ControlFlowGraph const &cfg, Address a, CFGVertexDescript
 		return cvfe._vd;
 	}
 
-	DEBUG(std::cout << "[]" << std::endl;);
+	DEBUG(std::cout << std::endl << "    []" << std::endl;);
 	throw NodeNotFoundException();
 }
