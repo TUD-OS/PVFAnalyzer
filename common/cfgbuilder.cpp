@@ -360,7 +360,7 @@ private:
 		CFGVertexDescriptor retVertex;
 		bool haveVertex = false;
 		try {
-			retVertex  = findCFGNodeWithAddress(_cfg, returnAddress);
+			retVertex  = findCFGNodeWithAddress(_cfg, returnAddress, caller);
 			haveVertex = true;
 		} catch (NodeNotFoundException)
 		{ }
@@ -628,7 +628,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		 */
 		CFGVertexDescriptor targetNode;
 		try {
-			targetNode = findCFGNodeWithAddress(_cfg, a);
+			targetNode = findCFGNodeWithAddress(_cfg, a, newVertex);
 		} catch (NodeNotFoundException) {
 			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
 			                << " for discovery." << std::endl;);
@@ -689,7 +689,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			DEBUG(std::cout << "return to " << a.v << std::endl;);
 			CFGVertexDescriptor targetNode;
 			try {
-				targetNode = findCFGNodeWithAddress(_cfg, a);
+				targetNode = findCFGNodeWithAddress(_cfg, a, newVertex);
 			} catch (NodeNotFoundException) {
 				DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
 					            << " for discovery." << std::endl;);

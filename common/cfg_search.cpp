@@ -2,7 +2,10 @@
 #include "util.h"
 
 #include <boost/graph/depth_first_search.hpp>
+#include <boost/tuple/tuple.hpp>
 
+#include <queue>
+#include <functional>
 
 /* Q: Using BGL, how to stop a {depth_first|breadth_first|*}_search once you're
  *    done without visiting all other useless nodes?
@@ -49,14 +52,72 @@ public:
 };
 #pragma GCC diagnostic pop
 
+enum class BFSColor : unsigned char
+{
+	WHITE,
+	GRAY,
+	BLACK,
+};
+
+void privateBFSTraversal(ControlFlowGraph cfg, CFGVertexDescriptor start,
+                         std::function<void(CFGVertexDescriptor)> functor)
+{
+	std::queue<CFGVertexDescriptor> Q;
+	BFSColor colorMap[boost::num_vertices(cfg)];
+
+	for (unsigned idx = 0; idx < boost::num_vertices(cfg); ++idx) {
+		colorMap[idx] = BFSColor::WHITE;
+	}
+
+	colorMap[start] = BFSColor::GRAY;
+	Q.push(start);
+
+	while (!Q.empty()) {
+		CFGVertexDescriptor vert = Q.front(); Q.pop(); functor(vert);
+		boost::graph_traits<ControlFlowGraph>::out_edge_iterator out, out_end;
+		boost::graph_traits<ControlFlowGraph>::in_edge_iterator  in,  in_end;
+
+		for (boost::tie(out, out_end) = boost::out_edges(vert, cfg); out != out_end; ++out) {
+			CFGVertexDescriptor vd = boost::target(*out, cfg);
+			BFSColor color         = colorMap[vd];
+			if (color == BFSColor::WHITE) {
+				colorMap[vd] = BFSColor::GRAY;
+				Q.push(vd);
+			}
+		}
+
+		for (boost::tie(in, in_end) = boost::in_edges(vert, cfg); in != in_end; ++in) {
+			CFGVertexDescriptor vd = boost::source(*in, cfg);
+			BFSColor color         = colorMap[vd];
+			if (color == BFSColor::WHITE) {
+				colorMap[vd] = BFSColor::GRAY;
+				Q.push(vd);
+			}
+		}
+
+		colorMap[vert] = BFSColor::BLACK;
+	}
+}
+
 
 CFGVertexDescriptor const
 findCFGNodeWithAddress(ControlFlowGraph const &cfg, Address a, CFGVertexDescriptor startSearch)
 {
 	DEBUG(std::cout << "FIND(" << a.v << ") -> " << std::endl;);
 	try {
+#if 1
 		BBForAddressFinder vis(a);
-		boost::depth_first_search(cfg, boost::visitor(vis).root_vertex(startSearch));
+		boost::depth_first_search(cfg, boost::visitor(vis));
+#else
+		auto fn = [&] (CFGVertexDescriptor vd) {
+			DEBUG(std::cout << __func__ << vd << std::endl;);
+			BasicBlock* bb = cfg[vd].bb;
+			if ((vd > 0) and (bb->firstInstruction() <= a) and (a <= bb->lastInstruction())) {
+				throw CFGVertexFoundException(vd);
+			}
+		};
+		privateBFSTraversal(cfg, startSearch, fn);
+#endif
 	} catch (CFGVertexFoundException cvfe) {
 		DEBUG(std::cout << cvfe._vd << std::endl;);
 		return cvfe._vd;
