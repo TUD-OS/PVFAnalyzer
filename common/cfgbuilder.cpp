@@ -396,30 +396,6 @@ CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in, ControlFlowGrap
 }
 
 
-struct AddressInBBComparator
-{
-	BasicBlock *_b;
-	AddressInBBComparator(BasicBlock *b) : _b(b) { }
-
-	bool operator() (CFGBuilder_priv::UnresolvedLink const & u) const
-	{
-		return ((_b->firstInstruction() <= u.second) and (u.second <= _b->lastInstruction()));
-	}
-};
-
-
-struct InstructionAddressComparator
-{
-	Address _a;
-	InstructionAddressComparator(Address a) : _a(a) {}
-
-	bool operator() (Instruction* inst) const
-	{
-		return inst->ip() == _a;
-	}
-};
-
-
 void CFGBuilder_priv::build(Address entry)
 {
 	DEBUG(std::cout << __func__ << "(" << std::hex << entry.v << ")" << std::endl;);
@@ -522,10 +498,6 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 	return bbi;
 }
 
-bool compareUnresolvedLinks(CFGBuilder_priv::UnresolvedLink const & l1, CFGBuilder_priv::UnresolvedLink const & l2)
-{
-	return l1.second < l2.second;
-}
 
 CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor prevVertex,
                                                          CFGVertexDescriptor newVertex,
@@ -555,8 +527,11 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	 */
 	std::vector<UnresolvedLink> splitPoints;
 
+	auto AddressIsInBB = [&] (UnresolvedLink& u)
+	{ return (bbi.bb->firstInstruction() <= u.second) and (u.second <= bbi.bb->lastInstruction()); };
+
 	PendingResolutionList::iterator n =
-		std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
+		std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressIsInBB);
 	while (n != _bb_connections.end()) {
 		BasicBlock *b = _cfg[(*n).first].bb;
 		DEBUG(std::cout << "Unresolved link: " << b->firstInstruction().v << " -> "
@@ -575,12 +550,15 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 			splitPoints.push_back(*n);
 		}
 		_bb_connections.erase(n);
-		n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
+		n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressIsInBB);
 	}
 
 	if (splitPoints.size() >= 2) {
 		/* Sort the split points w.r.t. the split address */
-		std::sort(splitPoints.begin(), splitPoints.end(), compareUnresolvedLinks);
+		std::sort(splitPoints.begin(), splitPoints.end(),
+				 [] (CFGBuilder_priv::UnresolvedLink const & l1, CFGBuilder_priv::UnresolvedLink const & l2)
+				 { return l1.second < l2.second; }
+		);
 		if (Configuration::get()->debug) {
 			std::cout << "Splitting BB from incoming links:" << std::endl;
 			BOOST_FOREACH(UnresolvedLink l, splitPoints) {
@@ -749,7 +727,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 	/* Find the first instruction of the new BB. */
 	std::vector<Instruction*>::iterator iit = std::find_if(bbNode.bb->instructions.begin(),
 	                                                       bbNode.bb->instructions.end(),
-	                                                       InstructionAddressComparator(splitAddress));
+	                                          [&] (Instruction* i) { return i->ip() == splitAddress; });
 	/*
 	 * We came here because someone deemed us to split the BB. Hence, we must
 	 * assume that the split instruction is within the BB!
