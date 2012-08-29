@@ -1,6 +1,7 @@
 files = """
 cfg
 cfgbuilder
+cfg_search
 disassembler
 input
 udis86_helper

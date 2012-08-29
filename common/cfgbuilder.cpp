@@ -27,7 +27,6 @@
 
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/graph/depth_first_search.hpp>
 
 /**
  * @brief Internal BB info used by CFGBuilder_priv
@@ -148,14 +147,6 @@ private:
 	 * @brief Explore a single basic block
 	 */
 	BBInfo exploreSingleBB(Address e);
-
-	/**
-	 * @brief Find the CFG node containing a given EIP
-	 *
-	 * @param a EIP
-	 * @return CFGVertexDescriptor
-	 **/
-	CFGVertexDescriptor const findCFGNodeWithAddress(Address a);
 
 	/**
 	 * @brief Find input buffer containing an address
@@ -369,7 +360,7 @@ private:
 		CFGVertexDescriptor retVertex;
 		bool haveVertex = false;
 		try {
-			retVertex  = findCFGNodeWithAddress(returnAddress);
+			retVertex  = findCFGNodeWithAddress(_cfg, returnAddress);
 			haveVertex = true;
 		} catch (NodeNotFoundException)
 		{ }
@@ -402,68 +393,6 @@ CFGBuilder* CFGBuilder::get(std::vector<InputReader*> const& in, ControlFlowGrap
 {
 	static CFGBuilder_priv p(in, cfg); // XXX might want to have more than one?
 	return &p;
-}
-
-
-/* Q: Using BGL, how to stop a {depth_first|breadth_first|*}_search once you're
- *    done without visiting all other useless nodes?
- * A: Throw an exception!
- *
- * http://stackoverflow.com/questions/1500709/how-do-i-stop-the-breadth-first-search-using-boost-graph-library-when-using-a-cu
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Weffc++"
-struct CFGVertexFoundException
-{
-	CFGVertexDescriptor _vd;
-	CFGVertexFoundException(CFGVertexDescriptor v)
-		: _vd(v)
-	{ }
-};
-
-
-/**
- * @brief CFG node visitor to find BB containing an address
- */
-class BBForAddressFinder : public boost::default_dfs_visitor {
-	Address _a;
-public:
-	BBForAddressFinder(Address a)
-		: _a(a)
-	{}
-
-	void discover_vertex(CFGVertexDescriptor v, const ControlFlowGraph& g) const
-	{
-		BasicBlock *bb = g[v].bb;
-
-		// skip empty basic blocks (which only appear in the initial BB)
-		if (bb->instructions.size() > 0) {
-#if 0
-			DEBUG(std::cout << "Vertex " << v << " "
-	                         << bb->firstInstruction().v << "-" << bb->lastInstruction().v
-	                         << " srch " << _a.v << std::endl;);
-#endif
-			if ((_a >= bb->firstInstruction()) and (_a <= bb->lastInstruction()))
-				throw CFGVertexFoundException(v);
-		}
-	}
-};
-#pragma GCC diagnostic pop
-
-
-CFGVertexDescriptor const CFGBuilder_priv::findCFGNodeWithAddress(Address a)
-{
-	DEBUG(std::cout << "FIND(" << a.v << ") -> ";);
-	try {
-		BBForAddressFinder vis(a);
-		boost::depth_first_search(_cfg, boost::visitor(vis));
-	} catch (CFGVertexFoundException cvfe) {
-		DEBUG(std::cout << cvfe._vd << std::endl;);
-		return cvfe._vd;
-	}
-
-	DEBUG(std::cout << "[]" << std::endl;);
-	throw NodeNotFoundException();
 }
 
 
@@ -526,7 +455,7 @@ void CFGBuilder_priv::build(Address entry)
 			handleOutgoingEdges(bbi, vd);
 			DEBUG(std::cout << "--3-- BB finished" << std::endl;);
 		} else {
-			std::cout << "Ignoring empty BB. (Most likely, no code found.)" << std::endl;
+			std::cout << "Ignoring empty BB (@ " << (void*)next.second.v << ")." << std::endl;
 		}
 	}
 	DEBUG(std::cout << "\033[32m" << "BB construction finished." << "\033[0m" << std::endl;);
@@ -614,6 +543,16 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	updateCallDoms(prevVertex, newVertex);
 	updateRetDoms(newVertex);
 
+	/*
+	 * On incoming edges we might detect that we need to split the current block. This is done in
+	 * three steps:
+	 *
+	 * 1) We perform standard handling for adding incoming edges on the initial BB (BB0) and keep
+	 *    track of the points where we need to split the BB. (There may be multiple such points.)
+	 * 2) We split BB0 into multiple parts with the respective connections: BB0 -> BB1 -> BB2
+	 * 3) We continue working with the last BB (BB2 in the example) as this is the one that needs
+	 *    handling w.r.t. outgoing edges.
+	 */
 	std::vector<UnresolvedLink> splitPoints;
 
 	PendingResolutionList::iterator n =
@@ -639,8 +578,8 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 		n = std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressInBBComparator(bbi.bb));
 	}
 
-	// No handling of multiple split points yet
 	if (splitPoints.size() >= 2) {
+		/* Sort the split points w.r.t. the split address */
 		std::sort(splitPoints.begin(), splitPoints.end(), compareUnresolvedLinks);
 		if (Configuration::get()->debug) {
 			std::cout << "Splitting BB from incoming links:" << std::endl;
@@ -648,21 +587,24 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 				std::cout << l.first << " -> " << l.second.v << std::endl;
 			}
 		}
-		//throw NotImplementedException("BB::split(): more than 1 split point");
 	}
 
 	while (!splitPoints.empty()) {
-		UnresolvedLink& link = splitPoints.front();
-		CFGVertexDescriptor source = link.first;
-		Address splitAddress       = link.second;
+		UnresolvedLink& link                = splitPoints.front();
+		CFGVertexDescriptor source          = link.first;
+		Address splitAddress                = link.second;
 		CFGVertexDescriptor splitTailVertex = splitBasicBlock(newVertex, splitAddress);
 		assert(splitTailVertex != newVertex);
 
+		/*
+		 * splitPoints vector is sorted (see above). Therefore, we can now remove all
+		 * subsequent elements with the same target address, because they all go to
+		 * the same new BB.
+		 */
 		do {
 			addCFGEdge(link.first, splitTailVertex);
 			link = splitPoints.front();
 			splitPoints.erase(splitPoints.begin());
-			std::cout << "..." << splitPoints.size() << std::endl;
 		} while ((splitPoints.size() > 0) and (link.second == splitAddress));
 
 		newVertex = splitTailVertex;
@@ -708,7 +650,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		 */
 		CFGVertexDescriptor targetNode;
 		try {
-			targetNode = findCFGNodeWithAddress(a);
+			targetNode = findCFGNodeWithAddress(_cfg, a);
 		} catch (NodeNotFoundException) {
 			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
 			                << " for discovery." << std::endl;);
@@ -769,7 +711,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			DEBUG(std::cout << "return to " << a.v << std::endl;);
 			CFGVertexDescriptor targetNode;
 			try {
-				targetNode = findCFGNodeWithAddress(a);
+				targetNode = findCFGNodeWithAddress(_cfg, a);
 			} catch (NodeNotFoundException) {
 				DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
 					            << " for discovery." << std::endl;);

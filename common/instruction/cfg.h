@@ -130,3 +130,7 @@ struct GraphvizInstructionWriter
 
 	void operator() (std::ostream& out, const CFGVertexDescriptor &v) const;
 };
+
+
+CFGVertexDescriptor const
+findCFGNodeWithAddress(ControlFlowGraph const & cfg, Address a, CFGVertexDescriptor startSearch = 0);
