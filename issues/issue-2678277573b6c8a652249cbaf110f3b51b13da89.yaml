@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Breadth-first search that also incorporates incoming edges
+desc: The BGL's DFS/BFS algorithms only iterate over a node's out edges. But we sometimes also want to go up the hierarchy and hence, need our own implementation.
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-29 10:30:43.885846 Z
+references: []
+
+id: 2678277573b6c8a652249cbaf110f3b51b13da89
+log_events: 
+- - 2012-08-29 10:30:45.575136 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
