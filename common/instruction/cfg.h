@@ -32,16 +32,29 @@ struct CFGNodeInfo
 {
 	BasicBlock* bb;         ///> Basic Block this CFG node represents
 	unsigned functionEntry; ///> BB that contains return info for this BB
+	std::vector<unsigned> retNodes; ///> return nodes (only valid if node is a function entry node)
 
 	CFGNodeInfo(BasicBlock *b = 0)
-		: bb(b), functionEntry(0)
+		: bb(b), functionEntry(0), retNodes()
 	{ }
+
+	CFGNodeInfo(CFGNodeInfo const& n) = default;
+	CFGNodeInfo& operator=(CFGNodeInfo const& n) = default;
 
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
 		a & bb;
 		a & functionEntry;
+		a & retNodes;
+	}
+
+	Address returnTargetAddress() const
+	{
+		if (!bb or bb->instructions.empty())
+			return Address(0);
+		Instruction* inst = bb->instructions.back();
+		return inst->ip() + inst->length();
 	}
 };
 
