@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Fix broken return handling
+desc: If a function is called several times in a row within a call chain, return value handling seems to be broken.
+type: :bugfix
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-30 14:07:35.178180 Z
+references: []
+
+id: 5ffb2c548220621e6c7d691bb867d8a04edfd93a
+log_events: 
+- - 2012-08-30 14:07:35.966505 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
