@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Try a mode where the DOT output does not contain anything except node numbers
+desc: might produce smaller graphs
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-30 19:43:16.659464 Z
+references: []
+
+id: c4826e7f66b9bb131c69caf65c0edb12a3399440
+log_events: 
+- - 2012-08-30 19:43:17.704811 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

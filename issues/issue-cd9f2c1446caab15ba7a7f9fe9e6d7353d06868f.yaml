@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Add statistics about number of vertices to tool(s)
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-30 19:41:57.209182 Z
+references: []
+
+id: cd9f2c1446caab15ba7a7f9fe9e6d7353d06868f
+log_events: 
+- - 2012-08-30 19:41:58.357278 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
