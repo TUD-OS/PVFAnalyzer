@@ -1,7 +1,7 @@
 import os, sys
 
 def createBuildDir():
-    targets = """common test reader  printer pvfregs"""
+    targets = """common dynrun test reader  printer pvfregs"""
     if not os.path.exists("build"):
         os.mkdir("build")
     for t in targets.split():
@@ -12,7 +12,9 @@ def createBuildDir():
 def banner(string, color="\033[32m"):
     preString = "=" * 15
     print "%s%s" % (color, preString),
-    print "{:^30}".format(string),
+    # not safe for Python < 2.7
+    #print "{:^30}".format(string),
+    print string,
     print "%s\033[0m" % (preString)
 
 
@@ -100,6 +102,10 @@ if ARGUMENTS.get('VERBOSE') != '1':
     env['CXXCOMSTR']    = "\033[35m[CXX   ]\033[0m $TARGET"
     env['LINKCOMSTR']   = "\033[35m[LD    ]\033[0m $TARGET"
     env['RANLIBCOMSTR'] = "\033[35m[RANLIB]\033[0m $TARGET"
+
+if ARGUMENTS.get('CXX') is not None:
+    print "Setting CXX:", ARGUMENTS.get("CXX")
+    env['CXX'] = ARGUMENTS.get('CXX')
 
 wvtestrun = ""
 if not env.GetOption("clean"):
