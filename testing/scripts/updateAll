@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for f in *.sh; do
+  base=`echo $f | sed -e 's/\(.*\\-.*\)\.sh/\1/'`;
+  echo "BASEDIR=../.. ./$base.sh >$base.expect"
+  BASEDIR=../.. ./$base.sh >$base.expect
+done

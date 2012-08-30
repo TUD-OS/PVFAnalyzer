@@ -1,6 +1,7 @@
 [34m********************************************[0m
 [33m        CFG Analyzer version 0.2[0m
 [34m********************************************[0m
+Built CFG. 4 vertices, 3 edges.
 Wrote CFG to 'callret.cfg'
 [34m********************************************[0m
 [33m        CFG Printer version 0.2[0m
