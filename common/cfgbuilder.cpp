@@ -94,6 +94,9 @@ public:
 	typedef std::map<Address, std::set<CFGVertexDescriptor> > ReturnDominatorInfo;
 
 private:
+
+	CFGNodeInfo& cfg(CFGVertexDescriptor const vd) { return _cfg[vd]; }
+
 	Udis86Disassembler  _dis;    ///> underlying disassembler
 	ControlFlowGraph&  _cfg;     ///> control flow graph
 	std::set<Address>  _bbfound; ///> start addresses of discovered BBs (used for tracking already discovered BBs if we enter them)
@@ -264,8 +267,8 @@ private:
 	void updateCallDoms(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
 		DEBUG(std::cout << "\033[32;1m" << parent << " -> " << newDesc << "\033[0m" << std::endl;);
-		CFGNodeInfo& parentNode       = _cfg[parent];
-		CFGNodeInfo& newNode          = _cfg[newDesc];
+		CFGNodeInfo& parentNode       = cfg(parent);
+		CFGNodeInfo& newNode          = cfg(newDesc);
 
 		if (newNode.bb->branchType == Instruction::BT_CALL) {
 			std::vector<Address> targets;
@@ -305,8 +308,8 @@ private:
 	 **/
 	void updateReturnsForCall(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
-		CFGNodeInfo& parentNode = _cfg[parent];
-		CFGNodeInfo& newNode    = _cfg[newDesc];
+		CFGNodeInfo& parentNode = cfg(parent);
+		CFGNodeInfo& newNode    = cfg(newDesc);
 
 		if (parentNode.bb->branchType != Instruction::BT_CALL) {
 			return;
@@ -330,9 +333,9 @@ private:
 	 **/
 	void updateRetDoms(CFGVertexDescriptor node)
 	{
-		CFGVertexDescriptor callDom = _callDoms[_cfg[node].bb->firstInstruction()];
-		if ((callDom != 0) and (_cfg[node].bb->branchType == Instruction::BT_RET)) {
-			Address a = _cfg[callDom].bb->firstInstruction();
+		CFGVertexDescriptor callDom = _callDoms[cfg(node).bb->firstInstruction()];
+		if ((callDom != 0) and (cfg(node).bb->branchType == Instruction::BT_RET)) {
+			Address a = cfg(callDom).bb->firstInstruction();
 			_retDoms[a].insert(node);
 		}
 	}
@@ -356,8 +359,8 @@ private:
 	{
 		DEBUG(std::cout << caller << " -> " << callee << std::endl;);
 
-		Address target        = _cfg[callee].bb->firstInstruction();
-		Instruction *ret      = _cfg[caller].bb->instructions.back();
+		Address target        = cfg(callee).bb->firstInstruction();
+		Instruction *ret      = cfg(caller).bb->instructions.back();
 		Address returnAddress = ret->ip() + Address(ret->length());
 
 		/*
@@ -536,10 +539,10 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	                << "..." << std::endl;);
 
 	/* update function entry information */
-	if ((prevVertex == 0) or (_cfg[prevVertex].bb->branchType == Instruction::BT_CALL)) {
-		_cfg[newVertex].functionEntry = newVertex;
+	if ((prevVertex == 0) or (cfg(prevVertex).bb->branchType == Instruction::BT_CALL)) {
+		cfg(newVertex).functionEntry = newVertex;
 	} else {
-		_cfg[newVertex].functionEntry = _cfg[prevVertex].functionEntry;
+		cfg(newVertex).functionEntry = cfg(prevVertex).functionEntry;
 	}
 
 	/* We need to add an edge from the previous vd */
@@ -568,7 +571,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	PendingResolutionList::iterator n =
 		std::find_if(_bb_connections.begin(), _bb_connections.end(), AddressIsInBB);
 	while (n != _bb_connections.end()) {
-		BasicBlock *b = _cfg[(*n).first].bb;
+		BasicBlock *b = cfg((*n).first).bb;
 		DEBUG(std::cout << "Unresolved link: " << b->firstInstruction().v << " -> "
 		                << (*n).second.v << std::endl;);
 		/* If the unresolved link goes to our start address, add an edge, ... */
@@ -672,7 +675,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 			continue;
 		}
 
-		if (a == _cfg[targetNode].bb->firstInstruction()) {
+		if (a == cfg(targetNode).bb->firstInstruction()) {
 			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
 			addCFGEdge(newVertex, targetNode);
 			updateReturnsForCall(newVertex, targetNode);
@@ -692,7 +695,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				addCFGEdge(splitTailVertex, splitTailVertex);
 
 				BBInfo bbi2  = bbi;
-				bbi2.bb      = _cfg[splitTailVertex].bb;
+				bbi2.bb      = cfg(splitTailVertex).bb;
 				bbi2.targets = bbi.targets;
 				bbi.targets.clear(); // orig BB is done
 				handleOutgoingEdges(bbi2, splitTailVertex);
@@ -718,7 +721,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		DEBUG(std::cout << "callee == " << callee << std::endl;);
 		if (callee == 0) return;
 
-		CFGNodeInfo& cNode = _cfg[callee];
+		CFGNodeInfo& cNode = cfg(callee);
 		std::set<Address>& returns = _callRets[cNode.bb->firstInstruction()];
 		BOOST_FOREACH(Address a, returns) {
 			DEBUG(std::cout << "return to " << a.v << std::endl;);
@@ -733,7 +736,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				continue;
 			}
 
-			if (a == _cfg[targetNode].bb->firstInstruction()) {
+			if (a == cfg(targetNode).bb->firstInstruction()) {
 				DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
 				addCFGEdge(newVertex, targetNode);
 			} else {
@@ -748,7 +751,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 {
 	// 1) create new empty BB
 	BasicBlock* bb2       = new BasicBlock();
-	CFGNodeInfo& bbNode   = _cfg[splitVertex];
+	CFGNodeInfo& bbNode   = cfg(splitVertex);
 
 	/*
 	 * Branch type: new BB inherits the old one's.

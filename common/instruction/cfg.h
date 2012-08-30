@@ -30,8 +30,8 @@
  **/
 struct CFGNodeInfo
 {
-	BasicBlock* bb;                    ///> Basic Block this CFG node represents
-	CFGVertexDescriptor functionEntry; ///> BB that contains return info for this BB
+	BasicBlock* bb;         ///> Basic Block this CFG node represents
+	unsigned functionEntry; ///> BB that contains return info for this BB
 
 	CFGNodeInfo(BasicBlock *b = 0)
 		: bb(b), functionEntry(0)
