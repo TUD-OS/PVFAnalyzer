@@ -127,7 +127,7 @@ public:
 
 	/**
 	 * @brief Get this buffer's relocation address.
-	 * 
+	 *
 	 * We load binary sections somewhere into memory. However, these sections may belong to
 	 * a different location in their real path of execution, e.g., ELF binary sections may
 	 * be loaded to specific addresses depending on information from the binary file. We store
@@ -146,10 +146,10 @@ public:
 private:
 	enum { DATA_INCREMENT = 1024, };
 
-	uint8_t*    _data;     // buffer ptr
+	uint8_t*    _data;      // buffer ptr
 	uint32_t    _dataIndex; // next idx to write to
-	Address     _reloc;    // relocation target address
-	std::string _name;     // dbg: section name
+	Address     _reloc;     // relocation target address
+	std::string _name;      // dbg: section name
 
 
 	DataSection& operator=(DataSection &) { return *this; }
@@ -177,9 +177,7 @@ protected:
 	Address                   _entry;
 
 public:
-	InputReader()
-		: _sections(), _entry(0)
-	{ }
+	InputReader() : _sections(), _entry(0) { }
 
 	virtual ~InputReader()
 	{
@@ -248,7 +246,7 @@ public:
 	unsigned sectionCount() { return _sections.size(); }
 
 private:
-	InputReader(InputReader const&) : _sections(), _entry(0) { }
+	InputReader(InputReader const&) = default;
 	InputReader& operator=(const InputReader&) { return *this; }
 };
 
@@ -308,7 +306,7 @@ private:
 	 * @param str input stream
 	 * @return bool true if ELF binary, false otherwise
 	 **/
-	bool esELFFile(std::ifstream& str);
+	bool isELFFile(std::ifstream& str);
 
 	/**
 	 * @brief Parse ELF binary and put all loadable segments into memory.

@@ -155,10 +155,9 @@ private:
 	{
 		//DEBUG(std::cerr << __func__ << "(" << a << ")" << std::endl;);
 		BOOST_FOREACH(InputReader *ir, _inputs) {
-			for (unsigned sec = 0; sec < ir->sectionCount(); ++sec) {
-				RelocatedMemRegion mr = ir->section(sec)->getBuffer();
-				if (mr.relocContains(a))
-					return mr;
+			DataSection *sec;
+			if ((sec = ir->sectionForAddress(a)) != 0) {
+				return sec->getBuffer();
 			}
 		}
 		return RelocatedMemRegion();

@@ -131,7 +131,7 @@ HexbyteInputReader::addData(const char* byte)
  ***********************************************************************/
 
 bool
-FileInputReader::esELFFile(std::ifstream& str)
+FileInputReader::isELFFile(std::ifstream& str)
 {
 	char first_bytes[4];
 	str.read(first_bytes, sizeof(first_bytes));
@@ -159,7 +159,7 @@ FileInputReader::addData(const char* filename)
 		return;
 	}
 
-	if (esELFFile(ifs)) {
+	if (isELFFile(ifs)) {
 		parseElf(filename);
 	} else {
 		// single input section, again...

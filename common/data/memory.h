@@ -197,11 +197,11 @@ struct RelocatedMemRegion : public MemRegion
 	    : MemRegion(), mappedBase(0)
 	{ }
 	
-	RelocatedMemRegion (Address base, ptrdiff_t size, Address mapped = 0)
+	RelocatedMemRegion (Address base, ptrdiff_t size, Address mapped = Address(0))
 		: MemRegion(base, size), mappedBase(mapped)
 	{ }
 
-	RelocatedMemRegion(MemRegion const &m, Address mapped = 0)
+	RelocatedMemRegion(MemRegion const &m, Address mapped = Address(0))
 		: MemRegion(m.base, m.size), mappedBase(mapped)
 	{ }
 };
