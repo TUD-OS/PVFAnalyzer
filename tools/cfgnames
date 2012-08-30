@@ -1,0 +1,91 @@
+#!/usr/bin/python
+
+#
+# Run CFG reader and printer on an ELF binary and rewrite
+# function entry nodes to contain the respective function
+# names (as taken from running nm on the binary).
+#
+
+import sys, os, subprocess, re
+
+
+def getFunctions(filename):
+    nmCmd = "nm -C %s | grep ' T '" % filename
+
+    a2n = {}
+    n2a = {}
+
+    out = subprocess.check_output(nmCmd, shell=True)
+
+    for line in out.split("\n"):
+        if line == "":
+            continue
+
+        (addr, T, name) = line.strip().split()
+        a2n[addr] = name
+        n2a[name] = addr
+
+    return (a2n, n2a)
+
+
+def readCFG(filename, entry):
+    readerCmd = "build/reader/reader -f %s -e 0x%x -o cfgtmp.cfg" % (sys.argv[1], entry)
+    subprocess.check_output(readerCmd.split())
+
+
+def runPrinter():
+    printerCmd = "build/printer/printer -f cfgtmp.cfg -o -"
+    return subprocess.check_output(printerCmd.split())
+
+
+def rewritePrinter(out, addr2Name):
+    outFile = file("cfgNamed.dot", "w")
+    for l in out.split("\n")[3:]:
+        m = re.match("(.*)\[@0x([0-9a-f]+)\](.*)", l)
+        if m is not None:
+            searchString = "%08x" % int(m.groups()[1], 16)
+            #print 
+            #print addr2Name, searchString
+            #print
+            try:
+                funcName = addr2Name[searchString]
+            except KeyError:
+                funcName = ""
+
+            if funcName == "":
+                outFile.write(l)
+            else:
+                outFile.write("%s[%s]%s" % (m.groups()[0], funcName, m.groups()[2]))
+        else:
+            outFile.write(l)
+
+
+def writeDOT():
+    cmd = "dot -Tpng cfgNamed.dot"
+    subprocess.call(cmd.split(), stdout=file("cfg.png"))
+
+
+def showDOT():
+    cmd = "gpicview cfg.png"
+    subprocess.call(cmd.split())
+    
+    cmd = "rm cfg.png cfgNamed.dot"
+    subprocess.call(cmd.split())
+
+
+def main():
+    if len(sys.argv) != 2:
+        print "Need to give exactly one parameter (file name) on cmd line."
+        sys.exit(1)
+
+    (addr2Name, name2Addr) = getFunctions(sys.argv[1])
+
+    mainAddress = int(name2Addr["main"], 16)
+    readCFG(sys.argv[1], mainAddress)
+
+    rewritePrinter(runPrinter(), addr2Name)
+    writeDOT()
+    showDOT()
+
+if __name__ == "__main__":
+	main()
