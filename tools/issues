@@ -2,8 +2,7 @@
 
 ditz html issues/html
 cp issues/myIssueStyles.css issues/html/style.css
-ssh doebel@os.inf.tu-dresden.de rm -rf public_html/cfg/issues
-scp -r issues/html doebel@os.inf.tu-dresden.de:public_html/cfg/issues
+rsync  -r issues/html/ doebel@os.inf.tu-dresden.de:public_html/cfg/issues/
 git add issues
 git commit -m "issue update"
 git push
