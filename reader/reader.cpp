@@ -142,6 +142,9 @@ buildCFG(std::vector<InputReader*> const & v)
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
 	}
 
+	std::cout << "Built CFG. " << boost::num_vertices(cfg) << " vertices, "
+	          << boost::num_edges(cfg) << " edges." << std::endl;
+
 	/* Store graph */
 	CFGToFile(cfg, conf.output_filename);
 	std::cout << "Wrote CFG to '" << basename((char*)conf.output_filename.c_str())
