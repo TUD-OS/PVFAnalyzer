@@ -293,6 +293,7 @@ public:
 					targets.push_back(Address(Udis86Helper::operandToValue(ud, 0)));
 				}
 				break;
+
 			case UD_OP_JIMM: /* Immediate operand to branch instruction (relative offsets).
 			                    Value available in lval */
 				target  = Udis86Helper::operandToValue(ud, 0);
@@ -306,6 +307,7 @@ public:
 				target += length();
 				targets.push_back(Address(target));
 				break;
+
 			case UD_OP_REG:
 				std::cout << "\033[31mSkipping register jump\033[0m (";
 				std::cout << ud->operand[0].base << " ";
@@ -316,6 +318,7 @@ public:
 				target += length();
 				targets.push_back(Address(target));
 				return BT_JUMP_UNCOND;
+
 			case UD_OP_MEM:
 				if (Configuration::get()->debug) {
 					std::cout << "memory operand" << std::endl;
@@ -353,8 +356,10 @@ public:
 				target += length();
 				targets.push_back(Address(target));
 				return BT_JUMP_UNCOND;
+
 			case UD_NONE:
 				break;
+
 			default:
 				DEBUG(std::cout << ud->operand[0].type << std::endl;);
 				throw NotImplementedException("branch target type");
