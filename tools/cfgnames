@@ -10,7 +10,7 @@ import sys, os, subprocess, re
 
 
 def getFunctions(filename):
-    nmCmd = "nm -C %s | grep ' T '" % filename
+    nmCmd = "nm -C %s | grep ' [WT] '" % filename
 
     a2n = {}
     n2a = {}
@@ -21,7 +21,7 @@ def getFunctions(filename):
         if line == "":
             continue
 
-        (addr, T, name) = line.strip().split()
+        (addr, T, name) = line.strip().split(None, 2)
         a2n[addr] = name
         n2a[name] = addr
 
@@ -30,7 +30,7 @@ def getFunctions(filename):
 
 def readCFG(filename, entry):
     readerCmd = "build/reader/reader -f %s -e 0x%x -o cfgtmp.cfg" % (sys.argv[1], entry)
-    subprocess.check_output(readerCmd.split())
+    print subprocess.check_output(readerCmd.split())
 
 
 def runPrinter():
@@ -53,23 +53,23 @@ def rewritePrinter(out, addr2Name):
                 funcName = ""
 
             if funcName == "":
-                outFile.write(l)
+                outFile.write(l+"\n")
             else:
-                outFile.write("%s[%s]%s" % (m.groups()[0], funcName, m.groups()[2]))
+                outFile.write("%s[%s]%s\n" % (m.groups()[0], funcName[:30], m.groups()[2]))
         else:
-            outFile.write(l)
+            outFile.write(l+"\n")
 
 
 def writeDOT():
     cmd = "dot -Tpng cfgNamed.dot"
-    subprocess.call(cmd.split(), stdout=file("cfg.png"))
+    subprocess.call(cmd.split(), stdout=file("cfg.png", "w"))
 
 
 def showDOT():
     cmd = "gpicview cfg.png"
     subprocess.call(cmd.split())
     
-    cmd = "rm cfg.png cfgNamed.dot"
+    cmd = "rm cfg.png cfgNamed.dot cfgtmp.cfg"
     subprocess.call(cmd.split())
 
 
@@ -79,6 +79,8 @@ def main():
         sys.exit(1)
 
     (addr2Name, name2Addr) = getFunctions(sys.argv[1])
+    #for k in addr2Name:
+    #    print k, " -> ", addr2Name[k][:20]
 
     mainAddress = int(name2Addr["main"], 16)
     readCFG(sys.argv[1], mainAddress)
