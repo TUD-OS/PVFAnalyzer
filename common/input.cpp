@@ -332,7 +332,10 @@ int FileInputReader::openElf(char const *filename, Elf** elf)
 bool
 FileInputReader::insideJumpTable(Address const &a)
 {
-	return false;
+	BOOST_FOREACH(MemRegion& m, _offsetTables) {
+		if (m.contains(a))
+			return true;
+	}
 }
 
 
@@ -364,5 +367,13 @@ void FileInputReader::parseSections(Elf *elf)
 		DEBUG(std::cout << "Section name: " << std::setw(20) << name
 		                << "    " << std::hex << "@ 0x" << hdr.sh_addr << " sz="
 		                << hdr.sh_size << std::endl;);
+		if ((strcmp(name, ".plt") == 0) or
+		    (strcmp(name, ".rel.plt") == 0) or
+		    (strcmp(name, ".got") == 0) or
+		    (strcmp(name, ".got.plt") == 0)
+		   ) {
+			DEBUG(std::cout << "   dyn link offset table!" << std::endl;);
+			_offsetTables.push_back(MemRegion(Address(hdr.sh_addr), hdr.sh_size));
+		}
 	}
 }
