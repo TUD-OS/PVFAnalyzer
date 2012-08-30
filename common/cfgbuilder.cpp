@@ -100,6 +100,14 @@ private:
 	ControlFlowGraph&  _cfg;     ///> control flow graph
 	std::set<Address>  _bbfound; ///> cache start addresses of discovered BBs
 
+	/*
+	 * List of input buffers to read instructions from.
+	 * The builder algorithm ignores all branch targets
+	 * that do not reside within these buffers.
+	 */
+	std::vector<InputReader*> const &_inputs;
+
+
 	/* This list stores all yet unresolved links. We work until this
 	 * list becomes empty. */;
 	PendingResolutionList _bb_connections;
