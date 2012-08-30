@@ -5,8 +5,8 @@ type: :feature
 component: CFGAnalysis
 release: "0.3"
 reporter: doebel <doebel@tudos.org>
-status: :in_progress
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2012-08-27 13:11:07.820056 Z
 references: []
 
@@ -19,5 +19,9 @@ log_events:
 - - 2012-08-30 10:47:23.780034 Z
   - doebel <doebel@tudos.org>
   - changed status from unstarted to in_progress
+  - ""
+- - 2012-08-30 12:09:30.884394 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
   - ""
 git_branch: 
