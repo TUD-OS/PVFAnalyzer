@@ -327,4 +327,5 @@ private:
 	void loadElfPhdr(int elffd, GElf_Phdr& phdr);
 	void dumpElfPhdr(GElf_Phdr& phdr);
 	int  openElf(const char* filename, Elf** elf);
+	void parseSections(Elf* elf);
 };

@@ -250,6 +250,8 @@ void FileInputReader::parseElf(const char* filename)
 		}
 	}
 
+	parseSections(elf);
+
 	elf_end(elf);
 	close(elffd);
 }
@@ -331,4 +333,36 @@ bool
 FileInputReader::insideJumpTable(Address const &a)
 {
 	return false;
+}
+
+
+void FileInputReader::parseSections(Elf *elf)
+{
+	Elf_Scn *section;
+	char *name;
+	size_t shstrndx;
+
+	if (elf_getshdrstrndx(elf, &shstrndx) != 0) {
+		std::cout << "get section header string index failed:";
+		std::cout << elf_errmsg(-1) << std::endl;
+		throw ELFException();
+	}
+
+	section = 0;
+	while ((section = elf_nextscn(elf, section)) != 0) {
+		GElf_Shdr hdr;
+		if (gelf_getshdr(section, &hdr) != &hdr) {
+			std::cout << "Could not get section header: " << elf_errmsg(-1) << std::endl;
+			throw ELFException();
+		}
+
+		if ((name = elf_strptr(elf, shstrndx, hdr.sh_name)) == 0) {
+			std::cout << "No section name? " << elf_errmsg(-1) << std::endl;
+			throw ELFException();
+		}
+
+		DEBUG(std::cout << "Section name: " << std::setw(20) << name
+		                << "    " << std::hex << "@ 0x" << hdr.sh_addr << " sz="
+		                << hdr.sh_size << std::endl;);
+	}
 }
