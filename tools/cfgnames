@@ -10,7 +10,7 @@ import sys, os, subprocess, re
 
 
 def getFunctions(filename):
-    nmCmd = "nm -C %s | grep ' [WT] '" % filename
+    nmCmd = "nm -C %s | grep ' [WTt] '" % filename
 
     a2n = {}
     n2a = {}
@@ -38,6 +38,18 @@ def runPrinter():
     return subprocess.check_output(printerCmd.split())
 
 
+def findFunctionAndOffset(addr2Name, addr):
+    mini = 1000000000
+    mink = -1
+    for k in addr2Name.keys():
+        diff = int(addr, 16) - int(k,16)
+        if diff >= 0 and diff < mini:
+            mini = diff
+            mink = k
+    return (mink, mini)
+
+
+
 def rewritePrinter(out, addr2Name):
     outFile = file("cfgNamed.dot", "w")
     for l in out.split("\n")[3:]:
@@ -47,15 +59,17 @@ def rewritePrinter(out, addr2Name):
             #print 
             #print addr2Name, searchString
             #print
+            (func, offs) = findFunctionAndOffset(addr2Name, searchString)
             try:
-                funcName = addr2Name[searchString]
+                funcName = addr2Name[func]
+                #funcName = addr2Name[searchString]
             except KeyError:
                 funcName = ""
 
             if funcName == "":
                 outFile.write(l+"\n")
             else:
-                outFile.write("%s[%s]%s\n" % (m.groups()[0], funcName[:30], m.groups()[2]))
+                outFile.write("%s[%s+0x%x]%s\n" % (m.groups()[0], funcName[:30], offs, m.groups()[2]))
         else:
             outFile.write(l+"\n")
 
