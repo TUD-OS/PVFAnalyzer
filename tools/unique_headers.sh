@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIRS="cfg_reader cfg_printer common testing"
+DIRS="reader printer common testing unroll dynrun"
 
 function find_includes ()
 {
