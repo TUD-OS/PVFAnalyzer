@@ -263,12 +263,17 @@ private:
 	 **/
 	void updateCallDoms(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
 	{
+		DEBUG(std::cout << "\033[32;1m" << parent << " -> " << newDesc << "\033[0m" << std::endl;);
 		CFGNodeInfo& parentNode       = _cfg[parent];
 		CFGNodeInfo& newNode          = _cfg[newDesc];
 
-		if (parent == 0) {
-			_callDoms[newNode.bb->firstInstruction()] = parent;
-			return;
+		if (newNode.bb->branchType == Instruction::BT_CALL) {
+			std::vector<Address> targets;
+			Instruction *lastInst =newNode.bb->instructions.back();
+			Address ret = lastInst->ip() + lastInst->length();
+			DEBUG(std::cout << "   1._callDoms[" << ret.v
+			                << "] := " << newDesc << std::endl;);
+			_callDoms[ret] = newDesc;
 		}
 
 		/*
@@ -277,20 +282,14 @@ private:
 		 * respective caller. This is, because only here we know about which location
 		 * that is.
 		 */
-		if (parentNode.bb->branchType == Instruction::BT_CALL) {
-			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction().v
+		if (parent == 0) {
+			_callDoms[newNode.bb->firstInstruction()] = newDesc;
+		} else if (parentNode.bb->branchType == Instruction::BT_CALL) {
+			DEBUG(std::cout << "   2._callDoms[" << newNode.bb->firstInstruction().v
 			                << "] := " << newDesc << std::endl;);
 			_callDoms[newNode.bb->firstInstruction()] = newDesc;
-
-			Instruction* callInstr   = parentNode.bb->instructions.back();
-			Address returnAddress    = callInstr->ip() + callInstr->length();
-			DEBUG(std::cout << "   _callDoms[" << returnAddress.v
-			                << "] := " << _callDoms[parentNode.bb->firstInstruction()] << std::endl;);
-			_callDoms[returnAddress] = _callDoms[parentNode.bb->firstInstruction()];
-		} else if (parentNode.bb->branchType == Instruction::BT_RET) {
-			/* Do nothing! Already done during BT_CALL handling */
 		} else {
-			DEBUG(std::cout << "   _callDoms[" << newNode.bb->firstInstruction().v
+			DEBUG(std::cout << "   3._callDoms[" << newNode.bb->firstInstruction().v
 			                << "] := " << _callDoms[parentNode.bb->firstInstruction()] << std::endl;);
 			_callDoms[newNode.bb->firstInstruction()] = _callDoms[parentNode.bb->firstInstruction()];
 		}
@@ -535,6 +534,13 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	CFGVertexDescriptor retVD = newVertex;
 	DEBUG(std::cout << "Adding incoming edges to " << bbi.bb->firstInstruction().v
 	                << "..." << std::endl;);
+
+	/* update function entry information */
+	if ((prevVertex == 0) or (_cfg[prevVertex].bb->branchType == Instruction::BT_CALL)) {
+		_cfg[newVertex].functionEntry = newVertex;
+	} else {
+		_cfg[newVertex].functionEntry = _cfg[prevVertex].functionEntry;
+	}
 
 	/* We need to add an edge from the previous vd */
 	addCFGEdge(prevVertex, newVertex);

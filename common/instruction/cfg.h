@@ -30,16 +30,18 @@
  **/
 struct CFGNodeInfo
 {
-	BasicBlock* bb; ///> Basic Block this CFG node represents
+	BasicBlock* bb;                    ///> Basic Block this CFG node represents
+	CFGVertexDescriptor functionEntry; ///> BB that contains return info for this BB
 
 	CFGNodeInfo(BasicBlock *b = 0)
-		: bb(b)
+		: bb(b), functionEntry(0)
 	{ }
 
 	template <class Archive>
 	void serialize(Archive& a, const unsigned int version)
 	{
 		a & bb;
+		a & functionEntry;
 	}
 };
 
