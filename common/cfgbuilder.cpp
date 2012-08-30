@@ -75,8 +75,7 @@ class CFGBuilder_priv : public CFGBuilder
 {
 public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), _callDoms(),
-		  _callRets(), _retDoms(), _bb_connections()
+		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), _bb_connections()
 	{ }
 
 	virtual void build(Address a);
@@ -97,50 +96,9 @@ private:
 
 	CFGNodeInfo& cfg(CFGVertexDescriptor const vd) { return _cfg[vd]; }
 
-	Udis86Disassembler  _dis;    ///> underlying disassembler
+	Udis86Disassembler _dis;     ///> underlying disassembler
 	ControlFlowGraph&  _cfg;     ///> control flow graph
-	std::set<Address>  _bbfound; ///> start addresses of discovered BBs (used for tracking already discovered BBs if we enter them)
-
-	/*
-	 * List of input buffers to read instructions from.
-	 * The builder algorithm ignores all branch targets
-	 * that do not reside within these buffers.
-	 */
-	std::vector<InputReader*> const &_inputs;
-
-	/*
-	 * CALL/RET handling is a mess. :(
-	 *
-	 * A When we encounter a CALL, we know to which address we will return (if
-	 *   the program is well-behaving!), but not, from which BB we will return,
-	 *   because the called function itself may consist of multiple BBs.
-	 * B There may be multiple calls to a function and thus also multiple
-	 *   return edges.
-	 * C When we encounter a RET, we know that we need to return to a previous
-	 *   call site, but we might not know anymore, which site this was.
-	 * D A function subgraph may be constructed only partially, which means some
-	 *   RET BBs have already been added to the CFG, while others only exist as
-	 *   pending links.
-	 *
-	 * - To solve problems A and B, we store a list of locations a called subgraph
-	 *   eventually returns to along with the first vertex in this subgraph. This
-	 *   vertex is the target of the CALL and dominates all other vertices in the
-	 *   subgraph. We call it the *CALL DOMINATOR*.
-	 * - To solve problem C, we attribute a call dominator to every BB in the CFG.
-	 *   When encountering a RET, we can then use the dominator's return list to
-	 *   add the appropriate return edges. Call dominators are assigned as follows:
-	 *   * The target of a CALL instruction dominates itself.
-	 *   * The target of a RET instruction is dominated by the dominator of the
-	 *     BB the corresponding CALL came from. (Functions nest and we only need
-	 *     to know about one layer of CALL/RET.)
-	 *   * All other BBs inherit the dominator of their parent BB.
-	 * - Due to problem D, both, the callDom as well as the callRets data structures,
-	 *   use a mapping from a start address to a vertex / return list. Thereby, we
-	 *   can store info about discovered and undiscovered return edges similarly.
-	 */
-	CallDominatorInfo   _callDoms;
-	CallReturnSites     _callRets;
-	ReturnDominatorInfo _retDoms;
+	std::set<Address>  _bbfound; ///> cache start addresses of discovered BBs
 
 	/* This list stores all yet unresolved links. We work until this
 	 * list becomes empty. */;
@@ -258,135 +216,6 @@ private:
 
 
 	/**
-	 * @brief Update CALL Dominator information
-	 *
-	 * @param parent node we came from
-	 * @param newDesc new node
-	 * @return void
-	 **/
-	void updateCallDoms(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
-	{
-		DEBUG(std::cout << "\033[32;1m" << parent << " -> " << newDesc << "\033[0m" << std::endl;);
-		CFGNodeInfo& parentNode       = cfg(parent);
-		CFGNodeInfo& newNode          = cfg(newDesc);
-
-		if (newNode.bb->branchType == Instruction::BT_CALL) {
-			std::vector<Address> targets;
-			Instruction *lastInst =newNode.bb->instructions.back();
-			Address ret = lastInst->ip() + lastInst->length();
-			DEBUG(std::cout << "   1._callDoms[" << ret.v
-			                << "] := " << newDesc << std::endl;);
-			_callDoms[ret] = newDesc;
-		}
-
-		/*
-		 * We trick around a bit: a callee node not only sets its own dominator
-		 * (to its own node), but also sets a dominator for the return from the
-		 * respective caller. This is, because only here we know about which location
-		 * that is.
-		 */
-		if (parent == 0) {
-			_callDoms[newNode.bb->firstInstruction()] = newDesc;
-		} else if (parentNode.bb->branchType == Instruction::BT_CALL) {
-			DEBUG(std::cout << "   2._callDoms[" << newNode.bb->firstInstruction().v
-			                << "] := " << newDesc << std::endl;);
-			_callDoms[newNode.bb->firstInstruction()] = newDesc;
-		} else {
-			DEBUG(std::cout << "   3._callDoms[" << newNode.bb->firstInstruction().v
-			                << "] := " << _callDoms[parentNode.bb->firstInstruction()] << std::endl;);
-			_callDoms[newNode.bb->firstInstruction()] = _callDoms[parentNode.bb->firstInstruction()];
-		}
-	}
-
-
-	/**
-	 * @brief Given a CALL instruction, update the call target's list of return locations.
-	 *
-	 * @param parent parent node (e.g., the CALL)
-	 * @param newDesc target node (the callee)
-	 * @return void
-	 **/
-	void updateReturnsForCall(CFGVertexDescriptor parent, CFGVertexDescriptor newDesc)
-	{
-		CFGNodeInfo& parentNode = cfg(parent);
-		CFGNodeInfo& newNode    = cfg(newDesc);
-
-		if (parentNode.bb->branchType != Instruction::BT_CALL) {
-			return;
-		}
-
-		Instruction* callingInstr = parentNode.bb->instructions.back();
-		Address returnAddress     = callingInstr->ip() + callingInstr->length();
-		Address startInstr        = newNode.bb->firstInstruction();
-		DEBUG(std::cout << "callrets[" << startInstr.v << "] += [" << returnAddress.v << "]" << std::endl;);
-		_callRets[startInstr].insert(returnAddress);
-	}
-
-
-	/**
-	 * @brief Update the list of return dominators
-	 *
-	 * that is, the list of RET nodes belonging to a callee node.
-	 *
-	 * @param node node to insert (if it is RET)
-	 * @return void
-	 **/
-	void updateRetDoms(CFGVertexDescriptor node)
-	{
-		CFGVertexDescriptor callDom = _callDoms[cfg(node).bb->firstInstruction()];
-		if ((callDom != 0) and (cfg(node).bb->branchType == Instruction::BT_RET)) {
-			Address a = cfg(callDom).bb->firstInstruction();
-			_retDoms[a].insert(node);
-		}
-	}
-
-
-	/**
-	 * @brief For a given call, add the return edges.
-	 *
-	 * Given a CALL edge, update the callee's return edges. This
-	 * may require two different steps
-	 *   1) If the return target is already a CFG node, add an edge between
-	 *      all the callee's RET nodes and the return target.
-	 *   2) If the return target is not a vertex yet, add new unresolved
-	 *      links from the RET nodes.
-	 *
-	 * @param caller caller CFG node
-	 * @param callee callee CFG node
-	 * @return void
-	 **/
-	void addReturnEdgesForCall(CFGVertexDescriptor caller, CFGVertexDescriptor callee)
-	{
-		DEBUG(std::cout << caller << " -> " << callee << std::endl;);
-
-		Address target        = cfg(callee).bb->firstInstruction();
-		Instruction *ret      = cfg(caller).bb->instructions.back();
-		Address returnAddress = ret->ip() + Address(ret->length());
-
-		/*
-		 * For recursive functions we can encounter the case where we actually
-		 * return to a BB that has already been discovered.
-		 */
-		CFGVertexDescriptor retVertex;
-		bool haveVertex = false;
-		try {
-			retVertex  = findCFGNodeWithAddress(_cfg, returnAddress, caller);
-			haveVertex = true;
-		} catch (NodeNotFoundException)
-		{ }
-
-		DEBUG(std::cout << "ret doms [ " << target.v << "] :" << std::endl;);
-		BOOST_FOREACH(CFGVertexDescriptor vd, _retDoms[target]) {
-			DEBUG(std::cout << vd << std::endl;);
-			if (haveVertex) {
-				boost::add_edge(vd, retVertex, _cfg);
-			} else {
-				_bb_connections.push_back(UnresolvedLink(vd, returnAddress));
-			}
-		}
-	}
-
-	/**
 	 * @brief Split a basic block at the given address
 	 *
 	 * @param splitVertex CFG node to split
@@ -437,9 +266,28 @@ void CFGBuilder_priv::build(Address entry)
 
 			DEBUG(std::cout << "--1-- Handling incoming edges" << std::endl;);
 			vd = handleIncomingEdges(next.first, vd, bbi);
-			DEBUG(std::cout << "--2-- Handling outgoing edges" << std::endl;);
+
+			DEBUG(std::cout << "--2-- Checking RET edge" << std::endl;);
+			if (cfg(vd).bb->branchType == Instruction::BT_RET) {
+				CFGNodeInfo& callee = cfg(cfg(vd).functionEntry);
+				callee.retNodes.push_back(vd);
+				DEBUG(std::cout << "  callee: " << cfg(vd).functionEntry << std::endl;);
+				boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
+				for (boost::tie(ei, ei_end) = boost::in_edges(cfg(vd).functionEntry, _cfg);
+					 ei != ei_end; ++ei) {
+					CFGNodeInfo const & caller = cfg(boost::source(*ei, _cfg));
+					try {
+						CFGVertexDescriptor ret = findCFGNodeWithAddress(_cfg, caller.returnTargetAddress());
+						if (ret) addCFGEdge(vd, ret);
+					} catch (NodeNotFoundException) {
+						_bb_connections.push_back(UnresolvedLink(vd, caller.returnTargetAddress()));
+					}
+				}
+			}
+
+			DEBUG(std::cout << "--3-- Handling outgoing edges" << std::endl;);
 			handleOutgoingEdges(bbi, vd);
-			DEBUG(std::cout << "--3-- BB finished" << std::endl;);
+			DEBUG(std::cout << "--4-- BB finished" << std::endl;);
 		} else {
 			std::cout << "Ignoring empty BB (@ " << (void*)next.second.v << ")." << std::endl;
 		}
@@ -539,19 +387,31 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	                << "..." << std::endl;);
 
 	/* update function entry information */
-	if ((prevVertex == 0) or (cfg(prevVertex).bb->branchType == Instruction::BT_CALL)) {
+	if (prevVertex == 0) {
+		cfg(newVertex).functionEntry = 0;
+	}
+	
+	if (cfg(prevVertex).bb->branchType == Instruction::BT_CALL) {
 		cfg(newVertex).functionEntry = newVertex;
+	} else if (cfg(prevVertex).bb->branchType == Instruction::BT_RET) {
+		CFGVertexDescriptor callee = cfg(prevVertex).functionEntry;
+		boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
+		for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg);
+			 ei != ei_end; ++ei) {
+			CFGVertexDescriptor caller = boost::source(*ei, _cfg);
+			if (cfg(caller).returnTargetAddress() == cfg(newVertex).bb->firstInstruction()) {
+				cfg(newVertex).functionEntry = cfg(caller).functionEntry;
+				break;
+			}
+			if (ei == ei_end)
+				throw ThisShouldNeverHappenException("No CALL for RET?");
+		}
 	} else {
 		cfg(newVertex).functionEntry = cfg(prevVertex).functionEntry;
 	}
 
 	/* We need to add an edge from the previous vd */
 	addCFGEdge(prevVertex, newVertex);
-	updateReturnsForCall(prevVertex, newVertex);
-
-	/* Update the call dominator map */
-	updateCallDoms(prevVertex, newVertex);
-	updateRetDoms(newVertex);
 
 	/*
 	 * On incoming edges we might detect that we need to split the current block. This is done in
@@ -577,7 +437,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 		/* If the unresolved link goes to our start address, add an edge, ... */
 		if ((*n).second == bbi.bb->firstInstruction()) {
 			addCFGEdge((*n).first, newVertex);
-			updateReturnsForCall((*n).first, newVertex);
+			//updateReturnsForCall((*n).first, newVertex);
 		} else {
 			/*
 			 * Otherwise, we found a jump that goes into the middle of this
@@ -678,8 +538,25 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		if (a == cfg(targetNode).bb->firstInstruction()) {
 			DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
 			addCFGEdge(newVertex, targetNode);
-			updateReturnsForCall(newVertex, targetNode);
-			addReturnEdgesForCall(newVertex, targetNode);
+			if (bbi.bb->branchType == Instruction::BT_CALL) {
+				/*
+				 * Q: Will we ever hit the case that the return target node is already
+				 *    discovered when we just found the CALL node?
+				 * A: Yes. For instance in the case of a recursive function call!
+				 */
+				Address retTarget = cfg(newVertex).returnTargetAddress();
+				CFGVertexDescriptor rVert;
+				try {
+					rVert = findCFGNodeWithAddress(_cfg, retTarget);
+					BOOST_FOREACH(CFGVertexDescriptor retNode, cfg(targetNode).retNodes) {
+						addCFGEdge(retNode, rVert);
+					}
+				} catch (NodeNotFoundException) {
+					BOOST_FOREACH(CFGVertexDescriptor retNode, cfg(targetNode).retNodes) {
+						_bb_connections.push_back(UnresolvedLink(retNode, cfg(newVertex).returnTargetAddress()));
+					}
+				}
+			}
 		} else {
 			DEBUG(std::cout << "need to split BB " << targetNode << std::endl;);
 			CFGVertexDescriptor splitTailVertex = splitBasicBlock(targetNode, a);
@@ -703,6 +580,8 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				addCFGEdge(newVertex, splitTailVertex);
 			}
 
+			// Will we ever split a node to become a call target?
+			assert(bbi.bb->branchType != Instruction::BT_CALL);
 			/*
 			 * Adjust pending link list. All non-discovered links that started from
 			 * the non-split block now start from the newly created vertex.
@@ -711,39 +590,6 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		}
 	}
 
-	/*
-	 * Special handling for outgoing edges of a RET basic block. Here, the disassembler
-	 * cannot tell us any return address, so we need to settle for the data we kept on the fly.
-	 */
-	if (bbi.bb->branchType == Instruction::BT_RET) {
-		/* 1. Find the dominator, that is the node that has been called to reach this bb. */
-		CFGVertexDescriptor callee = _callDoms[bbi.bb->firstInstruction()];
-		DEBUG(std::cout << "callee == " << callee << std::endl;);
-		if (callee == 0) return;
-
-		CFGNodeInfo& cNode = cfg(callee);
-		std::set<Address>& returns = _callRets[cNode.bb->firstInstruction()];
-		BOOST_FOREACH(Address a, returns) {
-			DEBUG(std::cout << "return to " << a.v << std::endl;);
-			CFGVertexDescriptor targetNode;
-			try {
-				targetNode = findCFGNodeWithAddress(_cfg, a, newVertex);
-			} catch (NodeNotFoundException) {
-				DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
-					            << " for discovery." << std::endl;);
-				// case 3: need to discover more code first
-				_bb_connections.push_back(UnresolvedLink(newVertex, a));
-				continue;
-			}
-
-			if (a == cfg(targetNode).bb->firstInstruction()) {
-				DEBUG(std::cout << "jump goes to beginning of BB. Adding CFG edge." << std::endl;);
-				addCFGEdge(newVertex, targetNode);
-			} else {
-				throw ThisShouldNeverHappenException("Return into middle of a BB?");
-			}
-		}
-	}
 }
 
 
@@ -807,7 +653,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 
 	// 5) add edge from bb1 -> bb2
 	addCFGEdge(splitVertex, vert2);
-	updateCallDoms(splitVertex, vert2);
+	//updateCallDoms(splitVertex, vert2);
 
 	return vert2;
 }

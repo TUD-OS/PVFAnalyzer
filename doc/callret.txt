@@ -1,0 +1,52 @@
+The many faces of tracking calls and returns while building a CFG
+=================================================================
+
+Participating nodes
+-------------------
+* A CALL node is a node that ends with a call operation.
+* A CALLEE node is the target of a CALL node.
+* A RET node is a node ending with a ret operation.
+
+
+Problems while building a CFG
+-----------------------------
+
+1) Neither a CALL nor a CALLEE node necessarily know all RET
+   nodes belonging to them.
+2) There may be multiple CALL nodes for a single CALLEE.
+3) A RET node does not know the respective CALL or CALLEE.
+4) CFG construction is partial, which means that we may discover
+   some CALL, CALLEE or RET nodes sooner or later and we must not
+   assume to have already found some.
+
+* CALLEE nodes need to be able to find 
+  # all their CALL nodes
+    -> this is inherent to the CFG, these nodes are the
+       CALLEE's predecessors
+  # all their RET nodes
+    -> this needs to be stored along with the CALLEE
+       (e.g., in a list)
+  # all their RET targets -> another list
+
+* RET nodes need to be able to find their CALLEE nodes easily.
+  -> keep a backpointer to each node's CALLEE
+   
+
+
+Scenarios
+---------
+
+A) We are at a CALL node and the target does not exist yet.
+  - CALL stores return target
+   - add UnresolvedLink(CALL, TARGET)
+
+B) We are at a CALL node and the target already exists.
+   - FOREACH(r in CALLEE.retNodes) add_edge(r, CALL.returnTarget)
+
+C) We are at a RET node
+   - add ourselves to CALLEE.retNodes
+   - FOREACH(in in CALLEE.in_edges)
+       if (in.returnTarget) is known: add_edge(this, in.returnTarget)
+       else: add UnresolvedLink(this, in.returnTarget)
+
+D) We are a RET target
