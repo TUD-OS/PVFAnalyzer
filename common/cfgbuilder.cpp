@@ -568,7 +568,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 
 	while (!splitPoints.empty()) {
 		UnresolvedLink& link                = splitPoints.front();
-		CFGVertexDescriptor source          = link.first;
+		//CFGVertexDescriptor source          = link.first;
 		Address splitAddress                = link.second;
 		CFGVertexDescriptor splitTailVertex = splitBasicBlock(newVertex, splitAddress);
 		assert(splitTailVertex != newVertex);

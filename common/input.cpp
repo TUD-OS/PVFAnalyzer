@@ -201,26 +201,8 @@ void FileInputReader::parseElf(const char* filename)
 	int elffd;
 	GElf_Ehdr ehdr;
 	GElf_Phdr phdr;
-	
-	if (elf_version(EV_CURRENT) == EV_NONE) {
-		std::cout << "Could not initialize ELF library." << std::endl;
-		throw ELFException();
-	}
 
-	if ((elffd = open(filename, O_RDONLY, 0)) < 0) {
-		perror("file open");
-		throw ELFException();
-	}
-
-	if ((elf = elf_begin(elffd, ELF_C_READ, 0)) == 0) {
-		std::cout << "elf_begin failed." << std::endl;
-		throw ELFException();
-	}
-
-	if (elf_kind(elf) != ELF_K_ELF) {
-		std::cout << "not an ELF object!" << std::endl;
-		throw ELFException();
-	}
+	elffd = openElf(filename, &elf);
 
 	if (gelf_getehdr(elf, &ehdr) == 0) {
 		std::cout << "Could not getehdr()" << std::endl;
@@ -250,43 +232,11 @@ void FileInputReader::parseElf(const char* filename)
 		}
 		if (Configuration::get()->debug) {
 			std::cout << "PHDR " << i << ":" <<  std::endl;
-			std::cout << "       type  " << std::hex << std::setw(9) << ptype_str(phdr.p_type) << std::endl;
-			std::cout << "     offset  " << std::hex << std::setw(9) << phdr.p_offset << std::endl;
-			std::cout << "      vaddr  " << std::hex << std::setw(9) << phdr.p_vaddr << std::endl;
-			std::cout << "      paddr  " << std::hex << std::setw(9) << phdr.p_paddr << std::endl;
-			std::cout << "    memsize  " << std::hex << std::setw(9) << phdr.p_memsz << std::endl;
-			std::cout << "   filesize  " << std::hex << std::setw(9) << phdr.p_filesz << std::endl;
-			std::cout << "      flags  " << phdr.p_flags << " ( ";
-			if (phdr.p_flags & PF_X) std::cout << "exec ";
-			if (phdr.p_flags & PF_R) std::cout << "read ";
-			if (phdr.p_flags & PF_W) std::cout << "write";
-			std::cout << " )" << std::endl;
-			std::cout << "      align  " << std::hex << std::setw(9) << phdr.p_align << std::endl;
+			dumpElfPhdr(phdr);
 		}
 
 		if (phdr.p_type == PT_LOAD) {
-			uint8_t *buffer;
-			DEBUG(std::cout << "Allocating mem buffer. Size " << phdr.p_memsz
-			                << ", alignment " << phdr.p_align << std::endl;);
-			int fail = posix_memalign((void**)&buffer, phdr.p_align, phdr.p_memsz);
-			if (fail) {
-				std::cout << "Aligned memory allocation failed: " << fail << std::endl;
-				throw ELFException();
-			}
-			DEBUG(std::cout << "Success: " << std::hex << (void*)buffer << std::endl;);
-
-			memset(buffer, 0, phdr.p_memsz);
-			ssize_t bytes = pread(elffd, buffer, phdr.p_filesz, phdr.p_offset);
-			if (bytes != (ssize_t)phdr.p_filesz) {
-				std::cout << "pread() = " << bytes << ", but should be " << phdr.p_filesz << std::endl;
-				throw ELFException();
-			}
-
-			_sections.push_back(new DataSection());
-			DataSection* ds = section(_sections.size()-1);
-			ds->addBuffer(buffer, phdr.p_memsz);
-			ds->relocationAddress(Address(phdr.p_vaddr));
-			DEBUG(std::cout << (void*)buffer << " -> " << phdr.p_vaddr << std::endl;);
+			loadElfPhdr(elffd, phdr);
 		}
 	}
 
@@ -302,4 +252,83 @@ void FileInputReader::parseElf(const char* filename)
 
 	elf_end(elf);
 	close(elffd);
+}
+
+
+void FileInputReader::loadElfPhdr(int elffd, GElf_Phdr& phdr)
+{
+	uint8_t *buffer;
+	DEBUG(std::cout << "Allocating mem buffer. Size " << phdr.p_memsz
+	                << ", alignment " << phdr.p_align << std::endl;);
+	int fail = posix_memalign((void**)&buffer, phdr.p_align, phdr.p_memsz);
+	if (fail) {
+		std::cout << "Aligned memory allocation failed: " << fail << std::endl;
+		throw ELFException();
+	}
+	DEBUG(std::cout << "Success: " << std::hex << (void*)buffer << std::endl;);
+
+	memset(buffer, 0, phdr.p_memsz);
+	ssize_t bytes = pread(elffd, buffer, phdr.p_filesz, phdr.p_offset);
+	if (bytes != (ssize_t)phdr.p_filesz) {
+		std::cout << "pread() = " << bytes << ", but should be " << phdr.p_filesz << std::endl;
+		throw ELFException();
+	}
+
+	_sections.push_back(new DataSection());
+	DataSection* ds = section(_sections.size()-1);
+	ds->addBuffer(buffer, phdr.p_memsz);
+	ds->relocationAddress(Address(phdr.p_vaddr));
+	DEBUG(std::cout << (void*)buffer << " -> " << phdr.p_vaddr << std::endl;);
+}
+
+
+void FileInputReader::dumpElfPhdr(GElf_Phdr& phdr)
+{
+	std::cout << "       type  " << std::hex << std::setw(9) << ptype_str(phdr.p_type) << std::endl;
+	std::cout << "     offset  " << std::hex << std::setw(9) << phdr.p_offset << std::endl;
+	std::cout << "      vaddr  " << std::hex << std::setw(9) << phdr.p_vaddr << std::endl;
+	std::cout << "      paddr  " << std::hex << std::setw(9) << phdr.p_paddr << std::endl;
+	std::cout << "    memsize  " << std::hex << std::setw(9) << phdr.p_memsz << std::endl;
+	std::cout << "   filesize  " << std::hex << std::setw(9) << phdr.p_filesz << std::endl;
+	std::cout << "      flags  " << phdr.p_flags << " ( ";
+	if (phdr.p_flags & PF_X) std::cout << "exec ";
+	if (phdr.p_flags & PF_R) std::cout << "read ";
+	if (phdr.p_flags & PF_W) std::cout << "write";
+	std::cout << " )" << std::endl;
+	std::cout << "      align  " << std::hex << std::setw(9) << phdr.p_align << std::endl;
+}
+
+
+int FileInputReader::openElf(char const *filename, Elf** elf)
+{
+	int fd;
+
+	if (elf_version(EV_CURRENT) == EV_NONE) {
+		std::cout << "Could not initialize ELF library." << std::endl;
+		throw ELFException();
+	}
+
+	if ((fd = open(filename, O_RDONLY, 0)) < 0) {
+		perror("file open");
+		throw ELFException();
+	}
+
+	if ((*elf = elf_begin(fd, ELF_C_READ, 0)) == 0) {
+		std::cout << "elf_begin failed." << std::endl;
+		throw ELFException();
+	}
+
+	if (elf_kind(*elf) != ELF_K_ELF) {
+		std::cout << "not an ELF object!" << std::endl;
+		throw ELFException();
+	}
+
+	return fd;
+}
+
+
+bool
+FileInputReader::insideJumpTable(Address const &a)
+{
+	return false;
 }

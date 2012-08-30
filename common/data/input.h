@@ -34,6 +34,7 @@
 #include <map>
 #include <boost/concept_check.hpp>
 #include <boost/foreach.hpp>
+#include <gelf.h>
 
 #include "memory.h"
 
@@ -238,6 +239,9 @@ public:
 		return 0;
 	}
 
+	virtual bool insideJumpTable(Address a)
+	{ return false; }
+
 	/**
 	 * @brief Get count of available binary sections
 	 *
@@ -289,16 +293,20 @@ class FileInputReader : public InputReader
 {
 public:
 	FileInputReader()
-		: InputReader()
+		: InputReader(), _offsetTables()
 	{ }
 
 	virtual void addData(char const *file);
 
-private:
-	FileInputReader(FileInputReader const&)
-	{ }
+	virtual bool insideJumpTable(Address const& a);
 
-	FileInputReader& operator= (FileInputReader const &) { return *this; }
+private:
+
+	std::vector<MemRegion> _offsetTables;
+
+	FileInputReader(FileInputReader const&) = default;
+
+	FileInputReader& operator= (FileInputReader const &) = default; // { return *this; }
 
 	/**
 	 * @brief Determine if the input file stream refers to an ELF binary.
@@ -315,4 +323,8 @@ private:
 	 * @return void
 	 **/
 	void parseElf(char const* filename);
+
+	void loadElfPhdr(int elffd, GElf_Phdr& phdr);
+	void dumpElfPhdr(GElf_Phdr& phdr);
+	int  openElf(const char* filename, Elf** elf);
 };
