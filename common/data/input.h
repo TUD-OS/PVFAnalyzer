@@ -239,7 +239,7 @@ public:
 		return 0;
 	}
 
-	virtual bool insideJumpTable(Address a)
+	virtual bool insideJumpTable(Address const &a)
 	{ return false; }
 
 	/**

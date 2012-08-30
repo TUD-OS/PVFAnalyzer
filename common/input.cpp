@@ -333,9 +333,11 @@ bool
 FileInputReader::insideJumpTable(Address const &a)
 {
 	BOOST_FOREACH(MemRegion& m, _offsetTables) {
+		//DEBUG(std::cout << m.base.v << " - " << m.size << " ? " << a.v << std::endl;);
 		if (m.contains(a))
 			return true;
 	}
+	return false;
 }
 
 

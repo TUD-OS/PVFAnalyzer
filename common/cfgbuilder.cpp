@@ -96,7 +96,7 @@ public:
 private:
 	Udis86Disassembler  _dis;    ///> underlying disassembler
 	ControlFlowGraph&  _cfg;     ///> control flow graph
-	std::set<Address>  _bbfound; ///> start addresses of discovered BBs
+	std::set<Address>  _bbfound; ///> start addresses of discovered BBs (used for tracking already discovered BBs if we enter them)
 
 	/*
 	 * List of input buffers to read instructions from.
@@ -161,6 +161,15 @@ private:
 			}
 		}
 		return RelocatedMemRegion();
+	}
+
+	bool isDynamicBranch(Address a)
+	{
+		BOOST_FOREACH(InputReader *ir, _inputs) {
+			if (ir->insideJumpTable(a))
+				return true;
+		}
+		return false;
 	}
 
 	/**
@@ -491,6 +500,27 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 
 	/* cache BB start address */
 	_bbfound.insert(bbi.bb->firstInstruction());
+
+	/*
+	 * Dynamic jump adjustment. For now we ignore any calls / jumps that go into
+	 * dynamic loader's offset tables, because we do not explore dynamically linked
+	 * libraries right now.
+	 */
+	if ((bbi.bb->branchType == Instruction::BT_CALL) or
+	    (bbi.bb->branchType == Instruction::BT_JUMP_UNCOND)) {
+		DEBUG(std::cout << "Checking for dynamic branches: " << std::hex << bbi.targets[0].v << std::endl;);
+
+		if (isDynamicBranch(bbi.targets[0])) {
+			DEBUG(std::cout << "skipping dynamic library jump to " << std::hex << bbi.targets[0].v << std::endl;);
+
+			bbi.targets.clear();
+
+			bbi.bb->branchType = Instruction::BT_JUMP_UNCOND;
+			Address newTarget = bbi.bb->lastInstruction();
+			newTarget += bbi.bb->instructions.back()->length();
+			bbi.targets.push_back(newTarget);
+		}
+	}
 
 	DEBUG(std::cout << "Finished. BB instructions: " << bbi.bb->firstInstruction().v
 	                << " - " << bbi.bb->lastInstruction().v << std::endl;);
