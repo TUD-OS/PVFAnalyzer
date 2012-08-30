@@ -43,6 +43,10 @@ loopcall.bin
       different arguments
     * entry point: 0x5
 
+manycalls.bin
+    * call chain: a -> b -> 3x c
+    * verify: c returns to b returns to a
+
 payload.bin:
     * Julian's buffer overflow shellcode from DOS
     * entry point: 0x0
