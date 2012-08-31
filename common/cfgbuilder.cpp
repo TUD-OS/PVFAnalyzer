@@ -275,7 +275,7 @@ void CFGBuilder_priv::build(Address entry)
 			DEBUG(std::cout << "--1-- Handling incoming edges" << std::endl;);
 			vd = handleIncomingEdges(next.first, vd, bbi);
 
-			DEBUG(std::cout << "--2-- Checking RET edge" << std::endl;);
+			DEBUG(std::cout << "--2-- Checking RET edge (" << vd << ")" << std::endl;);
 			if (cfg(vd).bb->branchType == Instruction::BT_RET) {
 				CFGNodeInfo& callee = cfg(cfg(vd).functionEntry);
 				callee.retNodes.push_back(vd);
@@ -643,8 +643,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 
 	/* Ready to add new vertex to the CFG. */
 	CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
-
-	// 3) incoming edges for original BB remain untouched
+	cfg(vert2).functionEntry = cfg(splitVertex).functionEntry;
 
 	/*
 	 * 4) all existing outgoing edges from bb1 are transformed to
