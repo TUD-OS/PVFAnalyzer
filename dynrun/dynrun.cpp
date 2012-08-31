@@ -24,19 +24,18 @@
 #include "instruction/cfg.h"
 #include "util.h"
 
-struct PVFConfig : public Configuration
+struct DynConfig : public Configuration
 {
 	std::string input_filename;
-	std::string output_filename;
-	Address     final;
+	std::string input_binary;
 
-	PVFConfig()
+	DynConfig()
 		: Configuration(), input_filename("output.cfg"),
-	      output_filename("output.pvf"), final(0)
+	      input_binary("output.bin")
 	{ }
 };
 
-static PVFConfig config;
+static DynConfig config;
 
 
 static void
@@ -46,8 +45,7 @@ usage(char const *prog)
 	std::cout << prog << " [-h] [-f <file>] [-o <file>] [-v] [-d]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
-	std::cout << "\t-o <file>          Write the resulting output to file. [output.pvf]" << std::endl;
-	std::cout << "\t-t <addr>          Set PVF termination address [0x00000000]" << std::endl;
+	std::cout << "\t-b <file>          Set input binary [output.bin]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -60,7 +58,7 @@ banner()
 	Version version = Configuration::get()->globalProgramVersion;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
-	std::cout << "\033[33m" << "        CFG Analyzer version " << version.major
+	std::cout << "\033[33m" << "        DynRun version " << version.major
 	          << "." << version.minor << "\033[0m" << std::endl;
 	std::cout << "\033[34m" << "********************************************"
 	          << "\033[0m" << std::endl;
@@ -72,12 +70,16 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "df:ho:t:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:df:hv")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
 
 		switch(opt) {
+
+			case 'b':
+				config.input_binary = optarg;
+				break;
 
 			case 'f':
 				config.input_filename = optarg;
@@ -86,14 +88,6 @@ parseInputFromOptions(int argc, char **argv)
 			case 'h':
 				usage(argv[0]);
 				return false;
-
-			case 'o':
-				config.output_filename = optarg;
-				break;
-
-			case 't':
-				config.final = Address(strtoul(optarg, 0, 0));
-				break;
 		}
 	}
 	return true;
