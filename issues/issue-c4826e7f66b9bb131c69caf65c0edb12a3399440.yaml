@@ -5,8 +5,8 @@ type: :feature
 component: CFGAnalysis
 release: "0.3"
 reporter: doebel <doebel@tudos.org>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2012-08-30 19:43:16.659464 Z
 references: []
 
@@ -16,4 +16,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-08-31 13:18:04.611730 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - added '-q' option to GV printer
 git_branch: 
