@@ -34,7 +34,7 @@ def readCFG(filename, entry):
 
 
 def runPrinter():
-    printerCmd = "build/printer/printer -f cfgtmp.cfg -o -"
+    printerCmd = "build/printer/printer -f cfgtmp.cfg -cfunc -o -"
     return subprocess.check_output(printerCmd.split())
 
 

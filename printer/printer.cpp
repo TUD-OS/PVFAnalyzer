@@ -34,11 +34,12 @@ struct PrinterConfiguration : public Configuration
 	std::string input_filename;
 	std::string output_filename;
 	std::string color;
+	bool quiet;
 
 	PrinterConfiguration()
 		: Configuration(), input_filename("input.cfg"),
 	      output_filename("output.dot"),
-	      color("simple")
+	      color("simple"), quiet(false)
 	{ }
 };
 
@@ -59,6 +60,8 @@ usage(char const *prog)
 	std::cout << "\t                      simple -> all in one color" << std::endl;
 	std::cout << "\t                      call   -> call depths are colored the same" << std::endl;
 	std::cout << "\t                      comp   -> strongly connected components (cycles) colored the same" << std::endl;
+	std::cout << "\t                      func   -> colorize BBs belonging to the same function with the same color" << std::endl;
+	std::cout << "\t-q                 quiet - generate a graph without code / address information [off]" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 }
@@ -82,7 +85,7 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "c::f:ho:v")) != -1) {
+	while ((opt = getopt(argc, argv, "c::f:ho:qv")) != -1) {
 		if (conf.parse_option(opt))
 			continue;
 
@@ -106,6 +109,9 @@ parseInputFromOptions(int argc, char **argv)
 				break;
 			case 'o':
 				conf.output_filename = optarg;
+				break;
+			case 'q':
+				conf.quiet = true;
 				break;
 		}
 	}
@@ -139,6 +145,31 @@ public:
 	{ }
 
 	virtual ~GraphColoringStrategy() { }
+};
+
+
+class FunctionColoringStrategy : public GraphColoringStrategy
+{
+	std::map<CFGVertexDescriptor, int> functionColors;
+	int nextColor;
+
+public:
+	FunctionColoringStrategy(const ControlFlowGraph& g)
+		: GraphColoringStrategy(g), functionColors(),
+		  nextColor(1)
+	{ }
+
+	virtual int selectColorIndex(CFGVertexDescriptor const& v, int max)
+	{
+		CFGNodeInfo const & node = _g[v];
+		CFGVertexDescriptor dom = node.functionEntry;
+		if (functionColors[dom] == 0) {
+			functionColors[dom] = nextColor;
+			nextColor++;
+			if (nextColor >= max) nextColor = 1;
+		}
+		return functionColors[dom];
+	}
 };
 
 
@@ -241,6 +272,8 @@ public:
 			return new CallDepthColoringStrategy(g);
 		} else if (opt.color == "comp") {
 			return new StrongComponentColoringStrategy(g);
+		} else if (opt.color == "func") {
+			return new FunctionColoringStrategy(g);
 		} else {
 			std::cout << "Unknown coloring strategy '" << opt.color << "'. Using single color." << std::endl;
 			return new SingleColoringStrategy(g);
@@ -280,7 +313,7 @@ struct ExtendedGraphvizInstructionWriter
 		out << _callDepthColors[_strategy.selectColorIndex(v, _maxCallDepthColor)] << ",";
 
 		BasicBlock* bb = g[v].bb;
-		if (!bb->instructions.empty()) {
+		if (!conf.quiet and !bb->instructions.empty()) {
 			out << "label=\"(" << v << ") [@0x";
 			out << std::hex << bb->firstInstruction().v << "]\\l";
 			BOOST_FOREACH(Instruction* i, bb->instructions) {
