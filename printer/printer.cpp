@@ -191,7 +191,9 @@ public:
 		for (boost::tie(edge, edgeEnd) = boost::out_edges(v, _g);
 		     edge != edgeEnd; ++edge) {
 			CFGVertexDescriptor t = boost::target(*edge, _g);
-			if (_g[v].bb->branchType == Instruction::BT_CALL) {
+			if ((_g[v].bb->branchType == Instruction::BT_CALL) or
+			    (_g[v].bb->branchType == Instruction::BT_CALL_DYN) or
+			    (_g[v].bb->branchType == Instruction::BT_CALL_RESOLVE)) {
 				/*
 				 * The target of a caller is colored one level
 				 * deeper than the current level.

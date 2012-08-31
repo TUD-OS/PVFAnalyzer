@@ -23,6 +23,7 @@
 #include <boost/graph/adj_list_serialize.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/tokenizer.hpp>
 #include "data/input.h"            // DataSection, InputReader
 #include "instruction/disassembler.h"
 #include "instruction/instruction.h"
@@ -34,9 +35,10 @@ struct ReaderConfig : public Configuration
 {
 	std::string output_filename;
 	Address entryPoint;
+	std::vector<Address> terminatorAddresses;
 
 	ReaderConfig()
-		: Configuration(), output_filename("output.cfg"), entryPoint(~0)
+		: Configuration(), output_filename("output.cfg"), entryPoint(~0), terminatorAddresses()
 	{ }
 };
 
@@ -46,13 +48,14 @@ static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v]"
+	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v] [-e <address>] [-t <addresses>]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal" << std::endl;
 	std::cout << "\t                   numbers as input to work on." << std::endl;
 	std::cout << "\t-o <file>          Write the resulting CFG to file. [output.cfg]" << std::endl;
 	std::cout << "\t-e <addr>          Set decoding entry point address [0x00000000]" << std::endl;
+	std::cout << "\t-t <address>,...   Set a list of addresses where to terminate CFG building. [empty]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -72,12 +75,30 @@ banner()
 }
 
 
+static void
+parseTerminatorList(char const *string)
+{
+	std::string s(optarg);
+	boost::tokenizer<> tokens(s);
+	for (boost::tokenizer<>::iterator it = tokens.begin();
+	     it != tokens.end(); ++it) {
+		try {
+			// XXX: need to cast from hex number!!!
+			int a = boost::lexical_cast<int>(*it);
+			std::cout << "Address: " << a << std::endl;
+			conf.terminatorAddresses.push_back(Address(a));
+		} catch (boost::bad_lexical_cast) {
+			std::cout << "Error casting '" << *it << "' to int. Skipping." << std::endl;
+		}
+	}
+}
+
 static bool
 parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "e:df:ho:xv")) != -1) {
+	while ((opt = getopt(argc, argv, "e:df:ho:t:xv")) != -1) {
 
 		if (conf.parse_option(opt))
 			continue;
@@ -117,6 +138,10 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 			case 'e':
 				conf.entryPoint = Address(strtoul(optarg, 0, 0));
 				break;
+
+			case 't':
+				parseTerminatorList(optarg);
+				break;
 		}
 	}
 	return true;
@@ -128,6 +153,8 @@ buildCFG(std::vector<InputReader*> const & v)
 	ControlFlowGraph cfg;
 	Address entry;
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
+	builder->terminators(conf.terminatorAddresses);
+
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 
 	if (conf.entryPoint != Address(~0UL))

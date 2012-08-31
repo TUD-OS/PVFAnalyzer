@@ -115,7 +115,9 @@ public:
 		BT_NONE,
 		BT_JUMP_UNCOND,
 		BT_JUMP_COND,
-		BT_CALL,
+		BT_CALL,         // call with immediate target
+		BT_CALL_DYN,     // call into dynamic library (via PLT/GOT)
+		BT_CALL_RESOLVE, // call yet to be resolved (through memory or register)
 		BT_RET,
 		BT_INT,
 	};

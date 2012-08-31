@@ -76,6 +76,8 @@ typedef boost::graph_traits<ControlFlowGraph>::edge_iterator     CFGEdgeIterator
  **/
 class CFGBuilder
 {
+protected:
+	std::map<Address, bool> _terminators;
 public:
 	/**
 	 * @brief Create a new builder for the given CFG and input sections.
@@ -95,6 +97,13 @@ public:
 	 * @return void
 	 **/
 	virtual void build(Address entry) = 0;
+
+	void terminators(std::vector<Address> addresses)
+	{
+		BOOST_FOREACH(Address a, addresses) {
+			_terminators[a] = true;
+		}
+	}
 };
 
 
