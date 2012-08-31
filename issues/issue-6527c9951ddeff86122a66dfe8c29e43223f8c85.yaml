@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: More complex C test cases
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-08-31 13:44:49.021974 Z
+references: []
+
+id: 6527c9951ddeff86122a66dfe8c29e43223f8c85
+log_events: 
+- - 2012-08-31 13:44:49.481827 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
