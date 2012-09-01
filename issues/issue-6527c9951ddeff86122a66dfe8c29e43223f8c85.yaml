@@ -16,4 +16,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - created
   - ""
+- - 2012-09-01 07:29:52.610332 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - added udcli 32 bit binary
 git_branch: 
