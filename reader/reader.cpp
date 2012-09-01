@@ -85,7 +85,6 @@ parseTerminatorList(char const *string)
 		try {
 			int a = strtoul((*it).c_str(), 0, 0);
 			// XXX: need to cast from hex number!!!
-			std::cout << "Address: " << a << std::endl;
 			conf.terminatorAddresses.push_back(Address(a));
 		} catch (boost::bad_lexical_cast) {
 			std::cout << "Error casting '" << *it << "' to int. Skipping." << std::endl;
