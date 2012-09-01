@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: "udis86: registerToName()"
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-09-01 07:47:53.561666 Z
+references: []
+
+id: 5318ce46c5e5cb66048f96a0be93b265e6f21838
+log_events: 
+- - 2012-09-01 07:47:54.047616 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
