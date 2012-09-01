@@ -48,10 +48,9 @@ static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-f <file>] [-b <file>] [-v] [-d]"
+	std::cout << prog << " [-h] [-f <CFG file>] [-v] [-d] -- <binary> <arguments>"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
-	std::cout << "\t-b <file>          Set input binary [input.bin]" << std::endl;
 	//std::cout << "\t-o <file>          Write the resulting output to file. [output.pvf]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
@@ -72,7 +71,7 @@ banner()
 }
 
 
-static bool
+static int
 parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
@@ -96,8 +95,9 @@ parseInputFromOptions(int argc, char **argv)
 				usage(argv[0]);
 				return false;
 		}
+		printf("%d\n", optind);
 	}
-	return true;
+	return optind;
 }
 
 
@@ -232,14 +232,14 @@ class PTracer
 
 		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		syscall = data.orig_rax;
-		std::cout << "   System call: 0x" << std::hex << data.orig_rax << std::endl;
+		std::cout << "   System call: " << std::dec << (data.orig_rax & 0xFFFFFFFFULL) << std::endl;
 
 		// do system call
 		ptrace_checked(PTRACE_SYSCALL, _child, 0, 0);
 		if ((syscall != SYS_exit) and (syscall != SYS_exit_group)) {
 			wait_checked(_child, &status, &signal);
 			ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
-			std::cout << "   System call return: 0x" << std::hex << data.rax << std::endl;
+			std::cout << "   System call return: 0x" << std::hex << (data.rax & 0xFFFFFFFFULL) << std::endl;
 			return 0;
 		}
 		return 1;
@@ -314,14 +314,18 @@ public:
 
 
 static void
-runInstrumented(std::list<Address> iPoints)
+runInstrumented(std::list<Address> iPoints, int argc, char** argv)
 {
 	pid_t child = fork();
 	if (child == 0) {
-		int res = ptrace(PTRACE_TRACEME, 0, 0, 0);
+		ptrace(PTRACE_TRACEME, 0, 0, 0);
 		raise(SIGSTOP);
-		printf("abcdefghijklmnopqrstuvwxyz\n");
-		exit(0);
+		for (int i = 0; i < argc; ++i)
+			std::cout << argv[i] << " ";
+		std::cout << std::endl;
+		execve(argv[0], argv, environ);
+		perror("execve");
+		throw ThisShouldNeverHappenException("execve failed");
 	} else if (child > 0) {
 		PTracer pt(child);
 
@@ -339,8 +343,12 @@ int main(int argc, char **argv)
 {
 	Configuration::setConfig(&config);
 
-	if (not parseInputFromOptions(argc, argv))
+	int newArg;
+	if ((newArg = parseInputFromOptions(argc, argv)) < 0)
 		exit(2);
+
+	std::cout << "Newarg: " << newArg << std::endl;
+	std::cout << "    " << argv[newArg] << std::endl;
 
 	banner();
 
@@ -351,7 +359,7 @@ int main(int argc, char **argv)
 	int numUnres = getUnresolvedAddresses(cfg, unresolved);
 	std::cout << std::dec << numUnres << " unresolved jumps." << std::endl;
 
-	runInstrumented(unresolved);
+	runInstrumented(unresolved, argc - newArg + 1, &argv[newArg]);
 
 	return 0;
 }
