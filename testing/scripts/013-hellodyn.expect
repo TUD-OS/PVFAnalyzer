@@ -1,0 +1,15 @@
+[34m********************************************[0m
+[33m        CFG Analyzer version 0.2[0m
+[34m********************************************[0m
+Built CFG. 3 vertices, 2 edges.
+Wrote CFG to 'hello_dynamic.cfg'
+[34m********************************************[0m
+[33m        CFG Printer version 0.2[0m
+[34m********************************************[0m
+digraph G {
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x804841c]\l0x0804841c: push ebp\l0x0804841d: mov ebp, esp\l0x0804841f: and esp, 0xfffffff0\l0x08048422: sub esp, 0x10\l0x08048425: mov dword [esp], 0x80484d0\l0x0804842c: call dword 0x8048300\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(2) [@0x8048431]\l0x08048431: leave \l0x08048432: ret \l"];
+0->1 ;
+1->2 ;
+}

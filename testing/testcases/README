@@ -17,9 +17,13 @@ callret.bin:
     * function call / return test case
     * entry point: 0x5
 
-hello.bin:
+hello_static.bin:
     * statically linked ELF binary simply calling printf("hello world");
     * main entry point: 0x8048254
+
+hello_dynamic.bin:
+    * dynamically linked ELF binary simply calling printf("hello world");
+    * main entry point: 0x0804841c
 
 loop.bin:
     * basic for loop:
