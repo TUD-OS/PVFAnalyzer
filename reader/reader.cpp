@@ -83,8 +83,8 @@ parseTerminatorList(char const *string)
 	for (boost::tokenizer<>::iterator it = tokens.begin();
 	     it != tokens.end(); ++it) {
 		try {
+			int a = strtoul((*it).c_str(), 0, 0);
 			// XXX: need to cast from hex number!!!
-			int a = boost::lexical_cast<int>(*it);
 			std::cout << "Address: " << a << std::endl;
 			conf.terminatorAddresses.push_back(Address(a));
 		} catch (boost::bad_lexical_cast) {

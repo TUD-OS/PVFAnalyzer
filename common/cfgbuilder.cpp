@@ -277,13 +277,15 @@ void CFGBuilder_priv::build(Address entry)
 
 			DEBUG(std::cout << "--2-- Checking RET edge (" << vd << ")" << std::endl;);
 			if (cfg(vd).bb->branchType == Instruction::BT_RET) {
-				CFGNodeInfo& callee = cfg(cfg(vd).functionEntry);
-				callee.retNodes.push_back(vd);
-				DEBUG(std::cout << "  callee: " << cfg(vd).functionEntry << std::endl;);
+				CFGVertexDescriptor callee = cfg(vd).functionEntry;
+				cfg(callee).retNodes.push_back(vd);
+				DEBUG(std::cout << "  callee: " << callee << std::endl;);
 				boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
-				for (boost::tie(ei, ei_end) = boost::in_edges(cfg(vd).functionEntry, _cfg);
+				for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg);
 					 ei != ei_end; ++ei) {
 					CFGNodeInfo const & caller = cfg(boost::source(*ei, _cfg));
+					DEBUG(std::cout << "caller test: " << boost::source(*ei, _cfg) << " -- "
+					                << caller.returnTargetAddress().v << std::endl;);
 					try {
 						CFGVertexDescriptor ret = findCFGNodeWithAddress(_cfg, caller.returnTargetAddress());
 						if (ret) addCFGEdge(vd, ret);
@@ -406,7 +408,6 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	}
 	
 	if ((cfg(prevVertex).bb->branchType == Instruction::BT_CALL) or
-		(cfg(prevVertex).bb->branchType == Instruction::BT_CALL_DYN) or
 		(cfg(prevVertex).bb->branchType == Instruction::BT_CALL_RESOLVE)) {
 		DEBUG(std::cout << "     CALL target -> becoming my own entry point." << std::endl;);
 		cfg(newVertex).functionEntry = newVertex;
@@ -425,6 +426,10 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 				throw ThisShouldNeverHappenException("No CALL for RET?");
 		}
 	} else {
+		/*
+		 * CALL_DYN target nodes also are copied, because their children are only the
+		 * RETURN targets of a dynamic call as we skipped the real one.
+		 */
 		DEBUG(std::cout << "     std target -> copying parent entry point." << std::endl;);
 		cfg(newVertex).functionEntry = cfg(prevVertex).functionEntry;
 	}
