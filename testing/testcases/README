@@ -63,3 +63,6 @@ twocalls.bin:
     * two calls to the same function from different
       sources
     * entry point: 0x5
+
+udcli32.bin
+    * udcli (from udis86) 32 bit binary
