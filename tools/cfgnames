@@ -30,8 +30,11 @@ def getFunctions(filename):
 
 def findExitLocations(filename):
     ret = []
-    odumpCmd = "objdump -lSCd %s | grep exit" % filename
-    out = subprocess.check_output(odumpCmd, shell=True)
+    try:
+        odumpCmd = "objdump -lSCd %s | grep exit" % filename
+        out = subprocess.check_output(odumpCmd, shell=True)
+    except subprocess.CalledProcessError:
+        return []
 
     for line in out.split("\n"):
         m = re.match("\s*([0-9a-f]+?):.*call.*exit.*", line)
