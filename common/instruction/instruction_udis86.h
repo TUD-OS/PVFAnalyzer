@@ -317,7 +317,7 @@ public:
 				target = Instruction::ip().v;
 				target += length();
 				targets.push_back(Address(target));
-				return BT_JUMP_UNCOND;
+				return BT_CALL_RESOLVE;
 
 			case UD_OP_MEM:
 				if (Configuration::get()->debug) {
@@ -355,7 +355,7 @@ public:
 				target = Instruction::ip().v;
 				target += length();
 				targets.push_back(Address(target));
-				return BT_JUMP_UNCOND;
+				return BT_CALL_RESOLVE;
 
 			case UD_NONE:
 				break;
