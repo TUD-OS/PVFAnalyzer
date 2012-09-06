@@ -275,7 +275,7 @@ void CFGBuilder_priv::build(Address entry)
 			DEBUG(std::cout << "--1-- Handling incoming edges" << std::endl;);
 			vd = handleIncomingEdges(next.first, vd, bbi);
 
-			DEBUG(std::cout << "--2-- Checking RET edge" << std::endl;);
+			DEBUG(std::cout << "--2-- Checking RET edge (" << vd << ")" << std::endl;);
 			if (cfg(vd).bb->branchType == Instruction::BT_RET) {
 				CFGNodeInfo& callee = cfg(cfg(vd).functionEntry);
 				callee.retNodes.push_back(vd);
@@ -334,6 +334,12 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 				break;
 			}
 
+			if (_terminators[i->ip()]) {
+				DEBUG(std::cout << "\033[35;1mFound a terminator address.\033[0m" << std::endl;);
+				// simply leave. no targets etc.
+				break;
+			}
+
 			if (_bbfound.find(i->ip()) != _bbfound.end()) { // .. or we run into the start of an
 			                                                // already discovered BB
 				DEBUG(std::cout << "Start of already known BB. Terminating discovery." << std::endl;);
@@ -373,7 +379,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 
 			bbi.targets.clear();
 
-			bbi.bb->branchType = Instruction::BT_JUMP_UNCOND;
+			bbi.bb->branchType = Instruction::BT_CALL_DYN;
 			Address newTarget = bbi.bb->lastInstruction();
 			newTarget += bbi.bb->instructions.back()->length();
 			bbi.targets.push_back(newTarget);
@@ -399,9 +405,13 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 		cfg(newVertex).functionEntry = 0;
 	}
 	
-	if (cfg(prevVertex).bb->branchType == Instruction::BT_CALL) {
+	if ((cfg(prevVertex).bb->branchType == Instruction::BT_CALL) or
+		(cfg(prevVertex).bb->branchType == Instruction::BT_CALL_DYN) or
+		(cfg(prevVertex).bb->branchType == Instruction::BT_CALL_RESOLVE)) {
+		DEBUG(std::cout << "     CALL target -> becoming my own entry point." << std::endl;);
 		cfg(newVertex).functionEntry = newVertex;
 	} else if (cfg(prevVertex).bb->branchType == Instruction::BT_RET) {
+		DEBUG(std::cout << "     RET target -> discovering caller entry point." << std::endl;);
 		CFGVertexDescriptor callee = cfg(prevVertex).functionEntry;
 		boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
 		for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg);
@@ -415,8 +425,10 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 				throw ThisShouldNeverHappenException("No CALL for RET?");
 		}
 	} else {
+		DEBUG(std::cout << "     std target -> copying parent entry point." << std::endl;);
 		cfg(newVertex).functionEntry = cfg(prevVertex).functionEntry;
 	}
+	DEBUG(std::cout << "      Function entry: " << cfg(newVertex).functionEntry << std::endl;);
 
 	/* We need to add an edge from the previous vd */
 	addCFGEdge(prevVertex, newVertex);
@@ -590,6 +602,8 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 
 			// Will we ever split a node to become a call target?
 			assert(bbi.bb->branchType != Instruction::BT_CALL);
+			assert(bbi.bb->branchType != Instruction::BT_CALL_DYN);
+			assert(bbi.bb->branchType != Instruction::BT_CALL_RESOLVE);
 			/*
 			 * Adjust pending link list. All non-discovered links that started from
 			 * the non-split block now start from the newly created vertex.
@@ -643,8 +657,7 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 
 	/* Ready to add new vertex to the CFG. */
 	CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
-
-	// 3) incoming edges for original BB remain untouched
+	cfg(vert2).functionEntry = cfg(splitVertex).functionEntry;
 
 	/*
 	 * 4) all existing outgoing edges from bb1 are transformed to
