@@ -121,7 +121,7 @@ parseInputFromOptions(int argc, char **argv)
 
 			case 'h':
 				usage(argv[0]);
-				return false;
+				return -1;
 		}
 		printf("%d\n", optind);
 	}
@@ -512,6 +512,10 @@ class PTracer
 	{
 		int r = ptrace(req, chld, addr, data);
 		//DEBUG(std::cout << "ptraced: " << r << std::endl;);
+
+		/*
+		 * A return value != 0 is ok for PTRACE_PEEK*
+		 */
 		if (r) {
 			switch(req) {
 				case PTRACE_PEEKDATA:
@@ -570,15 +574,23 @@ class PTracer
 		return WaitRet::UNKNOWN;
 	}
 
+#if __WORDSIZE == 64
 	void dumpReg(unsigned long reg)
 	{
 		std::cout << std::setw(16) << std::setfill('0') << std::hex << reg;
 	}
+#else
+	void dumpRegs(unsigned reg)
+	{
+		std::cout << std::setw(8) << std::setfill('0') << std::hex << reg;
+	}
+#endif
 
 	void dumpRegs(struct user_regs_struct* regs)
 	{
 		std::cout << "----------------------------------------------------------------------" << std::endl;
 		std::cout << "REGS" << std::endl;
+#if __WORDSIZE == 64
 		std::cout << "R15 "; dumpReg(regs->r15);
 		std::cout << " R14 "; dumpReg(regs->r14);
 		std::cout << " R13 "; dumpReg(regs->r13);
@@ -596,8 +608,20 @@ class PTracer
 		std::cout << " RIP "; dumpReg(regs->rip);
 		std::cout << " FLG "; dumpReg(regs->eflags); std::cout << std::endl;
 		std::cout << "ORA "; dumpReg(regs->orig_rax); std::cout << std::endl;
+#else
+		std::cout << "EAX "; dumpRegs(regs->eax);
+		std::cout << "EBX "; dumpRegs(regs->ebx);
+		std::cout << "ECX "; dumpRegs(regs->ecx);
+		std::cout << "EDX "; dumpRegs(regs->edx); std::cout << std::endl;
+		std::cout << "ESI "; dumpRegs(regs->esi);
+		std::cout << "EDI "; dumpRegs(regs->edi);
+		std::cout << "EBP "; dumpRegs(regs->ebp);
+		std::cout << "ESP "; dumpRegs(regs->esp); std::cout << std::endl;
+		std::cout << "FLG "; dumpRegs(regs->eflags);
+		std::cout << "EIP "; dumpRegs(regs->eip);
+		std::cout << "ORA "; dumpRegs(regs->orig_eax); std::cout << std::endl;
+#endif
 		std::cout << "----------------------------------------------------------------------" << std::endl;
-		
 	}
 
 	int ptraceSyscall32()
@@ -608,7 +632,7 @@ class PTracer
 
 		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		dumpRegs(&data);
-		syscall = data.rax;
+		syscall = data.eax;
 		std::cout << "   System call: " << std::dec << syscall
 		          << " \033[33m(" << syscall2Name(syscall) << ")\033[0m"
 		          << std::endl;
@@ -627,6 +651,7 @@ class PTracer
 		return 1;
 	}
 
+#if __WORDSIZE == 64
 	int ptraceSyscall64()
 	{
 		struct user_regs_struct data;
@@ -665,6 +690,7 @@ class PTracer
 		}
 		return 1;
 	}
+#endif
 
 
 	/**
@@ -680,11 +706,15 @@ class PTracer
 		 * call info. Later, we execve() our 32bit analysis binary
 		 * and hence need to use 32bit syscall struct.
 		 */
+#if __WORDSIZE==64
 		if (_emulationMode == 32) {
 			return ptraceSyscall32();
 		} else {
 			return ptraceSyscall64();
 		}
+#else
+		return ptraceSyscall32();
+#endif
 	}
 
 	/**
