@@ -15,6 +15,7 @@
 
 **********************************************************************/
 
+#include <iomanip>
 #include <iostream>	          // std::cout
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
@@ -31,6 +32,34 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/user.h>
+
+/*
+ * When running 32bit binaries, we need to use
+ * this struct (which is in sys/user.h as well, but
+ * only gets enabled if __WORDSIZE==32, which isn't
+ * the case on 64bit machines.
+ */
+struct user_regs_struct32
+{
+  long int ebx;
+  long int ecx;
+  long int edx;
+  long int esi;
+  long int edi;
+  long int ebp;
+  long int eax;
+  long int xds;
+  long int xes;
+  long int xfs;
+  long int xgs;
+  long int orig_eax;
+  long int eip;
+  long int xcs;
+  long int eflags;
+  long int esp;
+  long int xss;
+};
+
 
 struct DynRunConfig : public Configuration
 {
@@ -468,7 +497,8 @@ class PTracer
 	/**
 	 * @brief Child we are tracing
 	 **/
-	pid_t _child;
+	pid_t    _child;
+	unsigned _emulationMode;
 
 	/**
 	 * @brief Run ptrace() with arguments and print error if necessary
@@ -482,7 +512,7 @@ class PTracer
 	int ptrace_checked(enum __ptrace_request req, pid_t chld, void *addr, void *data)
 	{
 		int r = ptrace(req, chld, addr, data);
-		DEBUG(std::cout << "ptraced: " << r << std::endl;);
+		//DEBUG(std::cout << "ptraced: " << r << std::endl;);
 		if (r) {
 			switch(req) {
 				case PTRACE_PEEKDATA:
@@ -513,7 +543,7 @@ class PTracer
 	 **/
 	WaitRet wait_checked(pid_t chld, int *status, int *signal)
 	{
-		int res = waitpid(chld, status, 0);
+		int res = waitpid(chld, status, __WALL);
 		//DEBUG(std::cout << "WAIT(): res " << res << ", status " << *status << std::endl;);
 
 		if (WIFEXITED(status)) {
@@ -541,6 +571,102 @@ class PTracer
 		return WaitRet::UNKNOWN;
 	}
 
+	void dumpReg(unsigned long reg)
+	{
+		std::cout << std::setw(16) << std::setfill('0') << std::hex << reg;
+	}
+
+	void dumpRegs(struct user_regs_struct* regs)
+	{
+		std::cout << "----------------------------------------------------------------------" << std::endl;
+		std::cout << "REGS" << std::endl;
+		std::cout << "R15 "; dumpReg(regs->r15);
+		std::cout << " R14 "; dumpReg(regs->r14);
+		std::cout << " R13 "; dumpReg(regs->r13);
+		std::cout << " R12 "; dumpReg(regs->r12); std::cout << std::endl;
+		std::cout << "R11 "; dumpReg(regs->r11);
+		std::cout << " R10 "; dumpReg(regs->r10);
+		std::cout << " R09 "; dumpReg(regs->r9);
+		std::cout << " R08 "; dumpReg(regs->r8); std::cout << std::endl;
+		std::cout << "RAX "; dumpReg(regs->rax);
+		std::cout << " RBX "; dumpReg(regs->rbx);
+		std::cout << " RCX "; dumpReg(regs->rcx);
+		std::cout << " RDX "; dumpReg(regs->rdx); std::cout << std::endl;
+		std::cout << "RSP "; dumpReg(regs->rsp);
+		std::cout << " RBP "; dumpReg(regs->rbp);
+		std::cout << " RIP "; dumpReg(regs->rip);
+		std::cout << " FLG "; dumpReg(regs->eflags); std::cout << std::endl;
+		std::cout << "ORA "; dumpReg(regs->orig_rax); std::cout << std::endl;
+		std::cout << "----------------------------------------------------------------------" << std::endl;
+		
+	}
+
+	int ptraceSyscall32()
+	{
+		struct user_regs_struct data;
+		int status, signal;
+		int syscall;
+
+		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
+		dumpRegs(&data);
+		syscall = data.rax;
+		std::cout << "   System call: " << std::dec << syscall
+		          << " \033[33m(" << syscall2Name(syscall) << ")\033[0m"
+		          << std::endl;
+
+		// do system call
+		ptrace_checked(PTRACE_SYSCALL, _child, 0, 0);
+		if ((syscall != SYS_exit) and (syscall != SYS_exit_group)) {
+			wait_checked(_child, &status, &signal);
+			ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
+			std::cout << "   System call return: 0x" << std::hex
+			          << ((struct user_regs_struct32*)&data)->eax
+			          << " " << ((struct user_regs_struct32*)&data)->orig_eax
+			          << std::endl;
+			return 0;
+		}
+		return 1;
+	}
+
+	int ptraceSyscall64()
+	{
+		struct user_regs_struct data;
+		int status, signal;
+		int syscall;
+
+		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
+		dumpRegs(&data);
+		syscall = data.orig_rax;
+		std::cout << "   System call: " << std::dec << (data.orig_rax)
+		          << " \033[33m(" << syscall2Name(data.orig_rax) << ")\033[0m"
+		          << std::endl;
+
+		// do system call
+		ptrace_checked(PTRACE_SYSCALL, _child, 0, 0);
+		if ((syscall != SYS_exit) and (syscall != SYS_exit_group)) {
+			wait_checked(_child, &status, &signal);
+			ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
+			std::cout << "   System call return: 0x" << std::hex
+			          << (data.rax) << " " << data.orig_rax
+			          << std::endl;
+
+			/* The forked child does one execve() system call. Afterwards,
+			 * we know that we are executing a 32bit binary and need to
+			 * switch modes.
+			 *
+			 * XXX: This would be the point to look at the actual binary
+			 *      and determine its mode (e.g., by looking at its ELF
+			 *      class info), once we support analyzing 64bit binaries.
+			 */
+			if (syscall == SYS_execve) {
+				_emulationMode = 32;
+			}
+
+			return 0;
+		}
+		return 1;
+	}
+
 
 	/**
 	 * @brief Perform system call handling
@@ -549,25 +675,17 @@ class PTracer
 	 **/
 	int handleSyscall()
 	{
-		struct user_regs_struct data;
-		int status, signal;
-		int syscall;
-
-		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
-		syscall = data.orig_rax;
-		std::cout << "   System call: " << std::dec << (data.orig_rax & 0xFFFFFFFFU)
-		          << " \033[33m(" << syscall2Name(data.orig_rax & 0xFFFFFFFFU) << ")\033[0m"
-		          << std::endl;
-
-		// do system call
-		ptrace_checked(PTRACE_SYSCALL, _child, 0, 0);
-		if ((syscall != SYS_exit) and (syscall != SYS_exit_group)) {
-			wait_checked(_child, &status, &signal);
-			ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
-			std::cout << "   System call return: 0x" << std::hex << (data.rax & 0xFFFFFFFFULL) << std::endl;
-			return 0;
+		/*
+		 * On 64bit machines the analyzer runs in 64bit mode and hence
+		 * we need to use 64bit ptrace user structs to access system
+		 * call info. Later, we execve() our 32bit analysis binary
+		 * and hence need to use 32bit syscall struct.
+		 */
+		if (_emulationMode == 32) {
+			return ptraceSyscall32();
+		} else {
+			return ptraceSyscall64();
 		}
-		return 1;
 	}
 
 	/**
@@ -583,7 +701,7 @@ class PTracer
 
 public:
 	PTracer(pid_t child)
-		: _child(child)
+		: _child(child), _emulationMode(__WORDSIZE)
 	{ }
 
 	/**
@@ -647,6 +765,7 @@ runInstrumented(std::list<Address> iPoints, int argc, char** argv)
 		raise(SIGSTOP);
 		for (int i = 0; i < argc; ++i)
 			std::cout << argv[i] << " ";
+		std::cout << std::endl;
 		std::cout << std::endl;
 		execve(argv[0], argv, environ);
 		perror("execve");
