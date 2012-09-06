@@ -83,9 +83,8 @@ parseTerminatorList(char const *string)
 	for (boost::tokenizer<>::iterator it = tokens.begin();
 	     it != tokens.end(); ++it) {
 		try {
+			int a = strtoul((*it).c_str(), 0, 0);
 			// XXX: need to cast from hex number!!!
-			int a = boost::lexical_cast<int>(*it);
-			std::cout << "Address: " << a << std::endl;
 			conf.terminatorAddresses.push_back(Address(a));
 		} catch (boost::bad_lexical_cast) {
 			std::cout << "Error casting '" << *it << "' to int. Skipping." << std::endl;
@@ -169,7 +168,7 @@ buildCFG(std::vector<InputReader*> const & v)
 		std::cout << "\033[31;1mNot implemented:\033[0m " << e.message << std::endl;
 	}
 
-	std::cout << "Built CFG. " << boost::num_vertices(cfg) << " vertices, "
+	std::cout << "Built CFG. " << std::dec << boost::num_vertices(cfg) << " vertices, "
 	          << boost::num_edges(cfg) << " edges." << std::endl;
 
 	/* Store graph */

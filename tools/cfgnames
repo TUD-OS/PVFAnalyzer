@@ -28,8 +28,31 @@ def getFunctions(filename):
     return (a2n, n2a)
 
 
+def findExitLocations(filename):
+    ret = []
+    try:
+        odumpCmd = "objdump -lSCd %s | grep exit" % filename
+        out = subprocess.check_output(odumpCmd, shell=True)
+    except subprocess.CalledProcessError:
+        return []
+
+    for line in out.split("\n"):
+        m = re.match("\s*([0-9a-f]+?):.*call.*exit.*", line)
+        if m:
+            print m.groups()
+            ret += [m.groups(1)]
+
+    return ret
+
+
 def readCFG(filename, entry):
+    exitLocations = findExitLocations(filename)
     readerCmd = "build/reader/reader -f %s -e 0x%x -o cfgtmp.cfg" % (sys.argv[1], entry)
+    if len(exitLocations) > 0:
+        readerCmd += (" -t 0x%s" % exitLocations[0])
+        for l in exitLocations[1:]:
+            readerCmd += (",0x%s" % l)
+    print readerCmd
     print subprocess.check_output(readerCmd.split())
 
 

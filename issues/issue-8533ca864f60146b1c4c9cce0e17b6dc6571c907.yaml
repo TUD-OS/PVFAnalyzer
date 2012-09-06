@@ -1,0 +1,21 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: support for switch / jump tables
+desc: |-
+  Jump tables appear to be jumps through registers / memory targets where the
+  target resides in read-only memory. In this case, we could try to deduce this target from the binary during static analysis.
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-09-01 08:41:36.860847 Z
+references: []
+
+id: 8533ca864f60146b1c4c9cce0e17b6dc6571c907
+log_events: 
+- - 2012-09-01 08:41:37.384405 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

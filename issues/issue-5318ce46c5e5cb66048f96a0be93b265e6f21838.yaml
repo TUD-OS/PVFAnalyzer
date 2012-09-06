@@ -1,5 +1,5 @@
 --- !ditz.rubyforge.org,2008-03-06/issue 
-title: More complex C test cases
+title: "udis86: registerToName()"
 desc: ""
 type: :feature
 component: CFGAnalysis
@@ -7,17 +7,13 @@ release: "0.3"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
-creation_time: 2012-08-31 13:44:49.021974 Z
+creation_time: 2012-09-01 07:47:53.561666 Z
 references: []
 
-id: 6527c9951ddeff86122a66dfe8c29e43223f8c85
+id: 5318ce46c5e5cb66048f96a0be93b265e6f21838
 log_events: 
-- - 2012-08-31 13:44:49.481827 Z
+- - 2012-09-01 07:47:54.047616 Z
   - doebel <doebel@tudos.org>
   - created
   - ""
-- - 2012-09-01 07:29:52.610332 Z
-  - doebel <doebel@tudos.org>
-  - commented
-  - added udcli 32 bit binary
 git_branch: 
