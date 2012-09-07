@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/user.h>
+#include <sys/reg.h>
 
 /*
  * When running 32bit binaries, we need to use
@@ -508,7 +509,7 @@ class PTracer
 	 * @param data ...
 	 * @return int
 	 **/
-	int ptrace_checked(enum __ptrace_request req, pid_t chld, void *addr, void *data)
+	int ptrace_checked(enum __ptrace_request req, pid_t chld, unsigned long addr, void *data)
 	{
 		int r = ptrace(req, chld, addr, data);
 		//DEBUG(std::cout << "ptraced: " << r << std::endl;);
@@ -530,6 +531,7 @@ class PTracer
 		return r;
 	}
 
+	/* potential return values from the wait*() system calls */
 	enum class WaitRet {
 		UNKNOWN,
 		TERMINATE,
@@ -610,16 +612,16 @@ class PTracer
 		std::cout << "ORA "; dumpReg(regs->orig_rax); std::cout << std::endl;
 #else
 		std::cout << "EAX "; dumpRegs(regs->eax);
-		std::cout << "EBX "; dumpRegs(regs->ebx);
-		std::cout << "ECX "; dumpRegs(regs->ecx);
-		std::cout << "EDX "; dumpRegs(regs->edx); std::cout << std::endl;
+		std::cout << " EBX "; dumpRegs(regs->ebx);
+		std::cout << " ECX "; dumpRegs(regs->ecx);
+		std::cout << " EDX "; dumpRegs(regs->edx); std::cout << std::endl;
 		std::cout << "ESI "; dumpRegs(regs->esi);
-		std::cout << "EDI "; dumpRegs(regs->edi);
-		std::cout << "EBP "; dumpRegs(regs->ebp);
-		std::cout << "ESP "; dumpRegs(regs->esp); std::cout << std::endl;
+		std::cout << " EDI "; dumpRegs(regs->edi);
+		std::cout << " EBP "; dumpRegs(regs->ebp);
+		std::cout << " ESP "; dumpRegs(regs->esp); std::cout << std::endl;
 		std::cout << "FLG "; dumpRegs(regs->eflags);
-		std::cout << "EIP "; dumpRegs(regs->eip);
-		std::cout << "ORA "; dumpRegs(regs->orig_eax); std::cout << std::endl;
+		std::cout << " EIP "; dumpRegs(regs->eip);
+		std::cout << " ORA "; dumpRegs(regs->orig_eax); std::cout << std::endl;
 #endif
 		std::cout << "----------------------------------------------------------------------" << std::endl;
 	}
@@ -630,9 +632,11 @@ class PTracer
 		int status, signal;
 		int syscall;
 
+		int x = ptrace_checked(PTRACE_PEEKUSER, _child, 4*ORIG_EAX, 0);
+		std::cout << "X: " << x << std::endl;
 		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		dumpRegs(&data);
-		syscall = data.eax;
+		syscall = data.orig_eax;
 		std::cout << "   System call: " << std::dec << syscall
 		          << " \033[33m(" << syscall2Name(syscall) << ")\033[0m"
 		          << std::endl;
