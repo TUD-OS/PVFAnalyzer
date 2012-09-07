@@ -24,4 +24,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - assigned to release 0.3 from 0.2
   - ""
+- - 2012-09-07 13:44:17.287078 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - ptrace example is now in my github playground
 git_branch: 
