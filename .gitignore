@@ -10,3 +10,5 @@ build
 config.log
 .sconf_temp
 testing/testout
+*.cfg
+*.ilist
