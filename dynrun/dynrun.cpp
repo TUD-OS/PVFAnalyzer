@@ -158,6 +158,20 @@ struct Syscalls
 		}
 		return res;
 	}
+
+	static void dumpMemory(pid_t process, Address a, size_t size)
+	{
+		for (unsigned long w = a.v; w < a.v + size; w += sizeof(w)) {
+			unsigned long data = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, w, 0);
+			std::cout << std::hex << "[0x" << w << "] ";
+			for (unsigned i = 0; i < sizeof(w); i+=2) {
+				std::cout << std::hex << std::setw(2) << std::setfill('0')
+				          << ((data >> (i*4)) & 0xFF) << " ";
+			}
+			std::cout << std::endl;
+		}
+
+	}
 };
 
 
@@ -338,7 +352,7 @@ class PTracer
 
 		Syscalls::ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		if (Configuration::get()->debug) {
-			dumpRegs(&data);
+			//dumpRegs(&data);
 		}
 
 		if (!_inSyscall) {
@@ -373,13 +387,6 @@ class PTracer
 		return 0;
 	}
 
-	void dumpChildMem(Address a, size_t size)
-	{
-		for (unsigned long w = a.v; w < a.v + size; w += sizeof(w)) {
-			std::cout << std::hex << "[0x" << w << "] "
-			          << Syscalls::ptrace_checked(PTRACE_PEEKDATA, _child, w, 0) << std::endl;
-		}
-	}
 
 	int handleBreakpoint()
 	{
@@ -398,6 +405,7 @@ class PTracer
 			                << "Orig BP: " << std::hex << _curBreakpoint->target.v
 			                << " cur IP: " << ip
 			                << std::endl;);
+
 			_curBreakpoint->arm(_child);
 			_curBreakpoint = 0;
 			_inSinglestep  = false;
@@ -411,7 +419,7 @@ class PTracer
 				return 0;
 
 			if (Configuration::get()->debug) {
-				bp->dump();
+				//bp->dump();
 			}
 
 			bp->hitCount++;
