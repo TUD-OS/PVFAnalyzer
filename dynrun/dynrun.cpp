@@ -229,6 +229,7 @@ struct BreakpointData
 		          << std::endl;
 	}
 
+
 	void arm(pid_t process)
 	{
 		origData = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, target.v, 0);
@@ -237,8 +238,17 @@ struct BreakpointData
 
 	}
 
+
 	void disarm(pid_t process)
 	{
+		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)origData);
+		Syscalls::ptrace_checked(PTRACE_POKEUSER, process,
+#if __WORDSIZE == 32
+		                         4 * EIP,
+#else
+		                         8 * RIP,
+#endif
+		                         (void*)target.v);
 	}
 };
 
@@ -388,8 +398,10 @@ class PTracer
 			                << "Orig BP: " << std::hex << _curBreakpoint->target.v
 			                << " cur IP: " << ip
 			                << std::endl;);
+			_curBreakpoint->arm(_child);
 			_curBreakpoint = 0;
 			_inSinglestep  = false;
+
 			continueChild();
 		} else {
 			ip -= 1; // if this is an INT3 breakpoint, the orig BP was set at IP-1
@@ -402,19 +414,12 @@ class PTracer
 				bp->dump();
 			}
 
-			dumpChildMem(Address(ip), 16);
-			Syscalls::ptrace_checked(PTRACE_POKEDATA, _child, ip, (void*)bp->origData);
-			Syscalls::ptrace_checked(PTRACE_POKEUSER, _child,
-#if __WORDSIZE == 32
-						4 * EIP,
-#else
-						8 * RIP,
-#endif
-						(void*)ip);
-			dumpChildMem(Address(ip), 16);
-			Syscalls::ptrace_checked(PTRACE_SINGLESTEP, _child, 0, 0);
+			bp->hitCount++;
+			bp->disarm(_child);
 			_curBreakpoint = bp;
 			_inSinglestep  = true;
+
+			Syscalls::ptrace_checked(PTRACE_SINGLESTEP, _child, 0, 0);
 		}
 		
 		return 1;
