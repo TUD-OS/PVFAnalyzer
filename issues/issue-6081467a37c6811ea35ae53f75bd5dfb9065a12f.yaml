@@ -28,4 +28,19 @@ log_events:
   - doebel <doebel@tudos.org>
   - commented
   - ptrace example is now in my github playground
+- - 2012-09-08 22:42:29.329479 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - |-
+    breakpoint set/reset works now.
+    
+    Next steps:
+    - integrate with CFGBuilder
+      - discover new address -> find if BB is already in CFG
+      - if yes: add edge
+      - if no: start new partial BB discovery
+      - in both cases: adapt edge types in CFG
+        and write CFG back to file
+    - trace generation: instrument all jumps with more than one
+      successor and track when which path is taken -> generate iList
 git_branch: 
