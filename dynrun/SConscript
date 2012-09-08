@@ -1,5 +1,6 @@
 files = """
 dynrun
+syscallnames
 """
 
 objects = [("%s.o" % f) for f in files.split()]
