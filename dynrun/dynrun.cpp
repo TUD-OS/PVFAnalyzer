@@ -903,6 +903,8 @@ class PTracer
 	bool     _inSyscall;
 	unsigned _curSyscall;
 
+	std::map<Address, unsigned> _breakpointData;
+
 	/**
 	 * @brief Run ptrace() with arguments and print error if necessary
 	 *
@@ -917,29 +919,12 @@ class PTracer
 		int r = ptrace(req, chld, addr, data);
 		//DEBUG(std::cout << "ptraced: " << r << std::endl;);
 
-		/*
-		 * A return value != 0 is ok for PTRACE_PEEK*
-		 */
-		if (r) {
-			switch(req) {
-				case PTRACE_PEEKDATA:
-				case PTRACE_PEEKTEXT:
-				case PTRACE_PEEKUSER:
-					break;
-				default:
-					std::cout << "   ptrace() error: " << r << std::endl;
-					perror("ptrace");
-			}
+		if (r and errno) {
+			perror("ptrace");
 		}
+
 		return r;
 	}
-
-	/* potential return values from the wait*() system calls */
-	enum class WaitRet {
-		UNKNOWN,
-		TERMINATE,
-		SIGNAL,
-	};
 
 	/**
 	 * @brief Wait for child
@@ -949,34 +934,14 @@ class PTracer
 	 * @param signal ...
 	 * @return :WaitRet
 	 **/
-	WaitRet wait_checked(pid_t chld, int *status, int *signal)
+	int wait_checked(pid_t chld, int *status)
 	{
 		int res = waitpid(chld, status, __WALL);
 		//DEBUG(std::cout << "WAIT(): res " << res << ", status " << *status << std::endl;);
-
-		if (WIFEXITED(status)) {
-			terminate(WEXITSTATUS(*status));
-			// we're done
-			return WaitRet::TERMINATE;
+		if (res == -1) {
+			perror("waitpid");
 		}
-
-		if (res != _child) {
-			if (WIFSIGNALED(*status)) {
-				terminate(WTERMSIG(*status));
-				// we're done
-				return WaitRet::TERMINATE;
-			}
-
-			DEBUG(std::cout << "   \033[31;1mwait() returned non-child status.\033[0m" << std::endl;);
-			exit(1);
-		} else {
-			if (WIFSTOPPED(*status)) {
-				*signal = WSTOPSIG(*status);
-				DEBUG(std::cout << "   stopped with signal: " << *signal << std::endl;);
-				return WaitRet::SIGNAL;
-			}
-		}
-		return WaitRet::UNKNOWN;
+		return res;
 	}
 
 #if __WORDSIZE == 64
@@ -1043,7 +1008,7 @@ class PTracer
 
 		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		if (Configuration::get()->debug) {
-			dumpRegs(&data);
+			//dumpRegs(&data);
 		}
 
 		if (!_inSyscall) {
@@ -1078,21 +1043,11 @@ class PTracer
 		return 0;
 	}
 
-	/**
-	 * @brief Print termination info
-	 *
-	 * @param status ...
-	 * @return void
-	 **/
-	void terminate(int status)
-	{
-		std::cout << "Program terminated with status " << status << std::endl;
-	}
-
 public:
 	PTracer(pid_t child)
 		: _child(child), _emulationMode(__WORDSIZE),
-		  _inSyscall(false), _curSyscall(~0U)
+		  _inSyscall(false), _curSyscall(~0U),
+		  _breakpointData()
 	{ }
 
 	/**
@@ -1105,9 +1060,12 @@ public:
 	 **/
 	bool handshake()
 	{
-		int signal, status;
-		WaitRet r = wait_checked(_child, &status, &signal);
-		return r == WaitRet::SIGNAL and signal == SIGSTOP;
+		int status;
+		int r = wait_checked(_child, &status);
+		if (r == _child) {
+			return WIFSTOPPED(status) and WSTOPSIG(status) == SIGSTOP;
+		}
+		return false;
 	}
 
 	/**
@@ -1127,22 +1085,35 @@ public:
 	 **/
 	void run()
 	{
-		int signal, status = 0;
+		int status = 0;
 		while (1) {
-			WaitRet r = wait_checked(_child, &status, &signal);
-			if (r == WaitRet::TERMINATE) {
+			int r = wait_checked(_child, &status);
+
+			if (r == -1) {
 				return;
 			}
-			if (r == WaitRet::SIGNAL) {
-				if (signal == SIGTRAP) {
-					int ret = handleSyscall();
-					if (ret) {
+
+			if (WIFSTOPPED(status)) {
+				DEBUG(std::cout << "Stopped with signal " << WSTOPSIG(status) << std::endl;);
+				if (WSTOPSIG(status) == SIGTRAP) {
+					if (handleSyscall())
 						return;
-					}
 				}
 			}
+
+			if (WIFEXITED(status)) {
+				DEBUG(std::cout << "Terminated with status " << WEXITSTATUS(status) << std::endl;);
+				return;
+			}
+
 			continueChild();
 		}
+	}
+
+	void addBreakpoint(Address a)
+	{
+		unsigned data = ptrace_checked(PTRACE_PEEKTEXT, _child, a.v, 0);
+		DEBUG(std::cout << "BP @ " << std::hex << a.v << " data: " << std::hex << data << std::endl;);	
 	}
 };
 
@@ -1152,21 +1123,41 @@ runInstrumented(std::list<Address> iPoints, int argc, char** argv)
 {
 	pid_t child = fork();
 	if (child == 0) {
+
+		/*
+		 * Child's part of the ptrace handshake
+		 */
 		ptrace(PTRACE_TRACEME, 0, 0, 0);
 		raise(SIGSTOP);
+
 		for (int i = 0; i < argc; ++i)
 			std::cout << argv[i] << " ";
 		std::cout << std::endl;
-		std::cout << std::endl;
+
+		/*
+		 * Execute the binary including parameters and
+		 * inheriting parent's environment
+		 */
 		execve(argv[0], argv, environ);
 		perror("execve");
 		throw ThisShouldNeverHappenException("execve failed");
 	} else if (child > 0) {
+
 		PTracer pt(child);
 
-		if (!pt.handshake()) return;
+		if (!pt.handshake()) {
+			return;
+		}
+
+		BOOST_FOREACH(Address a, iPoints) {
+			pt.addBreakpoint(a);
+		}
+		exit(1);
+
 		pt.continueChild();
+
 		pt.run();
+
 	} else {
 		perror("fork");
 		exit(1);
@@ -1182,8 +1173,8 @@ int main(int argc, char **argv)
 	if ((newArg = parseInputFromOptions(argc, argv)) < 0)
 		exit(2);
 
-	std::cout << "Newarg: " << newArg << std::endl;
-	std::cout << "    " << argv[newArg] << std::endl;
+	DEBUG(std::cout << "Newarg: " << newArg << std::endl;);
+	DEBUG(std::cout << "        " << argv[newArg] << std::endl;)
 
 	banner();
 
