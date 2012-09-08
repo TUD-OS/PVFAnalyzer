@@ -34,65 +34,6 @@
 #include <sys/user.h>
 #include <sys/reg.h>
 
-/*
- * When running 32bit binaries, we need to use
- * this struct (which is in sys/user.h as well, but
- * only gets enabled if __WORDSIZE==32, which isn't
- * the case on 64bit machines.
- */
-struct user_regs_struct32
-{
-  long int ebx;
-  long int ecx;
-  long int edx;
-  long int esi;
-  long int edi;
-  long int ebp;
-  long int eax;
-  long int xds;
-  long int xes;
-  long int xfs;
-  long int xgs;
-  long int orig_eax;
-  long int eip;
-  long int xcs;
-  long int eflags;
-  long int esp;
-  long int xss;
-};
-
-
-struct user_regs_struct64
-{
-  unsigned long r15;
-  unsigned long r14;
-  unsigned long r13;
-  unsigned long r12;
-  unsigned long rbp;
-  unsigned long rbx;
-  unsigned long r11;
-  unsigned long r10;
-  unsigned long r9;
-  unsigned long r8;
-  unsigned long rax;
-  unsigned long rcx;
-  unsigned long rdx;
-  unsigned long rsi;
-  unsigned long rdi;
-  unsigned long orig_rax;
-  unsigned long rip;
-  unsigned long cs;
-  unsigned long eflags;
-  unsigned long rsp;
-  unsigned long ss;
-  unsigned long fs_base;
-  unsigned long gs_base;
-  unsigned long ds;
-  unsigned long es;
-  unsigned long fs;
-  unsigned long gs;
-};
-
 
 struct DynRunConfig : public Configuration
 {
@@ -893,6 +834,51 @@ int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<Address>& unre
 }
 
 
+enum class BreakpointReason
+{
+	BP_JUMP,
+};
+
+struct BreakpointData
+{
+	/*
+	 * Store the original BP address, because after stepping through
+	 * a BP we might not know where we came from anymore.
+	 */
+	Address          target;
+
+	/*
+	 * Depending on the original reason to place this
+	 * BP, we later decide if we want to set it again
+	 */
+	BreakpointReason reason;
+
+	/*
+	 * Store original data for single-stepping once we
+	 * hit the BP.
+	 */
+	unsigned         origData;
+
+	/*
+	 * Number of times this BP was hit.
+	 */
+	unsigned         hitCount;
+
+	BreakpointData(Address t, BreakpointReason r)
+		: target(t), reason(r), origData(0), hitCount(0)
+	{ }
+
+	void dump()
+	{
+		std::cout << "BP @ 0x" << std::hex << target.v
+		          << " reason: " << (int)reason
+		          << " orig word: " << origData
+		          << " hit count: " << std::dec << hitCount
+		          << std::endl;
+	}
+};
+
+
 class PTracer
 {
 	/**
@@ -900,19 +886,27 @@ class PTracer
 	 **/
 	pid_t    _child;
 	unsigned _emulationMode;
+
 	bool     _inSyscall;
 	unsigned _curSyscall;
 
-	std::map<Address, unsigned> _breakpointData;
+	bool     _inSinglestep;
+	BreakpointData *_curBreakpoint;
+	std::map<Address, BreakpointData*> _breakpoints;
+
+	enum {
+		execve32 = 11,
+		execve64 = 59,
+	};
 
 	/**
 	 * @brief Run ptrace() with arguments and print error if necessary
 	 *
-	 * @param req ...
-	 * @param chld ...
-	 * @param addr ...
-	 * @param data ...
-	 * @return int
+	 * @param req ptrace request
+	 * @param chld child PID
+	 * @param addr ptrace address parameter
+	 * @param data ptrace data parameter
+	 * @return ptrace return value
 	 **/
 	int ptrace_checked(enum __ptrace_request req, pid_t chld, unsigned long addr, void *data)
 	{
@@ -929,10 +923,9 @@ class PTracer
 	/**
 	 * @brief Wait for child
 	 *
-	 * @param chld ...
-	 * @param status ...
-	 * @param signal ...
-	 * @return :WaitRet
+	 * @param chld child PID
+	 * @param status status pointer
+	 * @return waitpid() return value
 	 **/
 	int wait_checked(pid_t chld, int *status)
 	{
@@ -961,7 +954,7 @@ class PTracer
 		std::cout << "----------------------------------------------------------------------" << std::endl;
 		std::cout << "REGS" << std::endl;
 #if __WORDSIZE == 64
-		struct user_regs_struct64* regs = reinterpret_cast<struct user_regs_struct64*>(arg);
+		struct user_regs_struct* regs = reinterpret_cast<struct user_regs_struct*>(arg);
 		std::cout << "R15 "; dumpReg(regs->r15);
 		std::cout << " R14 "; dumpReg(regs->r14);
 		std::cout << " R13 "; dumpReg(regs->r13);
@@ -980,7 +973,7 @@ class PTracer
 		std::cout << " FLG "; dumpReg(regs->eflags); std::cout << std::endl;
 		std::cout << "ORA "; dumpReg(regs->orig_rax); std::cout << std::endl;
 #else
-		struct user_regs_struct32* regs = reinterpret_cast<struct user_regs_struct32*>(arg);
+		struct user_regs_struct* regs = reinterpret_cast<struct user_regs_struct*>(arg);
 		std::cout << "EAX "; dumpReg(regs->eax);
 		std::cout << " EBX "; dumpReg(regs->ebx);
 		std::cout << " ECX "; dumpReg(regs->ecx);
@@ -1008,7 +1001,7 @@ class PTracer
 
 		ptrace_checked(PTRACE_GETREGS, _child, 0, &data);
 		if (Configuration::get()->debug) {
-			//dumpRegs(&data);
+			dumpRegs(&data);
 		}
 
 		if (!_inSyscall) {
@@ -1032,9 +1025,9 @@ class PTracer
 			_inSyscall = false;
 
 #if __WORDSIZE == 64
-			if (_curSyscall == 59) { // == SYS_execve on 64bit
+			if (_curSyscall == execve64) { // == SYS_execve on 64bit
 				_emulationMode = 32;
-				_curSyscall    = 11; // == SYS_execve on 32bit
+				_curSyscall    = execve32; // == SYS_execve on 32bit
 				_inSyscall     = true;
 			}
 #endif
@@ -1043,12 +1036,62 @@ class PTracer
 		return 0;
 	}
 
+	int handleBreakpoint()
+	{
+		struct user_regs_struct regs;
+		ptrace_checked(PTRACE_GETREGS, _child, 0, &regs);
+
+		unsigned long ip;
+#if __WORDSIZE == 32
+		ip = regs.eip;
+#else
+		ip = regs.rip;
+#endif
+
+		if (_inSinglestep) {
+			DEBUG(std::cout << "back from Singlestep. "
+			                << "Orig BP: " << std::hex << _curBreakpoint->target.v
+			                << " cur IP: " << ip
+			                << std::endl;);
+			_curBreakpoint = 0;
+			_inSinglestep  = false;
+		} else {
+			ip -= 1; // if this is an INT3 breakpoint, the orig BP was set at IP-1
+
+			BreakpointData* bp = _breakpoints[Address(ip)];
+			if (!bp)
+				return 0;
+
+			if (Configuration::get()->debug) {
+				bp->dump();
+			}
+
+			ptrace_checked(PTRACE_POKEDATA, _child, ip, (void*)(0UL | bp->origData));
+			ptrace_checked(PTRACE_POKEUSER, _child,
+#if __WORDSIZE == 32
+						4 * EIP,
+#else
+						8 * RIP,
+#endif
+						(void*)ip);
+			ptrace_checked(PTRACE_SINGLESTEP, _child, 0, 0);
+			_curBreakpoint = bp;
+			_inSinglestep  = true;
+		}
+		
+		return 1;
+	}
+
 public:
 	PTracer(pid_t child)
 		: _child(child), _emulationMode(__WORDSIZE),
 		  _inSyscall(false), _curSyscall(~0U),
-		  _breakpointData()
+		  _inSinglestep(false), _curBreakpoint(0),
+		  _breakpoints()
 	{ }
+
+	PTracer(PTracer const&)            = delete;
+	PTracer& operator=(PTracer const&) = delete;
 
 	/**
 	 * @brief Perform initial handshake with child
@@ -1062,10 +1105,26 @@ public:
 	{
 		int status;
 		int r = wait_checked(_child, &status);
-		if (r == _child) {
-			return WIFSTOPPED(status) and WSTOPSIG(status) == SIGSTOP;
+		assert(r==_child and WIFSTOPPED(status) and WSTOPSIG(status) == SIGSTOP);
+
+		for (;;) {
+			continueChild();
+			r = wait_checked(_child, &status);
+			if (r == _child and WIFSTOPPED(status) and WSTOPSIG(status) == SIGTRAP) {
+				handleSyscall();
+				// run in syscall emulation until our child switched to
+				// 32bit execution and is in execve()
+				if (_emulationMode == 32 and _curSyscall == execve32) {
+					return true;
+				}
+			}
+			else {
+				std::cout << "ERR1" << std::endl;
+				return false;
+			}
 		}
-		return false;
+
+		return true;
 	}
 
 	/**
@@ -1094,10 +1153,14 @@ public:
 			}
 
 			if (WIFSTOPPED(status)) {
-				DEBUG(std::cout << "Stopped with signal " << WSTOPSIG(status) << std::endl;);
+				DEBUG(std::cout << "Stopped with signal " << std::dec << WSTOPSIG(status) << std::endl;);
 				if (WSTOPSIG(status) == SIGTRAP) {
+					if (handleBreakpoint())
+						continue;
 					if (handleSyscall())
 						return;
+				} else {
+					return;	
 				}
 			}
 
@@ -1112,8 +1175,15 @@ public:
 
 	void addBreakpoint(Address a)
 	{
-		unsigned data = ptrace_checked(PTRACE_PEEKTEXT, _child, a.v, 0);
-		DEBUG(std::cout << "BP @ " << std::hex << a.v << " data: " << std::hex << data << std::endl;);	
+		unsigned data = ptrace_checked(PTRACE_PEEKDATA, _child, a.v, 0);
+		DEBUG(std::cout << "BP @ " << std::hex << a.v << " data: "
+		                << std::hex << data
+		                << " -- " << (data & 0xFF)
+		                << std::endl;);
+		_breakpoints[a] = new BreakpointData(a, BreakpointReason::BP_JUMP);
+		_breakpoints[a]->origData = data;
+		unsigned newdata = (data & 0xFFFFFF00) | 0xCC; // INT3;
+		ptrace_checked(PTRACE_POKEDATA, _child, a.v, (void*)(0UL | newdata));
 	}
 };
 
@@ -1152,7 +1222,7 @@ runInstrumented(std::list<Address> iPoints, int argc, char** argv)
 		BOOST_FOREACH(Address a, iPoints) {
 			pt.addBreakpoint(a);
 		}
-		exit(1);
+		//exit(1);
 
 		pt.continueChild();
 
