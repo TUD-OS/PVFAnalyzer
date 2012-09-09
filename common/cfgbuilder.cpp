@@ -269,7 +269,8 @@ void CFGBuilder_priv::build(Address entry)
 
 void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 {
-	DEBUG(std::cout << __func__ << ": " << start << " -> " << target.v << std::endl;);
+	DEBUG(std::cout << "\033[34;1m" << __func__ << ": " << start
+	                << " -> " << target.v << "\033[0m" << std::endl;);
 
 	CFGNodeInfo& node = cfg(start);
 
@@ -287,6 +288,17 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 			}
 		}
 	}
+
+	/*
+	 * Now, someone else might also have discovered this BB already, so now
+	 * go and check for an existing CFG node
+	 */
+	try {
+		CFGVertexDescriptor v = _cfg.findNodeWithAddress(target);
+		addCFGEdge(start, v);
+		return;
+	} catch (NodeNotFoundException)
+	{ }
 
 	_bb_connections.push_back(UnresolvedLink(start, target));
 
