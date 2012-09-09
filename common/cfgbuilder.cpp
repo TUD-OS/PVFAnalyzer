@@ -74,11 +74,23 @@ public:
 class CFGBuilder_priv : public CFGBuilder
 {
 public:
-	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& cfg)
-		: _dis(), _cfg(cfg), _bbfound(), _inputs(in), _bb_connections()
-	{ }
+	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& g)
+		: _dis(), _cfg(g), _bbfound(), _inputs(in), _bb_connections()
+	{
+		if (boost::num_vertices(g) > 0) {
+			CFGVertexIterator ei, ei_end;
+			for (boost::tie(ei, ei_end) = boost::vertices(g);
+				 ei != ei_end; ++ei) {
+				CFGNodeInfo& n = cfg(*ei);
+				if (*ei != 0) {
+					_bbfound.insert(n.bb->firstInstruction());
+				}
+			}
+		}
+	}
 
 	virtual void build(Address a);
+	virtual void extend(CFGVertexDescriptor a, Address b);
 
 	/*
 	 * We will find a lot of initially unresolved links by exploring a new
@@ -87,10 +99,6 @@ public:
 	 */
 	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
 	typedef std::list<UnresolvedLink>               PendingResolutionList;
-
-	typedef std::map<Address, CFGVertexDescriptor>  CallDominatorInfo;
-	typedef std::map<Address, std::set<Address> >   CallReturnSites;
-	typedef std::map<Address, std::set<CFGVertexDescriptor> > ReturnDominatorInfo;
 
 private:
 
@@ -303,6 +311,33 @@ void CFGBuilder_priv::build(Address entry)
 		}
 	}
 	DEBUG(std::cout << "\033[32m" << "BB construction finished." << "\033[0m" << std::endl;);
+}
+
+
+void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
+{
+	DEBUG(std::cout << __func__ << ": " << start << " -> " << target.v << std::endl;);
+
+	CFGNodeInfo& node = cfg(start);
+
+	/*
+	 * If this is a non-resolve node, we already came here at least once and so
+	 * the target might already be in our successor list
+	 */
+	if (node.bb->branchType != Instruction::BT_CALL_RESOLVE) {
+		boost::graph_traits<ControlFlowGraph>::out_edge_iterator ei, ei_end;
+		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg);
+		     ei != ei_end; ++ei) {
+			CFGVertexDescriptor v = boost::target(*ei, _cfg);
+			if (cfg(v).bb->firstInstruction() == target) {
+				return;
+			}
+		}
+	}
+
+	_bb_connections.push_back(UnresolvedLink(start, target));
+
+	throw NotImplementedException(__func__);
 }
 
 

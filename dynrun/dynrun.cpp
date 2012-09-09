@@ -119,6 +119,9 @@ readCFG(ControlFlowGraph& cfg)
 }
 
 
+/**
+ * @brief Wrappers around system calls
+ **/
 struct Syscalls
 {
 	/**
@@ -175,36 +178,17 @@ struct Syscalls
 };
 
 
-int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<Address>& unresolved)
-{
-	int count = 0;
-	CFGVertexIterator v, v_end;
-
-	for (boost::tie(v, v_end) = boost::vertices(cfg); v != v_end; ++v)
-	{
-		//std::cout << *v;
-		CFGNodeInfo const& n = cfg[*v];
-		switch(n.bb->branchType) {
-			case Instruction::BT_CALL_RESOLVE:
-				//std::cout << " UNRES " << std::hex << n.bb->lastInstruction().v;
-				unresolved.push_back(n.bb->lastInstruction());
-				count++;
-				break;
-			default:
-				break;
-		}
-		//std::cout << std::endl;
-	}
-
-	return count;
-}
-
-
+/**
+ * @brief Reason for which a breakpoint was set
+ **/
 enum class BreakpointReason
 {
-	BP_JUMP,
+	BP_JUMP, // unresolved jump
 };
 
+/**
+ * @brief Data stored for each breakpoint
+ **/
 struct BreakpointData
 {
 	/*
@@ -230,8 +214,17 @@ struct BreakpointData
 	 */
 	unsigned         hitCount;
 
-	BreakpointData(Address t, BreakpointReason r)
-		: target(t), reason(r), origData(0), hitCount(0)
+
+	/*
+	 * As a shortcut for extending the CFG, we also store the
+	 * CFG Vertex this BP belongs to. Otherwise we'd have to do
+	 * a search() for every CFGBuilder::extend().
+	 */
+	CFGVertexDescriptor vertex;
+
+
+	BreakpointData(Address t, BreakpointReason r, CFGVertexDescriptor v = 0)
+		: target(t), reason(r), origData(0), hitCount(0), vertex(v)
 	{ }
 
 	void dump()
@@ -244,6 +237,12 @@ struct BreakpointData
 	}
 
 
+	/**
+	 * @brief Patch target's address space so that it triggers BP at target address
+	 *
+	 * @param process PID
+	 * @return void
+	 **/
 	void arm(pid_t process)
 	{
 		origData = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, target.v, 0);
@@ -253,6 +252,12 @@ struct BreakpointData
 	}
 
 
+	/**
+	 * @brief Disable a previously enabled BP
+	 *
+	 * @param process PID
+	 * @return void
+	 **/
 	void disarm(pid_t process)
 	{
 		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)origData);
@@ -267,20 +272,55 @@ struct BreakpointData
 };
 
 
+/**
+ * @brief Walk the CFG and generate a list of Breakpoints for unresolved jumps
+ *
+ * @param cfg CFG
+ * @param unresolved output: list of breakpoints
+ * @return number of breakpoints
+ **/
+int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<BreakpointData*>& unresolved)
+{
+	CFGVertexIterator v, v_end;
+
+	for (boost::tie(v, v_end) = boost::vertices(cfg); v != v_end; ++v)
+	{
+		//std::cout << *v;
+		CFGNodeInfo const& n = cfg[*v];
+		switch(n.bb->branchType) {
+			case Instruction::BT_CALL_RESOLVE:
+				//std::cout << " UNRES " << std::hex << n.bb->lastInstruction().v;
+				unresolved.push_back(new BreakpointData(n.bb->lastInstruction(), BreakpointReason::BP_JUMP, *v));
+				break;
+			default:
+				break;
+		}
+		//std::cout << std::endl;
+	}
+
+	return unresolved.size();
+}
+
+
+/**
+ * @brief PTrace-based debugger handling our breakpoints
+ **/
 class PTracer
 {
 	/**
 	 * @brief Child we are tracing
 	 **/
-	pid_t    _child;
-	unsigned _emulationMode;
+	pid_t    _child;         // the child process
+	unsigned _emulationMode; // executing in 32 or 64 bit mode?
 
-	bool     _inSyscall;
-	unsigned _curSyscall;
+	bool     _inSyscall;     // are we currently in a system call?
+	unsigned _curSyscall;    // syscall number
 
-	bool     _inSinglestep;
-	BreakpointData *_curBreakpoint;
-	std::map<Address, BreakpointData*> _breakpoints;
+	bool     _inSinglestep;  // are we currently single-stepping due to a BP?
+	BreakpointData *_curBreakpoint; // current BP descriptor
+	std::map<Address, BreakpointData*> _breakpoints; // list of all breakpoints
+
+	CFGBuilder * _cfgBuilder; // CFG Builder to be called for unresolved JMP nodes
 
 	enum {
 		execve32 = 11,
@@ -388,6 +428,11 @@ class PTracer
 	}
 
 
+	/**
+	 * @brief Breakpoint handling
+	 *
+	 * @return int
+	 **/
 	int handleBreakpoint()
 	{
 		struct user_regs_struct regs;
@@ -405,6 +450,8 @@ class PTracer
 			                << "Orig BP: " << std::hex << _curBreakpoint->target.v
 			                << " cur IP: " << ip
 			                << std::endl;);
+
+			_cfgBuilder->extend(_curBreakpoint->vertex, Address(ip));
 
 			_curBreakpoint->arm(_child);
 			_curBreakpoint = 0;
@@ -434,6 +481,11 @@ class PTracer
 	}
 
 
+	/**
+	 * @brief Dump signal info
+	 *
+	 * @return void
+	 **/
 	void handleSignal()
 	{
 		siginfo_t sig;
@@ -463,11 +515,11 @@ class PTracer
 	}
 
 public:
-	PTracer(pid_t child)
+	PTracer(pid_t child, CFGBuilder *builder)
 		: _child(child), _emulationMode(__WORDSIZE),
 		  _inSyscall(false), _curSyscall(~0U),
 		  _inSinglestep(false), _curBreakpoint(0),
-		  _breakpoints()
+		  _breakpoints(), _cfgBuilder(builder)
 	{ }
 
 	PTracer(PTracer const&)            = delete;
@@ -476,8 +528,8 @@ public:
 	/**
 	 * @brief Perform initial handshake with child
 	 *
-	 * e.g., wait for the child to raise a SIGSTOP after
-	 * calling ptrace(TRACEME...)
+	 * Runs the child process until it is ready to set breakpoints
+	 * (e.g., has executed the initial execve() system call).
 	 *
 	 * @return bool
 	 **/
@@ -555,20 +607,27 @@ public:
 		}
 	}
 
-	void addBreakpoint(Address a)
+	/**
+	 * @brief Add a BP to our list and enable it in the child's AS.
+	 *
+	 * @param bp Breakpoint descriptor
+	 * @return void
+	 **/
+	
+	void addBreakpoint(BreakpointData* bp)
 	{
-		_breakpoints[a] = new BreakpointData(a, BreakpointReason::BP_JUMP);
-		_breakpoints[a]->arm(_child);
+		_breakpoints[bp->target] = bp;
+		bp->arm(_child);
 	}
 };
 
 
 static void
-runInstrumented(std::list<Address> iPoints, int argc, char** argv)
+runInstrumented(std::list<BreakpointData*> iPoints, int argc, char** argv,
+                CFGBuilder* builder)
 {
 	pid_t child = fork();
 	if (child == 0) {
-
 		/*
 		 * Child's part of the ptrace handshake
 		 */
@@ -588,14 +647,14 @@ runInstrumented(std::list<Address> iPoints, int argc, char** argv)
 		throw ThisShouldNeverHappenException("execve failed");
 	} else if (child > 0) {
 
-		PTracer pt(child);
+		PTracer pt(child, builder);
 
 		if (!pt.handshake()) {
 			return;
 		}
 
-		BOOST_FOREACH(Address a, iPoints) {
-			pt.addBreakpoint(a);
+		BOOST_FOREACH(BreakpointData* bp, iPoints) {
+			pt.addBreakpoint(bp);
 		}
 		//exit(1);
 
@@ -624,13 +683,25 @@ int main(int argc, char **argv)
 	banner();
 
 	ControlFlowGraph cfg;
+	std::vector<InputReader*> input;
+	CFGBuilder *builder = 0;
+
 	readCFG(cfg);
 
-	std::list<Address> unresolved;
+	std::list<BreakpointData*> unresolved;
 	int numUnres = getUnresolvedAddresses(cfg, unresolved);
 	std::cout << std::dec << numUnres << " unresolved jumps." << std::endl;
 
-	runInstrumented(unresolved, argc - newArg + 1, &argv[newArg]);
+	FileInputReader *fr = new FileInputReader();
+	input.push_back(fr);
+	fr->addData(argv[newArg]);
+	builder = CFGBuilder::get(input, cfg);
+
+	runInstrumented(unresolved, argc - newArg + 1, &argv[newArg], builder);
+
+	BOOST_FOREACH(BreakpointData* bp, unresolved) {
+		delete bp;
+	}
 
 	return 0;
 }

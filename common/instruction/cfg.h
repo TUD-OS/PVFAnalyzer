@@ -90,6 +90,10 @@ public:
 
 	virtual ~CFGBuilder() { }
 
+	CFGBuilder()
+		: _terminators()
+	{ }
+
 	/**
 	 * @brief Analyse and build CFG from input.
 	 *
@@ -97,6 +101,8 @@ public:
 	 * @return void
 	 **/
 	virtual void build(Address entry) = 0;
+
+	virtual void extend(CFGVertexDescriptor jmpStart, Address jmpTarget) = 0;
 
 	void terminators(std::vector<Address> addresses)
 	{
