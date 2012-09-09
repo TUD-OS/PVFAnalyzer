@@ -21,10 +21,10 @@
 void freeCFGNodes(ControlFlowGraph const &cfg)
 {
 	CFGVertexIterator vi, vi_end;
-	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
+	for (boost::tie(vi, vi_end) = boost::vertices(cfg.cfg);
 		 vi != vi_end; ++vi) {
-		if (cfg[*vi].bb) {
-			delete cfg[*vi].bb;
+		if (cfg.node(*vi).bb) {
+			delete cfg.node(*vi).bb;
 		}
 	}
 }
@@ -50,7 +50,7 @@ void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
 void GraphvizInstructionWriter::operator() (std::ostream& out, const CFGVertexDescriptor &v) const
 {
 	out << " [shape=box,fontname=Terminus,";
-	BasicBlock* bb = g[v].bb;
+	BasicBlock* bb = g.node(v).bb;
 	if (!bb->instructions.empty()) {
 		out << "label=\"[@0x";
 		out << std::hex << bb->firstInstruction().v << "]\\l";

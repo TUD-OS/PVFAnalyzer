@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 
 	std::vector<Instruction*> iList;
 	BOOST_FOREACH(int node, config.bbList) {
-		BOOST_FOREACH(Instruction *instr, cfg[node].bb->instructions) {
+		BOOST_FOREACH(Instruction *instr, cfg.node(node).bb->instructions) {
 			if (config.debug) {
 				instr->print();
 				std::cout << "\n";

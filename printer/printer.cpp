@@ -161,7 +161,7 @@ public:
 
 	virtual int selectColorIndex(CFGVertexDescriptor const& v, int max)
 	{
-		CFGNodeInfo const & node = _g[v];
+		CFGNodeInfo const & node = _g.node(v);
 		CFGVertexDescriptor dom = node.functionEntry;
 		if (functionColors[dom] == 0) {
 			functionColors[dom] = nextColor;
@@ -186,14 +186,14 @@ public:
 	{
 		int depth = _callDepth[v];
 
-		boost::graph_traits<ControlFlowGraph>::out_edge_iterator edge, edgeEnd;
+		boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator edge, edgeEnd;
 
-		for (boost::tie(edge, edgeEnd) = boost::out_edges(v, _g);
+		for (boost::tie(edge, edgeEnd) = boost::out_edges(v, _g.cfg);
 		     edge != edgeEnd; ++edge) {
-			CFGVertexDescriptor t = boost::target(*edge, _g);
-			if ((_g[v].bb->branchType == Instruction::BT_CALL) or
-			    (_g[v].bb->branchType == Instruction::BT_CALL_DYN) or
-			    (_g[v].bb->branchType == Instruction::BT_CALL_RESOLVE)) {
+			CFGVertexDescriptor t = boost::target(*edge, _g.cfg);
+			if ((_g.node(v).bb->branchType == Instruction::BT_CALL) or
+			    (_g.node(v).bb->branchType == Instruction::BT_CALL_DYN) or
+			    (_g.node(v).bb->branchType == Instruction::BT_CALL_RESOLVE)) {
 				/*
 				 * The target of a caller is colored one level
 				 * deeper than the current level.
@@ -206,11 +206,11 @@ public:
 				 * To properly color all ret edges, we need to be aware of
 				 * which call dominates a RET edge.
 				 */
-				Instruction* caller  = _g[v].bb->instructions.back();
+				Instruction* caller  = _g.node(v).bb->instructions.back();
 				Address ret          = caller->ip() + caller->length();
 				_callDominators[ret] = v;
-			} else if (_g[v].bb->branchType == Instruction::BT_RET) {
-				Address retTarget = _g[t].bb->firstInstruction();
+			} else if (_g.node(v).bb->branchType == Instruction::BT_RET) {
+				Address retTarget = _g.node(t).bb->firstInstruction();
 				_callDepth[t] = _callDepth[_callDominators[retTarget]];
 			} else {
 				_callDepth[t] = depth;
@@ -231,12 +231,12 @@ public:
 	StrongComponentColoringStrategy(ControlFlowGraph const & g)
 		: GraphColoringStrategy(g), component(), discoverTime(), color(), root()
 	{
-		int vertexCount = boost::num_vertices(_g);
+		int vertexCount = boost::num_vertices(_g.cfg);
 		component.reserve(vertexCount);
 		discoverTime.reserve(vertexCount);
 		color.reserve(vertexCount);
 		root.reserve(vertexCount);
-		boost::strong_components(_g, &component[0],
+		boost::strong_components(_g.cfg, &component[0],
 	                             boost::root_map(&root[0]).
 	                             color_map(&color[0]).
 	                             discover_time_map(&discoverTime[0]));
@@ -314,7 +314,7 @@ struct ExtendedGraphvizInstructionWriter
 		out << " [shape=box,fontname=Terminus,fontsize=8,style=filled,color=";
 		out << _callDepthColors[_strategy.selectColorIndex(v, _maxCallDepthColor)] << ",";
 
-		BasicBlock* bb = g[v].bb;
+		BasicBlock* bb = g.node(v).bb;
 		if (!conf.quiet and !bb->instructions.empty()) {
 			out << "label=\"(" << v << ") [@0x";
 			out << std::hex << bb->firstInstruction().v << "]\\l";
@@ -354,7 +354,7 @@ void writeCFG(ControlFlowGraph& cfg)
 
 	GraphColoringStrategy* colStrat = ColoringStrategyFactory::create(cfg, conf);
 	ExtendedGraphvizInstructionWriter gnw(cfg, *colStrat);
-	boost::write_graphviz(out, cfg, gnw);
+	boost::write_graphviz(out, cfg.cfg, gnw);
 
 	delete colStrat;
 	freeCFGNodes(cfg);

@@ -77,9 +77,9 @@ public:
 	CFGBuilder_priv(std::vector<InputReader*> const& in, ControlFlowGraph& g)
 		: _dis(), _cfg(g), _bbfound(), _inputs(in), _bb_connections()
 	{
-		if (boost::num_vertices(g) > 0) {
+		if (boost::num_vertices(g.cfg) > 0) {
 			CFGVertexIterator ei, ei_end;
-			for (boost::tie(ei, ei_end) = boost::vertices(g);
+			for (boost::tie(ei, ei_end) = boost::vertices(g.cfg);
 				 ei != ei_end; ++ei) {
 				CFGNodeInfo& n = cfg(*ei);
 				if (*ei != 0) {
@@ -103,7 +103,7 @@ public:
 
 private:
 
-	CFGNodeInfo& cfg(CFGVertexDescriptor const vd) { return _cfg[vd]; }
+	CFGNodeInfo& cfg(CFGVertexDescriptor const vd) { return _cfg.node_mutable(vd); }
 
 	Udis86Disassembler _dis;     ///> underlying disassembler
 	ControlFlowGraph&  _cfg;     ///> control flow graph
@@ -160,7 +160,7 @@ private:
 	void addCFGEdge(CFGVertexDescriptor start, CFGVertexDescriptor target)
 	{
 		DEBUG(std::cout << "\033[34m[add_edge]\033[0m " << start << " -> " << target << std::endl;);
-		boost::add_edge(start, target, _cfg);
+		boost::add_edge(start, target, _cfg.cfg);
 	}
 
 	/**
@@ -257,7 +257,7 @@ void CFGBuilder_priv::build(Address entry)
 	DEBUG(std::cout << __func__ << "(" << std::hex << entry.v << ")" << std::endl;);
 
 	/* Create an initial CFG node */
-	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg);
+	CFGVertexDescriptor initialVD = boost::add_vertex(CFGNodeInfo(new BasicBlock()), _cfg.cfg);
 
 	/* The init node links directly to entry point. This is the first link we explore
 	 * in the loop below. */
@@ -278,10 +278,10 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 	 * the target might already be in our successor list
 	 */
 	if (node.bb->branchType != Instruction::BT_CALL_RESOLVE) {
-		boost::graph_traits<ControlFlowGraph>::out_edge_iterator ei, ei_end;
-		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg);
+		boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator ei, ei_end;
+		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg.cfg);
 		     ei != ei_end; ++ei) {
-			CFGVertexDescriptor v = boost::target(*ei, _cfg);
+			CFGVertexDescriptor v = boost::target(*ei, _cfg.cfg);
 			if (cfg(v).bb->firstInstruction() == target) {
 				return;
 			}
@@ -312,7 +312,7 @@ void CFGBuilder_priv::doBuildRun()
 			DEBUG(std::cout << "Basic block @ " << bbi.bb << std::endl;);
 
 			/* We definitely found a _new_ vertex here. So add it to the CFG. */
-			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg);
+			CFGVertexDescriptor vd = boost::add_vertex(CFGNodeInfo(bbi.bb), _cfg.cfg);
 
 			DEBUG(std::cout << "--1-- Handling incoming edges" << std::endl;);
 			vd = handleIncomingEdges(next.first, vd, bbi);
@@ -322,11 +322,11 @@ void CFGBuilder_priv::doBuildRun()
 				CFGVertexDescriptor callee = cfg(vd).functionEntry;
 				cfg(callee).retNodes.push_back(vd);
 				DEBUG(std::cout << "  callee: " << callee << std::endl;);
-				boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
-				for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg);
+				boost::graph_traits<ControlFlowGraphLayout>::in_edge_iterator ei, ei_end;
+				for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg.cfg);
 					 ei != ei_end; ++ei) {
-					CFGNodeInfo const & caller = cfg(boost::source(*ei, _cfg));
-					DEBUG(std::cout << "caller test: " << boost::source(*ei, _cfg) << " -- "
+					CFGNodeInfo const & caller = cfg(boost::source(*ei, _cfg.cfg));
+					DEBUG(std::cout << "caller test: " << boost::source(*ei, _cfg.cfg) << " -- "
 					                << caller.returnTargetAddress().v << std::endl;);
 					try {
 						CFGVertexDescriptor ret = findCFGNodeWithAddress(_cfg, caller.returnTargetAddress());
@@ -456,10 +456,10 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 	} else if (cfg(prevVertex).bb->branchType == Instruction::BT_RET) {
 		DEBUG(std::cout << "     RET target -> discovering caller entry point." << std::endl;);
 		CFGVertexDescriptor callee = cfg(prevVertex).functionEntry;
-		boost::graph_traits<ControlFlowGraph>::in_edge_iterator ei, ei_end;
-		for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg);
+		boost::graph_traits<ControlFlowGraphLayout>::in_edge_iterator ei, ei_end;
+		for (boost::tie(ei, ei_end) = boost::in_edges(callee, _cfg.cfg);
 			 ei != ei_end; ++ei) {
-			CFGVertexDescriptor caller = boost::source(*ei, _cfg);
+			CFGVertexDescriptor caller = boost::source(*ei, _cfg.cfg);
 			if (cfg(caller).returnTargetAddress() == cfg(newVertex).bb->firstInstruction()) {
 				cfg(newVertex).functionEntry = cfg(caller).functionEntry;
 				break;
@@ -703,20 +703,20 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 	}
 
 	/* Ready to add new vertex to the CFG. */
-	CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg);
+	CFGVertexDescriptor vert2 = boost::add_vertex(CFGNodeInfo(bb2), _cfg.cfg);
 	cfg(vert2).functionEntry = cfg(splitVertex).functionEntry;
 
 	/*
 	 * 4) all existing outgoing edges from bb1 are transformed to
 	 *    outgoing edges of bb2
 	 */
-	boost::graph_traits<ControlFlowGraph>::out_edge_iterator edge0, edgeEnd;
-	for (boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg);
+	boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator edge0, edgeEnd;
+	for (boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg.cfg);
 			edge0 != edgeEnd; ++edge0) {
-		CFGVertexDescriptor targetV = boost::target(*edge0, _cfg);
+		CFGVertexDescriptor targetV = boost::target(*edge0, _cfg.cfg);
 		addCFGEdge(vert2, targetV);
 		DEBUG(std::cout << "split: removing: " << splitVertex << " -> " << targetV << std::endl;);
-		boost::remove_edge(splitVertex, targetV, _cfg);
+		boost::remove_edge(splitVertex, targetV, _cfg.cfg);
 	}
 
 	// 5) add edge from bb1 -> bb2

@@ -283,10 +283,10 @@ int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<BreakpointData
 {
 	CFGVertexIterator v, v_end;
 
-	for (boost::tie(v, v_end) = boost::vertices(cfg); v != v_end; ++v)
+	for (boost::tie(v, v_end) = boost::vertices(cfg.cfg); v != v_end; ++v)
 	{
 		//std::cout << *v;
-		CFGNodeInfo const& n = cfg[*v];
+		CFGNodeInfo const& n = cfg.node(*v);
 		switch(n.bb->branchType) {
 			case Instruction::BT_CALL_RESOLVE:
 				//std::cout << " UNRES " << std::hex << n.bb->lastInstruction().v;

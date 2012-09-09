@@ -51,7 +51,7 @@ public:
 		: _a(a)
 	{}
 
-	void discover_vertex(CFGVertexDescriptor v, const ControlFlowGraph& g) const
+	void discover_vertex(CFGVertexDescriptor v, const ControlFlowGraphLayout& g) const
 	{
 		BasicBlock *bb = g[v].bb;
 
@@ -80,9 +80,9 @@ void privateBFSTraversal(ControlFlowGraph cfg, CFGVertexDescriptor start,
                          std::function<void(CFGVertexDescriptor)> functor)
 {
 	std::queue<CFGVertexDescriptor> Q;
-	BFSColor colorMap[boost::num_vertices(cfg)];
+	BFSColor colorMap[boost::num_vertices(cfg.cfg)];
 
-	for (unsigned idx = 0; idx < boost::num_vertices(cfg); ++idx) {
+	for (unsigned idx = 0; idx < boost::num_vertices(cfg.cfg); ++idx) {
 		colorMap[idx] = BFSColor::WHITE;
 	}
 
@@ -91,11 +91,11 @@ void privateBFSTraversal(ControlFlowGraph cfg, CFGVertexDescriptor start,
 
 	while (!Q.empty()) {
 		CFGVertexDescriptor vert = Q.front(); Q.pop(); functor(vert);
-		boost::graph_traits<ControlFlowGraph>::out_edge_iterator out, out_end;
-		boost::graph_traits<ControlFlowGraph>::in_edge_iterator  in,  in_end;
+		boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator out, out_end;
+		boost::graph_traits<ControlFlowGraphLayout>::in_edge_iterator  in,  in_end;
 
-		for (boost::tie(out, out_end) = boost::out_edges(vert, cfg); out != out_end; ++out) {
-			CFGVertexDescriptor vd = boost::target(*out, cfg);
+		for (boost::tie(out, out_end) = boost::out_edges(vert, cfg.cfg); out != out_end; ++out) {
+			CFGVertexDescriptor vd = boost::target(*out, cfg.cfg);
 			BFSColor color         = colorMap[vd];
 			if (color == BFSColor::WHITE) {
 				colorMap[vd] = BFSColor::GRAY;
@@ -103,8 +103,8 @@ void privateBFSTraversal(ControlFlowGraph cfg, CFGVertexDescriptor start,
 			}
 		}
 
-		for (boost::tie(in, in_end) = boost::in_edges(vert, cfg); in != in_end; ++in) {
-			CFGVertexDescriptor vd = boost::source(*in, cfg);
+		for (boost::tie(in, in_end) = boost::in_edges(vert, cfg.cfg); in != in_end; ++in) {
+			CFGVertexDescriptor vd = boost::source(*in, cfg.cfg);
 			BFSColor color         = colorMap[vd];
 			if (color == BFSColor::WHITE) {
 				colorMap[vd] = BFSColor::GRAY;
@@ -124,7 +124,7 @@ findCFGNodeWithAddress(ControlFlowGraph const &cfg, Address a, CFGVertexDescript
 	try {
 #if 1
 		BBForAddressFinder vis(a);
-		boost::depth_first_search(cfg, boost::visitor(vis));
+		boost::depth_first_search(cfg.cfg, boost::visitor(vis));
 #else
 		auto fn = [&] (CFGVertexDescriptor vd) {
 			DEBUG(std::cout << __func__ << vd << std::endl;);

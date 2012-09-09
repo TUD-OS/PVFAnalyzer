@@ -63,12 +63,31 @@ struct CFGNodeInfo
 typedef boost::adjacency_list<boost::vecS,
                               boost::vecS,
                               boost::bidirectionalS,
-                              CFGNodeInfo> ControlFlowGraph;
+                              CFGNodeInfo> ControlFlowGraphLayout;
 
-typedef boost::graph_traits<ControlFlowGraph>::vertex_descriptor CFGVertexDescriptor;
-typedef boost::graph_traits<ControlFlowGraph>::vertex_iterator   CFGVertexIterator;
-typedef boost::graph_traits<ControlFlowGraph>::edge_descriptor   CFGEdgeDescriptor;
-typedef boost::graph_traits<ControlFlowGraph>::edge_iterator     CFGEdgeIterator;
+typedef boost::graph_traits<ControlFlowGraphLayout>::vertex_descriptor CFGVertexDescriptor;
+typedef boost::graph_traits<ControlFlowGraphLayout>::vertex_iterator   CFGVertexIterator;
+typedef boost::graph_traits<ControlFlowGraphLayout>::edge_descriptor   CFGEdgeDescriptor;
+typedef boost::graph_traits<ControlFlowGraphLayout>::edge_iterator     CFGEdgeIterator;
+
+
+struct ControlFlowGraph
+{
+	ControlFlowGraphLayout cfg;
+	CFGNodeInfo const & node(CFGVertexDescriptor const v) const { return cfg[v]; }
+	CFGNodeInfo & node_mutable(CFGVertexDescriptor v) { return cfg[v]; }
+
+	ControlFlowGraph()
+		: cfg()
+	{ }
+
+	template <class Archive>
+	void serialize(Archive& ar, const unsigned int version)
+	{
+		(void)version;
+		ar & cfg;
+	}
+};
 
 
 /**
