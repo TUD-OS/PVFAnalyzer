@@ -91,6 +91,7 @@ public:
 
 	virtual void build(Address a);
 	virtual void extend(CFGVertexDescriptor a, Address b);
+	void doBuildRun();
 
 	/*
 	 * We will find a lot of initially unresolved links by exploring a new
@@ -262,6 +263,39 @@ void CFGBuilder_priv::build(Address entry)
 	 * in the loop below. */
 	_bb_connections.push_back(UnresolvedLink(initialVD, entry));
 
+	doBuildRun();
+}
+
+
+void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
+{
+	DEBUG(std::cout << __func__ << ": " << start << " -> " << target.v << std::endl;);
+
+	CFGNodeInfo& node = cfg(start);
+
+	/*
+	 * If this is a non-resolve node, we already came here at least once and so
+	 * the target might already be in our successor list
+	 */
+	if (node.bb->branchType != Instruction::BT_CALL_RESOLVE) {
+		boost::graph_traits<ControlFlowGraph>::out_edge_iterator ei, ei_end;
+		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg);
+		     ei != ei_end; ++ei) {
+			CFGVertexDescriptor v = boost::target(*ei, _cfg);
+			if (cfg(v).bb->firstInstruction() == target) {
+				return;
+			}
+		}
+	}
+
+	_bb_connections.push_back(UnresolvedLink(start, target));
+
+	doBuildRun();
+}
+
+
+void CFGBuilder_priv::doBuildRun()
+{
 	/* As long as we have unresolved connections... */
 	while (!_bb_connections.empty()) {
 
@@ -314,33 +348,6 @@ void CFGBuilder_priv::build(Address entry)
 }
 
 
-void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
-{
-	DEBUG(std::cout << __func__ << ": " << start << " -> " << target.v << std::endl;);
-
-	CFGNodeInfo& node = cfg(start);
-
-	/*
-	 * If this is a non-resolve node, we already came here at least once and so
-	 * the target might already be in our successor list
-	 */
-	if (node.bb->branchType != Instruction::BT_CALL_RESOLVE) {
-		boost::graph_traits<ControlFlowGraph>::out_edge_iterator ei, ei_end;
-		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg);
-		     ei != ei_end; ++ei) {
-			CFGVertexDescriptor v = boost::target(*ei, _cfg);
-			if (cfg(v).bb->firstInstruction() == target) {
-				return;
-			}
-		}
-	}
-
-	_bb_connections.push_back(UnresolvedLink(start, target));
-
-	throw NotImplementedException(__func__);
-}
-
-
 BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 {
 	BBInfo bbi;
@@ -365,15 +372,15 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			bbi.bb->addInstruction(i);
 			offs += i->length();
 
-			if (i->isBranch()) { // .. except, we find a branch instruction
-				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
-				bbi.bb->branchType = i->branchTargets(bbi.targets);
-				break;
-			}
-
 			if (_terminators[i->ip()]) {
 				DEBUG(std::cout << "\033[35;1mFound a terminator address.\033[0m" << std::endl;);
 				// simply leave. no targets etc.
+				break;
+			}
+
+			if (i->isBranch()) { // .. except, we find a branch instruction
+				DEBUG(std::cout << "Found branch. BB terminates here." << std::endl;);
+				bbi.bb->branchType = i->branchTargets(bbi.targets);
 				break;
 			}
 
