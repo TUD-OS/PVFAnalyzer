@@ -87,6 +87,39 @@ struct ControlFlowGraph
 		(void)version;
 		ar & cfg;
 	}
+
+	/**
+	 * @brief Serialize CFG into a file.
+	 *
+	 * @param cfg CFG
+	 * @param name file name
+	 * @return void
+	 **/
+	void toFile(std::string const &name);
+
+	/**
+	 * @brief Read CFG from a file
+	 *
+	 * @param cfg CFG
+	 * @param name file name
+	 * @return void
+	 **/
+	void fromFile(std::string const &name);
+
+	/**
+	 * @brief Free the dynamically allocated memory associated with a CFG
+	 *
+	 * CFGs store node information that has been dynamically allocated. This
+	 * function iterates over a CFG's nodes and deletes this dynamically allocated
+	 * memory.
+	 *
+	 * @param cfg Control Flow Graph
+	 * @return void
+	 **/
+	void releaseNodeMemory();
+
+	CFGVertexDescriptor const
+	findNodeWithAddress(Address a, CFGVertexDescriptor startSearch = 0);
 };
 
 
@@ -133,40 +166,6 @@ public:
 
 
 /**
- * @brief Free the dynamically allocated memory associated with a CFG
- *
- * CFGs store node information that has been dynamically allocated. This
- * function iterates over a CFG's nodes and deletes this dynamically allocated
- * memory.
- *
- * @param cfg Control Flow Graph
- * @return void
- **/
-void freeCFGNodes(ControlFlowGraph const &cfg);
-
-
-/**
- * @brief Serialize CFG into a file.
- *
- * @param cfg CFG
- * @param name file name
- * @return void
- **/
-void CFGToFile(ControlFlowGraph const & cfg, std::string const &name);
-
-
-/**
- * @brief Read CFG from a file
- *
- * @param cfg CFG
- * @param name file name
- * @return void
- **/
-
-void CFGFromFile(ControlFlowGraph& cfg, std::string const &name);
-
-
-/**
  * @brief Node writer for Graphviz CFG output
  **/
 struct GraphvizInstructionWriter
@@ -179,7 +178,3 @@ struct GraphvizInstructionWriter
 
 	void operator() (std::ostream& out, const CFGVertexDescriptor &v) const;
 };
-
-
-CFGVertexDescriptor const
-findCFGNodeWithAddress(ControlFlowGraph const & cfg, Address a, CFGVertexDescriptor startSearch = 0);

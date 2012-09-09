@@ -123,7 +123,7 @@ static void
 readCFG(ControlFlowGraph& cfg)
 {
 	try {
-		CFGFromFile(cfg, config.input_filename);
+		cfg.fromFile(config.input_filename);
 	} catch (FileNotFoundException fne) {
 		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
 		return;
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 	outFile.close();
 	std::cout << "Written to " << config.output_filename << std::endl;
 
-	freeCFGNodes(cfg);
+	cfg.releaseNodeMemory();
 
 	return 0;
 }

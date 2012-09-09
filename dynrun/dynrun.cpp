@@ -108,7 +108,7 @@ static void
 readCFG(ControlFlowGraph& cfg)
 {
 	try {
-		CFGFromFile(cfg, config.input_filename);
+		cfg.fromFile(config.input_filename);
 	} catch (FileNotFoundException fne) {
 		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
 		return;

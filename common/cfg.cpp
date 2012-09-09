@@ -18,18 +18,19 @@
 #include "instruction/cfg.h"
 #include "util.h"
 
-void freeCFGNodes(ControlFlowGraph const &cfg)
+void ControlFlowGraph::releaseNodeMemory()
 {
 	CFGVertexIterator vi, vi_end;
-	for (boost::tie(vi, vi_end) = boost::vertices(cfg.cfg);
+	for (boost::tie(vi, vi_end) = boost::vertices(cfg);
 		 vi != vi_end; ++vi) {
-		if (cfg.node(*vi).bb) {
-			delete cfg.node(*vi).bb;
+		if (node(*vi).bb) {
+			delete node(*vi).bb;
 		}
 	}
 }
 
-void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
+
+void ControlFlowGraph::toFile(std::string const& name)
 {
 	std::ofstream ofs(name);
 	if (!ofs.good())
@@ -38,7 +39,8 @@ void CFGToFile(ControlFlowGraph const & cfg, std::string const &name)
 	oa << cfg;
 }
 
-void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
+
+void ControlFlowGraph::fromFile(std::string const &name)
 {
 	std::ifstream ifs(name);
 	if (!ifs.good())
@@ -46,6 +48,7 @@ void CFGFromFile(ControlFlowGraph& cfg, std::string const &name)
 	boost::archive::binary_iarchive ia(ifs);
 	ia >> cfg;
 }
+
 
 void GraphvizInstructionWriter::operator() (std::ostream& out, const CFGVertexDescriptor &v) const
 {

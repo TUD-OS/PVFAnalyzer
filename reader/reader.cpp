@@ -172,7 +172,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	          << boost::num_edges(cfg.cfg) << " edges." << std::endl;
 
 	/* Store graph */
-	CFGToFile(cfg, conf.output_filename);
+	cfg.toFile(conf.output_filename);
 	std::cout << "Wrote CFG to '" << basename((char*)conf.output_filename.c_str())
 	          << "'" << std::endl;
 
@@ -180,7 +180,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	 * Cleanup: we need to delete the instructions in the
 	 * CFG's vertex nodes.
 	 */
-	freeCFGNodes(cfg);
+	cfg.releaseNodeMemory();
 }
 
 

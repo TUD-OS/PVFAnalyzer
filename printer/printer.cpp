@@ -122,7 +122,7 @@ parseInputFromOptions(int argc, char **argv)
 void readCFG(ControlFlowGraph& cfg)
 {
 	try {
-		CFGFromFile(cfg, conf.input_filename);
+		cfg.fromFile(conf.input_filename);
 	} catch (FileNotFoundException fne) {
 		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
 		return;
@@ -357,7 +357,7 @@ void writeCFG(ControlFlowGraph& cfg)
 	boost::write_graphviz(out, cfg.cfg, gnw);
 
 	delete colStrat;
-	freeCFGNodes(cfg);
+	cfg.releaseNodeMemory();
 }
 
 

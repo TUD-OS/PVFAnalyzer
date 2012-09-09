@@ -118,13 +118,13 @@ void privateBFSTraversal(ControlFlowGraph cfg, CFGVertexDescriptor start,
 
 
 CFGVertexDescriptor const
-findCFGNodeWithAddress(ControlFlowGraph const &cfg, Address a, CFGVertexDescriptor startSearch)
+ControlFlowGraph::findNodeWithAddress(Address a, CFGVertexDescriptor startSearch)
 {
 	DEBUG(std::cout << "FIND(" << a.v << ") -> " << std::endl;);
 	try {
 #if 1
 		BBForAddressFinder vis(a);
-		boost::depth_first_search(cfg.cfg, boost::visitor(vis));
+		boost::depth_first_search(cfg, boost::visitor(vis));
 #else
 		auto fn = [&] (CFGVertexDescriptor vd) {
 			DEBUG(std::cout << __func__ << vd << std::endl;);

@@ -329,7 +329,7 @@ void CFGBuilder_priv::doBuildRun()
 					DEBUG(std::cout << "caller test: " << boost::source(*ei, _cfg.cfg) << " -- "
 					                << caller.returnTargetAddress().v << std::endl;);
 					try {
-						CFGVertexDescriptor ret = findCFGNodeWithAddress(_cfg, caller.returnTargetAddress());
+						CFGVertexDescriptor ret = _cfg.findNodeWithAddress(caller.returnTargetAddress());
 						if (ret) addCFGEdge(vd, ret);
 					} catch (NodeNotFoundException) {
 						_bb_connections.push_back(UnresolvedLink(vd, caller.returnTargetAddress()));
@@ -593,7 +593,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 		 */
 		CFGVertexDescriptor targetNode;
 		try {
-			targetNode = findCFGNodeWithAddress(_cfg, a, newVertex);
+			targetNode = _cfg.findNodeWithAddress(a, newVertex);
 		} catch (NodeNotFoundException) {
 			DEBUG(std::cout << "This is no BB I know about yet. Queuing 0x" << a.v
 			                << " for discovery." << std::endl;);
@@ -614,7 +614,7 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				Address retTarget = cfg(newVertex).returnTargetAddress();
 				CFGVertexDescriptor rVert;
 				try {
-					rVert = findCFGNodeWithAddress(_cfg, retTarget);
+					rVert = _cfg.findNodeWithAddress(retTarget);
 					BOOST_FOREACH(CFGVertexDescriptor retNode, cfg(targetNode).retNodes) {
 						addCFGEdge(retNode, rVert);
 					}
