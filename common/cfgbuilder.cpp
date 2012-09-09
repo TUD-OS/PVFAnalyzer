@@ -287,6 +287,8 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 				return;
 			}
 		}
+		Instruction *last = node.bb->instructions.back();
+		node.bb->branchType = last->opcodeToBranchType();
 	}
 
 	/*

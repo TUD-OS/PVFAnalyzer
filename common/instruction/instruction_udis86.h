@@ -369,11 +369,11 @@ public:
 			/* The following instructions also have their successor instruction
 			 * as branch target: */
 			case UD_Ija:		case UD_Ijae:	case UD_Ijb:
-			case UD_Ijbe:	case UD_Ijcxz:	case UD_Ijecxz:
+			case UD_Ijbe:		case UD_Ijcxz:	case UD_Ijecxz:
 			case UD_Ijg:		case UD_Ijge:	case UD_Ijl:
-			case UD_Ijle:	case UD_Ijno:
-			case UD_Ijnp:	case UD_Ijns:	case UD_Ijnz:
-			case UD_Ijo:		case UD_Ijp:		case UD_Ijs:
+			case UD_Ijle:		case UD_Ijno:
+			case UD_Ijnp:		case UD_Ijns:	case UD_Ijnz:
+			case UD_Ijo:		case UD_Ijp:	case UD_Ijs:
 			case UD_Ijz:		case UD_Ijrcxz:	case UD_Iint:
 				targets.push_back(Instruction::ip() + length());
 				break;
@@ -381,43 +381,34 @@ public:
 				break;
 		}
 
-		BranchType bt = BT_NONE;
+		return opcodeToBranchType();
+	}
+
+	virtual Instruction::BranchType opcodeToBranchType()
+	{
 		/* Branch type detection */
-		switch(ud->mnemonic) {
-			case UD_Ija:		case UD_Ijae:	case UD_Ijb:		case UD_Ijbe:
-			case UD_Ijcxz:	case UD_Ijecxz:	case UD_Ijg:		case UD_Ijge:
-			case UD_Ijl:		case UD_Ijle:	case UD_Ijno:	case UD_Ijnp:
-			case UD_Ijns:	case UD_Ijnz:	case UD_Ijo:		case UD_Ijp:
-			case UD_Ijs:		case UD_Ijz:		case UD_Ijrcxz:
-				bt = BT_JUMP_COND;
-				//DEBUG(std::cout << "BT_JUMP_COND" << std::endl;);
-				break;
+		switch(udObj()->mnemonic) {
+			case UD_Ija:	case UD_Ijae:	case UD_Ijb:	case UD_Ijbe:
+			case UD_Ijcxz:	case UD_Ijecxz:	case UD_Ijg:	case UD_Ijge:
+			case UD_Ijl:	case UD_Ijle:	case UD_Ijno:	case UD_Ijnp:
+			case UD_Ijns:	case UD_Ijnz:	case UD_Ijo:	case UD_Ijp:
+			case UD_Ijs:	case UD_Ijz:	case UD_Ijrcxz:
+				return BT_JUMP_COND;
 			case UD_Icall:
-				bt = BT_CALL;
-				//DEBUG(std::cout << "BT_CALL" << std::endl;);
-				break;
+				return BT_CALL;
 			case UD_Iret:
-				bt = BT_RET;
-				//DEBUG(std::cout << "BT_RET" << std::endl;);
-				break;
+				return BT_RET;
 			case UD_Iint:
-				bt = BT_INT;
-				//DEBUG(std::cout << "BT_INT" << std::endl;);
-				break;
+				return BT_INT;
 			case UD_Ijmp:
-				bt = BT_JUMP_UNCOND;
-				//DEBUG(std::cout << "BT_JUMP_UNCOND" << std::endl;);
-				break;
+				return BT_JUMP_UNCOND;
 			/* yep, syscalls branch to somewhere else, too */
 			case UD_Isyscall: case UD_Isysenter: case UD_Isysexit:
 			case UD_Isysret:
-				bt = BT_INT;
-				break;
+				return BT_INT;
 			default:
-				break;
+				throw ThisShouldNeverHappenException("unknown branch opcode");
 		}
-
-		return bt;
 	}
 
 	virtual void getRegisterRWInfo(std::vector<RegisterAccessInfo>& readSet,

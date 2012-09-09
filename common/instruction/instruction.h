@@ -131,6 +131,13 @@ public:
 	 **/
 	virtual BranchType branchTargets(std::vector<Address>& v) = 0;
 
+	/**
+	 * @brief Determine brancht target belonging to instruction
+	 * 
+	 * @return :BranchType
+	 **/
+	virtual Instruction::BranchType opcodeToBranchType() = 0;
+
 
 	typedef std::pair<int, int> RegisterAccessInfo;
 
