@@ -41,10 +41,11 @@
 struct DynRunConfig : public Configuration
 {
 	std::string input_filename;
-	std::string binary;
+	std::string output_filename;
 
 	DynRunConfig()
-		: Configuration(), input_filename("output.cfg"), binary("input.bin")
+		: Configuration(), input_filename("output.cfg"),
+	      output_filename("output.ilist")
 	{ }
 };
 
@@ -57,6 +58,7 @@ usage(char const *prog)
 	std::cout << prog << " [-h] [-f <CFG file>] [-v] [-d] -- <binary> <arguments>"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
+	std::cout << "\t-o <file>          Set output file [output.ilist]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -81,19 +83,19 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "b:df:hv")) != -1) {
+	while ((opt = getopt(argc, argv, "df:ho:v")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
 
 		switch(opt) {
 
-			case 'b':
-				config.binary = optarg;
-				break;
-
 			case 'f':
 				config.input_filename = optarg;
+				break;
+
+			case 'o':
+				config.output_filename = optarg;
 				break;
 
 			case 'h':
@@ -726,17 +728,54 @@ unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
 		} while (next != iter);
 	}
 
+	/* We did not push the _final_ BB found above yet. */
+	bbList.push_back(iter);
+	/*
+	 * The bbList now contains all BBs until the last ambigious one.
+	 * There may be a few left until we really hit an end of the CFG
+	 * (e.g., a BB without any more successors).
+	 */
+	DEBUG(std::cout << iter << "..." << std::endl;);
+	while (boost::out_degree(iter, cfg.cfg) != 0) {
+		assert(boost::out_degree(iter, cfg.cfg) == 1);
+		iter = boost::target(*(boost::out_edges(iter, cfg.cfg).first), cfg.cfg);
+		bbList.push_back(iter);
+		DEBUG(std::cout << iter << "..." << std::endl;);
+	}
+
 	std::cout << "BBTrace: " << bbList.size() << " entries." << std::endl;
 	int count = 0;
+	std::vector<Instruction*> iList;
 	BOOST_FOREACH(CFGVertexDescriptor v, bbList) {
-		std::cout << std::setw(3) << std::hex << v;
-		if (++count % 20 == 0) {
-			std::cout << std::endl;
-		} else {
-			std::cout << " ";
+		if (config.debug) {
+			std::cout << std::setw(3) << std::hex << v;
+			if (++count % 20 == 0) {
+				std::cout << std::endl;
+			} else {
+				std::cout << " ";
+			}
+		}
+
+		BOOST_FOREACH(Instruction *instr, cfg.node(v).bb->instructions) {
+			if (config.debug) {
+				instr->print();
+				std::cout << "\n";
+			}
+			iList.push_back(instr);
 		}
 	}
-	if (count % 20) { std::cout << std::endl; }
+	DEBUG(if (count % 20) { std::cout << std::endl; });
+
+	std::ofstream outFile(config.output_filename);
+	if (!outFile.good()) {
+		std::cout << "Could not open file '" << config.output_filename << "'" << std::endl;
+		throw FileNotFoundException(config.output_filename.c_str());
+	}
+
+	boost::archive::binary_oarchive oa(outFile);
+	oa << iList;
+	outFile.close();
+	std::cout << "iList written to " << config.output_filename << std::endl;
 }
 
 int main(int argc, char **argv)
