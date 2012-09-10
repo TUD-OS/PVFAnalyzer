@@ -156,6 +156,8 @@ public:
 	CFGBuilder()
 	{ }
 
+	virtual ControlFlowGraph& graph() = 0;
+
 	/**
 	 * @brief Analyse and build CFG from input.
 	 *

@@ -161,6 +161,7 @@ int main(int argc, char **argv)
 		std::cout << "Could not open file '" << config.output_filename << "'" << std::endl;
 		return 1;
 	}
+
 	boost::archive::binary_oarchive oa(outFile);
 	oa << iList;
 	outFile.close();

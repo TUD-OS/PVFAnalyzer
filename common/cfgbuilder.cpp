@@ -101,6 +101,8 @@ public:
 	typedef std::pair<CFGVertexDescriptor, Address> UnresolvedLink;
 	typedef std::list<UnresolvedLink>               PendingResolutionList;
 
+	virtual ControlFlowGraph& graph() { return _cfg; }
+
 private:
 
 	CFGNodeInfo& cfg(CFGVertexDescriptor const vd) { return _cfg.node_mutable(vd); }

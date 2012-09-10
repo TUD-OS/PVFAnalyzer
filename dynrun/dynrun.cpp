@@ -35,6 +35,8 @@
 #include <sys/user.h>
 #include <sys/reg.h>
 
+#include <cstdio>
+
 
 struct DynRunConfig : public Configuration
 {
@@ -98,7 +100,7 @@ parseInputFromOptions(int argc, char **argv)
 				usage(argv[0]);
 				return -1;
 		}
-		printf("%d\n", optind);
+		std::printf("%d\n", optind);
 	}
 	return optind;
 }
@@ -139,7 +141,7 @@ struct Syscalls
 		//DEBUG(std::cout << "ptraced: " << r << std::endl;);
 
 		if (r and errno) {
-			perror("ptrace");
+			std::perror("ptrace");
 		}
 
 		return r;
@@ -157,7 +159,7 @@ struct Syscalls
 		pid_t res = waitpid(chld, status, __WALL);
 		//DEBUG(std::cout << "WAIT(): res " << res << ", status " << *status << std::endl;);
 		if (res == -1) {
-			perror("waitpid");
+			std::perror("waitpid");
 		}
 		return res;
 	}
@@ -183,7 +185,8 @@ struct Syscalls
  **/
 enum class BreakpointReason
 {
-	BP_JUMP, // unresolved jump
+	BP_JUMP,     // unresolved jump
+	BP_DISAMBIG, // trace jump with multiple targets
 };
 
 /**
@@ -280,7 +283,7 @@ struct BreakpointData
  * @param unresolved output: list of breakpoints
  * @return number of breakpoints
  **/
-int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<BreakpointData*>& unresolved)
+int determineBreakpoints(ControlFlowGraph const &cfg, std::list<BreakpointData*>& unresolved)
 {
 	CFGVertexIterator v, v_end;
 
@@ -294,6 +297,9 @@ int getUnresolvedAddresses(ControlFlowGraph const &cfg, std::list<BreakpointData
 				unresolved.push_back(new BreakpointData(n.bb->lastInstruction(), BreakpointReason::BP_JUMP, *v));
 				break;
 			default:
+				if (boost::out_degree(*v, cfg.cfg) > 1) { // ambiguous jump
+					unresolved.push_back(new BreakpointData(n.bb->lastInstruction(), BreakpointReason::BP_DISAMBIG, *v));
+				}
 				break;
 		}
 		//std::cout << std::endl;
@@ -320,6 +326,8 @@ class PTracer
 	bool     _inSinglestep;  // are we currently single-stepping due to a BP?
 	BreakpointData *_curBreakpoint; // current BP descriptor
 	std::map<Address, BreakpointData*> _breakpoints; // list of all breakpoints
+
+	std::list<CFGVertexDescriptor>& _trace;
 
 	CFGBuilder * _cfgBuilder; // CFG Builder to be called for unresolved JMP nodes
 
@@ -456,7 +464,18 @@ class PTracer
 			                << " cur IP: " << ip
 			                << std::endl;);
 
-			_cfgBuilder->extend(_curBreakpoint->vertex, Address(ip));
+			if (_curBreakpoint->reason == BreakpointReason::BP_JUMP) {
+				_cfgBuilder->extend(_curBreakpoint->vertex, Address(ip));
+			}
+
+			try {
+				CFGVertexDescriptor cur = _cfgBuilder->graph().findNodeWithAddress(Address(ip));
+				_trace.push_back(cur);
+			} catch (NodeNotFoundException) {
+				std::cout << "\033[31;1mERROR\033[0m Jumped to address " << std::hex << ip
+				          << " but did not find a CFG node for it!";
+				std::exit(2);
+			}
 
 			_curBreakpoint->arm(_child);
 			_curBreakpoint = 0;
@@ -520,11 +539,11 @@ class PTracer
 	}
 
 public:
-	PTracer(pid_t child, CFGBuilder *builder)
+	PTracer(pid_t child, CFGBuilder *builder, std::list<CFGVertexDescriptor>& trace)
 		: _child(child), _emulationMode(__WORDSIZE),
 		  _inSyscall(false), _curSyscall(~0U),
 		  _inSinglestep(false), _curBreakpoint(0),
-		  _breakpoints(), _cfgBuilder(builder)
+		  _breakpoints(), _trace(trace), _cfgBuilder(builder)
 	{ }
 
 	PTracer(PTracer const&)            = delete;
@@ -639,8 +658,10 @@ public:
 
 
 static void
-runInstrumented(std::list<BreakpointData*> iPoints, int argc, char** argv,
-                CFGBuilder* builder)
+runInstrumented(std::list<BreakpointData*>& iPoints,
+                std::list<CFGVertexDescriptor>& trace,
+                CFGBuilder* builder,
+                int argc, char** argv)
 {
 	pid_t child = fork();
 	if (child == 0) {
@@ -659,11 +680,11 @@ runInstrumented(std::list<BreakpointData*> iPoints, int argc, char** argv,
 		 * inheriting parent's environment
 		 */
 		execve(argv[0], argv, environ);
-		perror("execve");
+		std::perror("execve");
 		throw ThisShouldNeverHappenException("execve failed");
 	} else if (child > 0) {
 
-		PTracer pt(child, builder);
+		PTracer pt(child, builder, trace);
 
 		if (!pt.handshake()) {
 			return;
@@ -679,11 +700,44 @@ runInstrumented(std::list<BreakpointData*> iPoints, int argc, char** argv,
 		pt.run();
 
 	} else {
-		perror("fork");
+		std::perror("fork");
 		exit(1);
 	}
 }
 
+
+void
+unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
+{
+	CFGVertexDescriptor iter = 1;
+	std::list<CFGVertexDescriptor> bbList;
+	while (!trace.empty()) {
+		CFGVertexDescriptor next = trace.front();
+		trace.pop_front();
+
+		do {
+			bbList.push_back(iter);
+
+			if (boost::out_degree(iter, cfg.cfg) == 1) {
+				iter = boost::target(*(boost::out_edges(iter, cfg.cfg).first), cfg.cfg);
+			} else {
+				iter = next;
+			}
+		} while (next != iter);
+	}
+
+	std::cout << "BBTrace: " << bbList.size() << " entries." << std::endl;
+	int count = 0;
+	BOOST_FOREACH(CFGVertexDescriptor v, bbList) {
+		std::cout << std::setw(3) << std::hex << v;
+		if (++count % 20 == 0) {
+			std::cout << std::endl;
+		} else {
+			std::cout << " ";
+		}
+	}
+	if (count % 20) { std::cout << std::endl; }
+}
 
 int main(int argc, char **argv)
 {
@@ -704,23 +758,28 @@ int main(int argc, char **argv)
 
 	readCFG(cfg);
 
-	std::list<BreakpointData*> unresolved;
-	int numUnres = getUnresolvedAddresses(cfg, unresolved);
-	std::cout << std::dec << numUnres << " unresolved jumps." << std::endl;
+	std::list<BreakpointData*> instrumentationPoints;
+	std::list<CFGVertexDescriptor> trace;
+
+	int numUnres = determineBreakpoints(cfg, instrumentationPoints);
+	std::cout << std::dec << numUnres << " breakpoints." << std::endl;
 
 	FileInputReader *fr = new FileInputReader();
 	input.push_back(fr);
 	fr->addData(argv[newArg]);
 	builder = CFGBuilder::get(input, cfg);
 
-	runInstrumented(unresolved, argc - newArg + 1, &argv[newArg], builder);
+	runInstrumented(instrumentationPoints, trace, builder, argc - newArg + 1, &argv[newArg]);
 	std::cout << "Program run terminated." << std::endl;
 
-	std::cout << "Built CFG. " << std::dec << boost::num_vertices(cfg.cfg) << " vertices, "
-			<< boost::num_edges(cfg.cfg) << " edges." << std::endl;
+	std::cout << "Traced CFG. " << std::dec << boost::num_vertices(cfg.cfg) << " vertices, "
+	          << boost::num_edges(cfg.cfg) << " edges." << std::endl;
+	std::cout << "       Trace has " << trace.size() << " entries." << std::endl;
 	cfg.toFile(config.input_filename);
 
-	BOOST_FOREACH(BreakpointData* bp, unresolved) {
+	unrollBBs(cfg, trace);
+
+	BOOST_FOREACH(BreakpointData* bp, instrumentationPoints) {
 		delete bp;
 	}
 
