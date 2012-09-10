@@ -334,6 +334,11 @@ void CFGBuilder_priv::doBuildRun()
 
 		BBInfo bbi = exploreSingleBB(next.second);
 		DEBUG(bbi.dump(); std::cout << std::endl; );
+#if 0
+		BOOST_FOREACH(Address a, bbi.targets) {
+			std::cout << std::hex << "T(" << next.second.v << ") -> " << a.v << std::endl;
+		}
+#endif
 
 		if (bbi.bb != 0) {
 			DEBUG(std::cout << "Basic block @ " << bbi.bb << std::endl;);
@@ -641,11 +646,13 @@ void CFGBuilder_priv::handleOutgoingEdges(BBInfo& bbi, CFGVertexDescriptor newVe
 				Address retTarget = cfg(newVertex).returnTargetAddress();
 				CFGVertexDescriptor rVert;
 				try {
+					DEBUG(std::cout << "Looking for return target 0x" << retTarget.v << std::endl;);
 					rVert = _cfg.findNodeWithAddress(retTarget);
 					BOOST_FOREACH(CFGVertexDescriptor retNode, cfg(targetNode).retNodes) {
 						addCFGEdge(retNode, rVert);
 					}
 				} catch (NodeNotFoundException) {
+					DEBUG(std::cout << "not found. Adding unresolved link." << std::endl;);
 					BOOST_FOREACH(CFGVertexDescriptor retNode, cfg(targetNode).retNodes) {
 						_bb_connections.push_back(UnresolvedLink(retNode, cfg(newVertex).returnTargetAddress()));
 					}
@@ -738,12 +745,13 @@ CFGVertexDescriptor CFGBuilder_priv::splitBasicBlock(CFGVertexDescriptor splitVe
 	 *    outgoing edges of bb2
 	 */
 	boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator edge0, edgeEnd;
-	for (boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg.cfg);
-			edge0 != edgeEnd; ++edge0) {
+	boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg.cfg);
+	while  (edge0 != edgeEnd) {
 		CFGVertexDescriptor targetV = boost::target(*edge0, _cfg.cfg);
 		addCFGEdge(vert2, targetV);
 		DEBUG(std::cout << "split: removing: " << splitVertex << " -> " << targetV << std::endl;);
 		boost::remove_edge(splitVertex, targetV, _cfg.cfg);
+		boost::tie(edge0, edgeEnd) = boost::out_edges(splitVertex, _cfg.cfg);
 	}
 
 	// 5) add edge from bb1 -> bb2
