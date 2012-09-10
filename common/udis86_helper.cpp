@@ -113,6 +113,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 #define MODIFY_SINGLE(x) \
 	m[x] = ModificationInfo(true, false, false);
 
+	MODIFY_SINGLE(UD_Iadc);
 	MODIFY_SINGLE(UD_Iadd);
 	MODIFY_SINGLE(UD_Iand);
 	NO_MODIFICATION(UD_Icall);
@@ -121,12 +122,30 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Iint1);
 	NO_MODIFICATION(UD_Iint3);
 	NO_MODIFICATION(UD_Ijmp);
+	NO_MODIFICATION(UD_Ija);
+	NO_MODIFICATION(UD_Ijae);
+	NO_MODIFICATION(UD_Ijb);
+	NO_MODIFICATION(UD_Ijbe);
+	NO_MODIFICATION(UD_Ijg);
+	NO_MODIFICATION(UD_Ijge);
 	NO_MODIFICATION(UD_Ijle);
+	NO_MODIFICATION(UD_Ijno);
+	NO_MODIFICATION(UD_Ijnp);
+	NO_MODIFICATION(UD_Ijns);
 	NO_MODIFICATION(UD_Ijnz);
+	NO_MODIFICATION(UD_Ijs);
 	NO_MODIFICATION(UD_Ijz);
+	MODIFY_SINGLE(UD_Ilea);
 	MODIFY_SINGLE(UD_Imov);
+	MODIFY_SINGLE(UD_Imovzx);
+	MODIFY_SINGLE(UD_Ior);
 	MODIFY_SINGLE(UD_Ipop);
 	NO_MODIFICATION(UD_Ipush);
+	MODIFY_SINGLE(UD_Isetnz);
+	MODIFY_SINGLE(UD_Ishl);
+	MODIFY_SINGLE(UD_Ishld);
+	MODIFY_SINGLE(UD_Ishr);
+	MODIFY_SINGLE(UD_Ishrd);
 	MODIFY_SINGLE(UD_Isub);
 	NO_MODIFICATION(UD_Itest);
 	MODIFY_SINGLE(UD_Ixor);
@@ -193,7 +212,7 @@ void Udis86Instruction::fillAccessInfo(unsigned opno, std::vector<RegisterAccess
 				set.push_back(RegisterAccessInfo(reg, 32));
 			}
 			if (ud->operand[opno].index != UD_NONE) {
-				reg = PlatformX8632::UdisToPlatformRegister(ud->operand[opno].base);
+				reg = PlatformX8632::UdisToPlatformRegister(ud->operand[opno].index);
 				set.push_back(RegisterAccessInfo(reg, 32));
 			}
 			return;
