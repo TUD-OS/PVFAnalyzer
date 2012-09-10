@@ -171,9 +171,9 @@ struct Syscalls
 		for (unsigned long w = a.v; w < a.v + size; w += sizeof(w)) {
 			unsigned long data = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, w, 0);
 			std::cout << std::hex << "[0x" << w << "] ";
-			for (unsigned i = 0; i < sizeof(w); i+=2) {
+			for (unsigned i = 0; i < 8*sizeof(w); i+=8) {
 				std::cout << std::hex << std::setw(2) << std::setfill('0')
-				          << ((data >> (i*4)) & 0xFF) << " ";
+				          << ((data >> i) & 0xFF) << " ";
 			}
 			std::cout << std::endl;
 		}
@@ -212,7 +212,7 @@ struct BreakpointData
 	 * Store original data for single-stepping once we
 	 * hit the BP.
 	 */
-	unsigned long	origData;
+	unsigned long    origData;
 
 	/*
 	 * Number of times this BP was hit.
@@ -250,11 +250,11 @@ struct BreakpointData
 	 **/
 	void arm(pid_t process)
 	{
-		DEBUG(std::cout << "arming BP @ " << std::hex << target.v << std::endl;);
 		origData = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, target.v, 0);
 		unsigned long newdata = (origData & ~0xFF) | 0xCC; // INT3;
 		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)newdata);
-
+		DEBUG(std::cout << "armed BP @ " << std::hex << target.v << std::endl;);
+		DEBUG(Syscalls::dumpMemory(process, target - 4, 8););
 	}
 
 
@@ -274,6 +274,8 @@ struct BreakpointData
 		                         8 * RIP,
 #endif
 		                         (void*)target.v);
+		DEBUG(std::cout << "disarmed BP @ " << std::hex << target.v << std::endl;);
+		DEBUG(Syscalls::dumpMemory(process, target - 4, 8););
 	}
 };
 

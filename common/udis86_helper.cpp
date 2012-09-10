@@ -128,6 +128,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Ijbe);
 	NO_MODIFICATION(UD_Ijg);
 	NO_MODIFICATION(UD_Ijge);
+	NO_MODIFICATION(UD_Ijl);
 	NO_MODIFICATION(UD_Ijle);
 	NO_MODIFICATION(UD_Ijno);
 	NO_MODIFICATION(UD_Ijnp);
