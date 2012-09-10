@@ -121,7 +121,7 @@ def main():
 
     mainAddress = int(name2Addr["main"], 16)
 
-    if sys.argv[2] is not None:
+    if len(sys.argv) > 2:
         cpcmd = "cp %s cfgtmp.cfg" % sys.argv[2]
         print cpcmd
         subprocess.call(cpcmd.split())
