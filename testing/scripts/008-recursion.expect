@@ -7,12 +7,12 @@ Wrote CFG to 'recursion.cfg'
 [33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x1d]\l0x0000001d: mov ebp, esp\l0x0000001f: and esp, 0xfffffff0\l0x00000022: sub esp, 0x10\l0x00000025: mov dword [esp], 0x5\l0x0000002c: call dword 0x0\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(2) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: sub esp, 0x18\l0x00000006: cmp dword [ebp+0x8], 0x0\l0x0000000a: jz 0x1a\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(3) [@0x1a]\l0x0000001a: leave \l0x0000001b: ret \l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(4) [@0xc]\l0x0000000c: mov eax, [ebp+0x8]\l0x0000000f: sub eax, 0x1\l0x00000012: mov [esp], eax\l0x00000015: call dword 0x0\l"];
-5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(5) [@0x31]\l0x00000031: mov eax, 0x1\l0x00000036: leave \l0x00000037: ret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x1d]\l0x0000001d: mov ebp, esp\l0x0000001f: and esp, 0xfffffff0\l0x00000022: sub esp, 0x10\l0x00000025: mov dword [esp], 0x5\l0x0000002c: call dword 0x0\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(2) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: sub esp, 0x18\l0x00000006: cmp dword [ebp+0x8], 0x0\l0x0000000a: jz 0x1a\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x1a]\l0x0000001a: leave \l0x0000001b: ret \l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0xc]\l0x0000000c: mov eax, [ebp+0x8]\l0x0000000f: sub eax, 0x1\l0x00000012: mov [esp], eax\l0x00000015: call dword 0x0\l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x31]\l0x00000031: mov eax, 0x1\l0x00000036: leave \l0x00000037: ret \l"];
 0->1 ;
 1->2 ;
 2->3 ;

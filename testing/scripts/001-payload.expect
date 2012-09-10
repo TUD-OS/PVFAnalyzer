@@ -7,10 +7,10 @@ Wrote CFG to 'payload.cfg'
 [33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x0]\l0x00000000: jmp 0x12\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(2) [@0x12]\l0x00000012: call dword 0x2\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(3) [@0x2]\l0x00000002: pop ebx\l0x00000003: xor edx, edx\l0x00000005: mov [ebx+0x9], dl\l0x00000008: push edx\l0x00000009: push ebx\l0x0000000a: mov ecx, esp\l0x0000000c: xor eax, eax\l0x0000000e: mov al, 0xb\l0x00000010: int 0x80\l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x0]\l0x00000000: jmp 0x12\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(2) [@0x12]\l0x00000012: call dword 0x2\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x2]\l0x00000002: pop ebx\l0x00000003: xor edx, edx\l0x00000005: mov [ebx+0x9], dl\l0x00000008: push edx\l0x00000009: push ebx\l0x0000000a: mov ecx, esp\l0x0000000c: xor eax, eax\l0x0000000e: mov al, 0xb\l0x00000010: int 0x80\l"];
 0->1 ;
 1->2 ;
 2->3 ;

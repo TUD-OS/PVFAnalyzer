@@ -7,14 +7,14 @@ Wrote CFG to 'sum_rec.cfg'
 [33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x8048400]\l0x08048400: push ebp\l0x08048401: mov ebp, esp\l0x08048403: and esp, 0xfffffff0\l0x08048406: sub esp, 0x10\l0x08048409: mov dword [esp], 0xc\l0x08048410: call dword 0x80483dc\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(2) [@0x80483dc]\l0x080483dc: push ebp\l0x080483dd: mov ebp, esp\l0x080483df: sub esp, 0x18\l0x080483e2: cmp dword [ebp+0x8], 0x0\l0x080483e6: jz 0x80483fb\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(3) [@0x80483fb]\l0x080483fb: mov eax, [ebp+0x8]\l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=crimson,label="(4) [@0x80483e8]\l0x080483e8: mov eax, [ebp+0x8]\l0x080483eb: sub eax, 0x1\l0x080483ee: mov [esp], eax\l0x080483f1: call dword 0x80483dc\l"];
-5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(5) [@0x8048415]\l0x08048415: leave \l0x08048416: ret \l"];
-6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(6) [@0x80483f6]\l0x080483f6: add eax, 0x1\l0x080483f9: jmp 0x80483fe\l"];
-7 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(7) [@0x80483fe]\l0x080483fe: leave \l0x080483ff: ret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x8048400]\l0x08048400: push ebp\l0x08048401: mov ebp, esp\l0x08048403: and esp, 0xfffffff0\l0x08048406: sub esp, 0x10\l0x08048409: mov dword [esp], 0xc\l0x08048410: call dword 0x80483dc\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x80483dc]\l0x080483dc: push ebp\l0x080483dd: mov ebp, esp\l0x080483df: sub esp, 0x18\l0x080483e2: cmp dword [ebp+0x8], 0x0\l0x080483e6: jz 0x80483fb\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(3) [@0x80483fb]\l0x080483fb: mov eax, [ebp+0x8]\l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x80483e8]\l0x080483e8: mov eax, [ebp+0x8]\l0x080483eb: sub eax, 0x1\l0x080483ee: mov [esp], eax\l0x080483f1: call dword 0x80483dc\l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x8048415]\l0x08048415: leave \l0x08048416: ret \l"];
+6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x80483f6]\l0x080483f6: add eax, 0x1\l0x080483f9: jmp 0x80483fe\l"];
+7 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(7) [@0x80483fe]\l0x080483fe: leave \l0x080483ff: ret \l"];
 0->1 ;
 1->2 ;
 2->3 ;

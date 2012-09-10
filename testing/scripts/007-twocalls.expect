@@ -7,11 +7,11 @@ Wrote CFG to 'twocalls.cfg'
 [33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x5]\l0x00000005: push ebp\l0x00000006: mov ebp, esp\l0x00000008: sub esp, 0x4\l0x0000000b: mov dword [esp], 0x2\l0x00000012: call dword 0x0\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(2) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: pop ebp\l0x00000004: ret \l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(3) [@0x17]\l0x00000017: mov dword [esp], 0x4\l0x0000001e: call dword 0x0\l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(4) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: leave \l0x00000029: ret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x5]\l0x00000005: push ebp\l0x00000006: mov ebp, esp\l0x00000008: sub esp, 0x4\l0x0000000b: mov dword [esp], 0x2\l0x00000012: call dword 0x0\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(2) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: pop ebp\l0x00000004: ret \l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x17]\l0x00000017: mov dword [esp], 0x4\l0x0000001e: call dword 0x0\l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: leave \l0x00000029: ret \l"];
 0->1 ;
 1->2 ;
 2->3 ;

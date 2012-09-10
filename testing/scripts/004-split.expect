@@ -7,10 +7,10 @@ Wrote CFG to 'bbsplit.cfg'
 [33m        CFG Printer version 0.2[0m
 [34m********************************************[0m
 digraph G {
-0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(1) [@0x5]\l0x00000005: adc bh, al\l0x00000007: inc ebp\l0x00000008: cld \l0x00000009: add [eax], al\l0x0000000b: add [eax], al\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(2) [@0xd]\l0x0000000d: nop \l0x0000000e: add dword [ebp-0x4], 0x1\l0x00000012: cmp dword [ebp-0x4], 0x9\l0x00000016: jle 0xd\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=steelblue,label="(3) [@0x18]\l0x00000018: mov eax, 0x0\l0x0000001d: leave \l0x0000001e: ret \l"];
+0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x5]\l0x00000005: adc bh, al\l0x00000007: inc ebp\l0x00000008: cld \l0x00000009: add [eax], al\l0x0000000b: add [eax], al\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(2) [@0xd]\l0x0000000d: nop \l0x0000000e: add dword [ebp-0x4], 0x1\l0x00000012: cmp dword [ebp-0x4], 0x9\l0x00000016: jle 0xd\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x18]\l0x00000018: mov eax, 0x0\l0x0000001d: leave \l0x0000001e: ret \l"];
 0->1 ;
 1->2 ;
 2->2 ;

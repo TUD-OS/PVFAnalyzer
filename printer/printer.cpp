@@ -294,19 +294,32 @@ struct ExtendedGraphvizInstructionWriter
 	int                        _maxCallDepthColor;
 
 	ExtendedGraphvizInstructionWriter(ControlFlowGraph& _g, GraphColoringStrategy& strat)
-		: g(_g), _strategy(strat), _callDepthColors(), _maxCallDepthColor(11)
+		: g(_g), _strategy(strat), _callDepthColors(), _maxCallDepthColor(23)
 	{
-		_callDepthColors[ 0] = "steelblue";
-		_callDepthColors[ 1] = "crimson";
-		_callDepthColors[ 2] = "orange2";
-		_callDepthColors[ 3] = "palegreen2";
-		_callDepthColors[ 4] = "lightsalmon";
-		_callDepthColors[ 5] = "palevioletred3";
-		_callDepthColors[ 6] = "royalblue";
-		_callDepthColors[ 7] = "peachpuff1";
-		_callDepthColors[ 8] = "orchid2";
-		_callDepthColors[ 9] = "forestgreen";
-		_callDepthColors[10] = "brown1";
+		_callDepthColors[ 0] = "brown2";
+		_callDepthColors[ 1] = "dodgerblue";
+		_callDepthColors[ 2] = "aquamarine";
+		_callDepthColors[ 3] = "darkgoldenrod1";
+		_callDepthColors[ 4] = "cornflowerblue";
+		_callDepthColors[ 5] = "chocolate1";
+		_callDepthColors[ 6] = "darkgreen";
+		_callDepthColors[ 7] = "blue2";
+		_callDepthColors[ 8] = "darkorchid";
+		_callDepthColors[ 9] = "darkorange";
+		_callDepthColors[10] = "crimson";
+		_callDepthColors[11] = "darkolivegreen1";
+		_callDepthColors[12] = "blueviolet";
+		_callDepthColors[13] = "darkslateblue";
+		_callDepthColors[14] = "gold";
+		_callDepthColors[15] = "deeppink";
+		_callDepthColors[16] = "forestgreen";
+		_callDepthColors[17] = "cadetblue2";
+		_callDepthColors[18] = "goldenrod2";
+		_callDepthColors[19] = "hotpink";
+		_callDepthColors[20] = "green2";
+		_callDepthColors[21] = "cyan2";
+		_callDepthColors[22] = "chartreuse";
+		_callDepthColors[23] = "khaki";
 	}
 
 	void operator() (std::ostream& out, const CFGVertexDescriptor &v)
