@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: PVF progress indicator
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-09-10 14:29:10.927965 Z
+references: []
+
+id: 6c46e1e4d5463ceff45c2b21ccb6a7e860f35390
+log_events: 
+- - 2012-09-10 14:29:11.331399 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
