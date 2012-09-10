@@ -109,6 +109,13 @@ public:
 	virtual bool isBranch() = 0;
 
 	/**
+	 * @brief Determine if the instruction is a function call
+	 *
+	 * @return bool
+	 **/
+	virtual bool isCall() = 0;
+
+	/**
 	 * @brief Types of branches
 	 **/
 	enum BranchType {
@@ -118,6 +125,7 @@ public:
 		BT_CALL,         // call with immediate target
 		BT_CALL_DYN,     // call into dynamic library (via PLT/GOT)
 		BT_CALL_RESOLVE, // call yet to be resolved (through memory or register)
+		BT_JMP_RESOLVE,  // jump yet to be resolved
 		BT_RET,
 		BT_INT,
 	};

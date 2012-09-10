@@ -250,6 +250,11 @@ public:
 
 	ud* udObj() { return _udObj.udptr(); }
 
+	virtual bool isCall()
+	{
+		return udObj()->mnemonic == UD_Icall;
+	}
+
 	virtual bool isBranch()
 	{
 		switch(udObj()->mnemonic) {
@@ -317,7 +322,11 @@ public:
 				target = Instruction::ip().v;
 				target += length();
 				targets.push_back(Address(target));
-				return BT_CALL_RESOLVE;
+				if (isCall()) {
+					return BT_CALL_RESOLVE;
+				} else {
+					return BT_JMP_RESOLVE;
+				}
 
 			case UD_OP_MEM:
 				if (Configuration::get()->debug) {
@@ -355,7 +364,11 @@ public:
 				target = Instruction::ip().v;
 				target += length();
 				targets.push_back(Address(target));
-				return BT_CALL_RESOLVE;
+				if (isCall()) {
+					return BT_CALL_RESOLVE;
+				} else {
+					return BT_JMP_RESOLVE;
+				}
 
 			case UD_NONE:
 				break;

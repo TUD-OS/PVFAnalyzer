@@ -278,7 +278,8 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 	 * If this is a non-resolve node, we already came here at least once and so
 	 * the target might already be in our successor list
 	 */
-	if (node.bb->branchType != Instruction::BT_CALL_RESOLVE) {
+	if ((node.bb->branchType != Instruction::BT_CALL_RESOLVE) and
+		(node.bb->branchType != Instruction::BT_JMP_RESOLVE)) {
 		boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator ei, ei_end;
 		for (boost::tie(ei, ei_end) = boost::out_edges(start, _cfg.cfg);
 		     ei != ei_end; ++ei) {
@@ -289,8 +290,17 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 		}
 	}
 
-	Instruction *last = node.bb->instructions.back();
+	Instruction *last   = node.bb->instructions.back();
 	node.bb->branchType = last->opcodeToBranchType();
+
+	/*
+	 * The _RESOLVE branch types left a dummy jump target, which we now need to
+	 * remove.
+	 */
+	boost::graph_traits<ControlFlowGraphLayout>::out_edge_iterator ei, ei_end;
+	boost::tie(ei, ei_end) = boost::out_edges(start, _cfg.cfg);
+	assert(ei != ei_end);
+	boost::remove_edge(start, boost::target(*ei, _cfg.cfg), _cfg.cfg);
 
 	/*
 	 * Now, someone else might also have discovered this BB already, so now
