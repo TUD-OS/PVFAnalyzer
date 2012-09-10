@@ -111,8 +111,8 @@ def showDOT():
 
 
 def main():
-    if len(sys.argv) != 2:
-        print "Need to give exactly one parameter (file name) on cmd line."
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print "Usage: %s <binary> [CFGFile]" % sys.argv[0]
         sys.exit(1)
 
     (addr2Name, name2Addr) = getFunctions(sys.argv[1])
@@ -120,7 +120,13 @@ def main():
     #    print k, " -> ", addr2Name[k][:20]
 
     mainAddress = int(name2Addr["main"], 16)
-    readCFG(sys.argv[1], mainAddress)
+
+    if sys.argv[2] is not None:
+        cpcmd = "cp %s cfgtmp.cfg" % sys.argv[2]
+        print cpcmd
+        subprocess.call(cpcmd.split())
+    else:
+        readCFG(sys.argv[1], mainAddress)
 
     rewritePrinter(runPrinter(), addr2Name)
     writeDOT()

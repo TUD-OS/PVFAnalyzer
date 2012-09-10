@@ -245,6 +245,7 @@ struct BreakpointData
 	 **/
 	void arm(pid_t process)
 	{
+		DEBUG(std::cout << "arming BP @ " << std::hex << target.v << std::endl;);
 		origData = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, target.v, 0);
 		unsigned long newdata = (origData & ~0xFF) | 0xCC; // INT3;
 		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)newdata);
@@ -421,6 +422,10 @@ class PTracer
 				_curSyscall    = execve32; // == SYS_execve on 32bit
 				_inSyscall     = true;
 			}
+#else
+			if (_curSyscall == execve32) { // there'll be a 2nd syscall return from execve
+				_inSyscall = true;
+			}
 #endif
 		}
 
@@ -536,6 +541,7 @@ public:
 	bool handshake()
 	{
 		int status;
+		int execveRetSeen = 0;
 		int r = Syscalls::wait_checked(_child, &status);
 		assert(r==_child and WIFSTOPPED(status) and WSTOPSIG(status) == SIGSTOP);
 
@@ -544,11 +550,21 @@ public:
 			r = Syscalls::wait_checked(_child, &status);
 			if (r == _child and WIFSTOPPED(status) and WSTOPSIG(status) == SIGTRAP) {
 				handleSyscall();
+#if __WORDSIZE==64
 				// run in syscall emulation until our child switched to
 				// 32bit execution and is in execve()
 				if (_emulationMode == 32 and _curSyscall == execve32) {
 					return true;
 				}
+#else
+				if (_curSyscall == execve32) {
+					execveRetSeen++;
+					if (execveRetSeen > 2) {
+						_inSyscall = false;
+						return true;
+					}
+				}
+#endif
 			}
 			else {
 				std::cout << "ERR1" << std::endl;
@@ -698,6 +714,11 @@ int main(int argc, char **argv)
 	builder = CFGBuilder::get(input, cfg);
 
 	runInstrumented(unresolved, argc - newArg + 1, &argv[newArg], builder);
+	std::cout << "Program run terminated." << std::endl;
+
+	std::cout << "Built CFG. " << std::dec << boost::num_vertices(cfg.cfg) << " vertices, "
+			<< boost::num_edges(cfg.cfg) << " edges." << std::endl;
+	cfg.toFile(config.input_filename);
 
 	BOOST_FOREACH(BreakpointData* bp, unresolved) {
 		delete bp;

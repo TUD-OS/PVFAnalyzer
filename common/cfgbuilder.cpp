@@ -287,9 +287,10 @@ void CFGBuilder_priv::extend(CFGVertexDescriptor start, Address target)
 				return;
 			}
 		}
-		Instruction *last = node.bb->instructions.back();
-		node.bb->branchType = last->opcodeToBranchType();
 	}
+
+	Instruction *last = node.bb->instructions.back();
+	node.bb->branchType = last->opcodeToBranchType();
 
 	/*
 	 * Now, someone else might also have discovered this BB already, so now
@@ -386,7 +387,7 @@ BBInfo CFGBuilder_priv::exploreSingleBB(Address e)
 			bbi.bb->addInstruction(i);
 			offs += i->length();
 
-			if (_terminators[i->ip()]) {
+			if (_cfg.terminators[i->ip()]) {
 				DEBUG(std::cout << "\033[35;1mFound a terminator address.\033[0m" << std::endl;);
 				// simply leave. no targets etc.
 				break;

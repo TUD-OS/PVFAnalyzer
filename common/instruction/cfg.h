@@ -18,6 +18,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/adj_list_serialize.hpp>
+#include <boost/serialization/map.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/foreach.hpp>  // FOREACH
 #include <fstream>
@@ -74,19 +75,24 @@ typedef boost::graph_traits<ControlFlowGraphLayout>::edge_iterator     CFGEdgeIt
 struct ControlFlowGraph
 {
 	ControlFlowGraphLayout cfg;
+	std::map<Address, bool> terminators;
+
 	CFGNodeInfo const & node(CFGVertexDescriptor const v) const { return cfg[v]; }
 	CFGNodeInfo & node_mutable(CFGVertexDescriptor v) { return cfg[v]; }
 
 	ControlFlowGraph()
-		: cfg()
+		: cfg(), terminators()
 	{ }
 
+#if 0
 	template <class Archive>
 	void serialize(Archive& ar, const unsigned int version)
 	{
 		(void)version;
 		ar & cfg;
+		ar & terminators;
 	}
+#endif
 
 	/**
 	 * @brief Serialize CFG into a file.
@@ -120,6 +126,13 @@ struct ControlFlowGraph
 
 	CFGVertexDescriptor const
 	findNodeWithAddress(Address a, CFGVertexDescriptor startSearch = 0);
+
+	void setTerminators(std::vector<Address> addresses)
+	{
+		BOOST_FOREACH(Address a, addresses) {
+			terminators[a] = true;
+		}
+	}
 };
 
 
@@ -128,8 +141,6 @@ struct ControlFlowGraph
  **/
 class CFGBuilder
 {
-protected:
-	std::map<Address, bool> _terminators;
 public:
 	/**
 	 * @brief Create a new builder for the given CFG and input sections.
@@ -143,7 +154,6 @@ public:
 	virtual ~CFGBuilder() { }
 
 	CFGBuilder()
-		: _terminators()
 	{ }
 
 	/**
@@ -155,13 +165,6 @@ public:
 	virtual void build(Address entry) = 0;
 
 	virtual void extend(CFGVertexDescriptor jmpStart, Address jmpTarget) = 0;
-
-	void terminators(std::vector<Address> addresses)
-	{
-		BOOST_FOREACH(Address a, addresses) {
-			_terminators[a] = true;
-		}
-	}
 };
 
 

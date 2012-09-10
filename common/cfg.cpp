@@ -37,6 +37,7 @@ void ControlFlowGraph::toFile(std::string const& name)
 		throw FileNotFoundException(name.c_str());
 	boost::archive::binary_oarchive oa(ofs);
 	oa << cfg;
+	oa << terminators;
 }
 
 
@@ -47,6 +48,7 @@ void ControlFlowGraph::fromFile(std::string const &name)
 		throw FileNotFoundException(name.c_str());
 	boost::archive::binary_iarchive ia(ifs);
 	ia >> cfg;
+	ia >> terminators;
 }
 
 

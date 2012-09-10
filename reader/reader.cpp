@@ -152,7 +152,7 @@ buildCFG(std::vector<InputReader*> const & v)
 	ControlFlowGraph cfg;
 	Address entry;
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
-	builder->terminators(conf.terminatorAddresses);
+	cfg.setTerminators(conf.terminatorAddresses);
 
 	DEBUG(std::cout << "Builder @ " << (void*)builder << std::endl;);
 
