@@ -1,0 +1,23 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Distinguish between CALL_RESOLVE and JMP_RESOLVE branch types
+desc: required to get function entry coloring right for dynamic jumps/calls.
+type: :bugfix
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :in_progress
+disposition: 
+creation_time: 2012-09-10 08:21:25.875706 Z
+references: []
+
+id: 83dfb700962ad752df987bfa08196f2b2ffd18dc
+log_events: 
+- - 2012-09-10 08:21:26.431393 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+- - 2012-09-10 08:21:35.845401 Z
+  - doebel <doebel@tudos.org>
+  - changed status from unstarted to in_progress
+  - ""
+git_branch: 

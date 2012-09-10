@@ -5,7 +5,7 @@ type: :feature
 component: CFGAnalysis
 release: "0.3"
 reporter: doebel <doebel@tudos.org>
-status: :unstarted
+status: :in_progress
 disposition: 
 creation_time: 2012-08-13 08:54:06.128064 Z
 references: []
@@ -47,4 +47,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - commented
   - extending works, now need to track unroll information
+- - 2012-09-10 08:21:31.093737 Z
+  - doebel <doebel@tudos.org>
+  - changed status from unstarted to in_progress
+  - ""
 git_branch: 
