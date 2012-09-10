@@ -14,11 +14,11 @@ digraph G {
 4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x14]\l0x00000014: pop ebp\l0x00000015: ret \l"];
 5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x1e]\l0x0000001e: call dword 0x0\l"];
 6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: pop ebp\l0x00000029: ret \l"];
-0->1 ;
-1->2 ;
-2->3 ;
-3->4 ;
-4->5 ;
-5->3 ;
-3->6 ;
+0->1 [penwidth=2,arrowsize=1.5];
+1->2 [penwidth=2,arrowsize=1.5];
+2->3 [penwidth=2,arrowsize=1.5];
+3->4 [penwidth=2,arrowsize=1.5];
+4->5 [penwidth=2,arrowsize=1.5];
+5->3 [penwidth=2,arrowsize=1.5];
+3->6 [penwidth=2,arrowsize=1.5];
 }

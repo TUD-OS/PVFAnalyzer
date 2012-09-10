@@ -344,6 +344,16 @@ struct ExtendedGraphvizInstructionWriter
 };
 
 
+struct GraphvizEdgeWriter
+{
+	template <class Edge>
+	void operator() (std::ostream& out, Edge const &e)
+	{
+		out << "[penwidth=2,arrowsize=1.5]";
+	}
+};
+
+
 void writeCFG(ControlFlowGraph& cfg)
 {
 	std::streambuf *buf;  // output buffer pointer
@@ -367,7 +377,7 @@ void writeCFG(ControlFlowGraph& cfg)
 
 	GraphColoringStrategy* colStrat = ColoringStrategyFactory::create(cfg, conf);
 	ExtendedGraphvizInstructionWriter gnw(cfg, *colStrat);
-	boost::write_graphviz(out, cfg.cfg, gnw);
+	boost::write_graphviz(out, cfg.cfg, gnw, GraphvizEdgeWriter());
 
 	delete colStrat;
 	cfg.releaseNodeMemory();

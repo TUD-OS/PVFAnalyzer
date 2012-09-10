@@ -14,12 +14,12 @@ digraph G {
 4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x1e]\l0x0000001e: nop \l0x0000001f: jmp 0x25\l"];
 5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x25]\l0x00000025: add dword [ebp-0x4], 0x1\l0x00000029: cmp dword [ebp-0x4], 0x9\l0x0000002d: jle 0x14\l"];
 6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x2f]\l0x0000002f: mov eax, 0x0\l0x00000034: leave \l0x00000035: ret \l"];
-0->1 ;
-3->2 ;
-1->3 ;
-3->4 ;
-5->3 ;
-2->5 ;
-4->5 ;
-5->6 ;
+0->1 [penwidth=2,arrowsize=1.5];
+3->2 [penwidth=2,arrowsize=1.5];
+1->3 [penwidth=2,arrowsize=1.5];
+3->4 [penwidth=2,arrowsize=1.5];
+5->3 [penwidth=2,arrowsize=1.5];
+2->5 [penwidth=2,arrowsize=1.5];
+4->5 [penwidth=2,arrowsize=1.5];
+5->6 [penwidth=2,arrowsize=1.5];
 }

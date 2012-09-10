@@ -16,15 +16,15 @@ digraph G {
 6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x19]\l0x00000019: mov eax, [ebp-0x4]\l0x0000001c: and eax, 0x1\l0x0000001f: test eax, eax\l0x00000021: jnz 0x30\l"];
 7 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(7) [@0x2e]\l0x0000002e: jmp 0x3f\l"];
 8 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(8) [@0x49]\l0x00000049: mov eax, 0x0\l0x0000004e: leave \l0x0000004f: ret \l"];
-0->1 ;
-2->4 ;
-3->4 ;
-4->5 ;
-6->2 ;
-6->3 ;
-1->6 ;
-5->6 ;
-4->7 ;
-7->5 ;
-5->8 ;
+0->1 [penwidth=2,arrowsize=1.5];
+2->4 [penwidth=2,arrowsize=1.5];
+3->4 [penwidth=2,arrowsize=1.5];
+4->5 [penwidth=2,arrowsize=1.5];
+6->2 [penwidth=2,arrowsize=1.5];
+6->3 [penwidth=2,arrowsize=1.5];
+1->6 [penwidth=2,arrowsize=1.5];
+5->6 [penwidth=2,arrowsize=1.5];
+4->7 [penwidth=2,arrowsize=1.5];
+7->5 [penwidth=2,arrowsize=1.5];
+5->8 [penwidth=2,arrowsize=1.5];
 }

@@ -19,15 +19,15 @@ digraph G {
 9 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=aquamarine,label="(9) [@0x21]\l0x00000021: pop ebp\l0x00000022: ret \l"];
 10 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(a) [@0x2b]\l0x0000002b: pop ebp\l0x0000002c: ret \l"];
 11 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(b) [@0x35]\l0x00000035: pop ebp\l0x00000036: ret \l"];
-0->1 ;
-1->2 ;
-2->3 ;
-3->4 ;
-4->5 ;
-5->6 ;
-6->7 ;
-7->8 ;
-8->9 ;
-9->10 ;
-10->11 ;
+0->1 [penwidth=2,arrowsize=1.5];
+1->2 [penwidth=2,arrowsize=1.5];
+2->3 [penwidth=2,arrowsize=1.5];
+3->4 [penwidth=2,arrowsize=1.5];
+4->5 [penwidth=2,arrowsize=1.5];
+5->6 [penwidth=2,arrowsize=1.5];
+6->7 [penwidth=2,arrowsize=1.5];
+7->8 [penwidth=2,arrowsize=1.5];
+8->9 [penwidth=2,arrowsize=1.5];
+9->10 [penwidth=2,arrowsize=1.5];
+10->11 [penwidth=2,arrowsize=1.5];
 }

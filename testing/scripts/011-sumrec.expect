@@ -15,13 +15,13 @@ digraph G {
 5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x8048415]\l0x08048415: leave \l0x08048416: ret \l"];
 6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x80483f6]\l0x080483f6: add eax, 0x1\l0x080483f9: jmp 0x80483fe\l"];
 7 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(7) [@0x80483fe]\l0x080483fe: leave \l0x080483ff: ret \l"];
-0->1 ;
-1->2 ;
-2->3 ;
-2->4 ;
-4->2 ;
-7->5 ;
-7->6 ;
-3->7 ;
-6->7 ;
+0->1 [penwidth=2,arrowsize=1.5];
+1->2 [penwidth=2,arrowsize=1.5];
+2->3 [penwidth=2,arrowsize=1.5];
+2->4 [penwidth=2,arrowsize=1.5];
+4->2 [penwidth=2,arrowsize=1.5];
+7->5 [penwidth=2,arrowsize=1.5];
+7->6 [penwidth=2,arrowsize=1.5];
+3->7 [penwidth=2,arrowsize=1.5];
+6->7 [penwidth=2,arrowsize=1.5];
 }
