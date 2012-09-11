@@ -42,10 +42,11 @@ struct DynRunConfig : public Configuration
 {
 	std::string input_filename;
 	std::string output_filename;
+	Address     iList_start;
 
 	DynRunConfig()
 		: Configuration(), input_filename("output.cfg"),
-	      output_filename("output.ilist")
+	      output_filename("output.ilist"), iList_start(0)
 	{ }
 };
 
@@ -59,6 +60,7 @@ usage(char const *prog)
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
 	std::cout << "\t-o <file>          Set output file [output.ilist]" << std::endl;
+	std::cout << "\t-i <address>       Start iList only at first occurrence of address [default = 0, use entry]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -83,12 +85,17 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "df:ho:v")) != -1) {
+	while ((opt = getopt(argc, argv, "df:hi:o:v")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
 
 		switch(opt) {
+
+			case 'i':
+				config.iList_start = Address(strtoul(optarg, 0, 0));
+				std::cout << "iList start: " << std::hex << config.iList_start.v << std::endl;
+				break;
 
 			case 'f':
 				config.input_filename = optarg;
@@ -715,6 +722,9 @@ unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
 {
 	CFGVertexDescriptor iter = 1;
 	std::list<CFGVertexDescriptor> bbList;
+
+	bool skipInstruction = (config.iList_start.v == 0) ? false : true;
+
 	while (!trace.empty()) {
 		CFGVertexDescriptor next = trace.front();
 		trace.pop_front();
@@ -759,6 +769,12 @@ unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
 		}
 
 		BOOST_FOREACH(Instruction *instr, cfg.node(v).bb->instructions) {
+			if (skipInstruction) {
+				if (instr->ip() == config.iList_start)
+					skipInstruction = false;
+				else
+					continue;
+			}
 			if (config.debug) {
 				instr->print();
 				std::cout << "\n";
@@ -777,7 +793,7 @@ unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
 	boost::archive::binary_oarchive oa(outFile);
 	oa << iList;
 	outFile.close();
-	std::cout << "iList written to " << config.output_filename << std::endl;
+	std::cout << "iList (" << std::dec << iList.size() << " entries) written to " << config.output_filename << std::endl;
 }
 
 int main(int argc, char **argv)
