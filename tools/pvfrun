@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+  echo "Need one argument."
+  exit 2
+fi
+
+TMP1=tmp.pvf
+TMP2=tmp2.pvf
+
+
+build/pvfregs/pvfregs -f $1 >$TMP1
+cat tmp.pvf | grep -v "\*\*" | grep -v "PVF::Regs" | cut -d\| -f 2 | \
+		sed -e's/\s\+/ /g' | sed -e 's/^ //g' |  sed -e 's/?/-/g' >$TMP2
+
+full=`cat $TMP2 | wc -l`
+full=$((full-1))
+
+for col in 1 2 3 4 6 8 9 10; do
+	reg=`head -1 $TMP2 | cut -d\  -f $col`
+	unused=`cat $TMP2 | cut -d\  -f $col | grep \\- | wc -l`
+	ratio=`python -c "import sys; print '%4.5f' % (float(sys.argv[1]) / float(sys.argv[2]))" $((full-unused)) $full`
+	echo -n "$reg : "
+	printf "%10d / %d " $((full - unused)) $full
+	echo "= $ratio"
+done
+
+rm $TMP1 $TMP2
