@@ -33,12 +33,16 @@ releases:
     - "!"
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "0.3"
-  status: :unreleased
-  release_time: 
+  status: :released
+  release_time: 2012-09-12 20:28:17.934331 Z
   log_events: 
   - - 2012-08-14 11:57:21.773501 Z
     - doebel <doebel@tudos.org>
     - created
+    - ""
+  - - 2012-09-12 20:28:17.934348 Z
+    - doebel <doebel@tudos.org>
+    - released
     - ""
 - !ditz.rubyforge.org,2008-03-06/release 
   name: "0.4"
