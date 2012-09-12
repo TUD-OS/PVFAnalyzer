@@ -5,8 +5,8 @@ type: :feature
 component: CFGAnalysis
 release: "0.3"
 reporter: doebel <doebel@tudos.org>
-status: :unstarted
-disposition: 
+status: :closed
+disposition: :fixed
 creation_time: 2012-08-31 13:44:49.021974 Z
 references: []
 
@@ -20,4 +20,12 @@ log_events:
   - doebel <doebel@tudos.org>
   - commented
   - added udcli 32 bit binary
+- - 2012-09-12 05:51:22.127838 Z
+  - doebel <doebel@tudos.org>
+  - commented
+  - added quicksort test cases
+- - 2012-09-12 05:51:36.337481 Z
+  - doebel <doebel@tudos.org>
+  - closed with disposition fixed
+  - for now there are a couple of cases
 git_branch: 

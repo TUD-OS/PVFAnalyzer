@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: use getopt_long() where it fits
+desc: e.g., for the printer
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-09-12 05:49:15.171281 Z
+references: []
+
+id: fe9de160d9fef27b80624353b02a5e8c66e42ee6
+log_events: 
+- - 2012-09-12 05:49:15.679252 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 

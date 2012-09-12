@@ -3,7 +3,7 @@ title: Fault injector
 desc: ptrace-based fault injection
 type: :feature
 component: CFGAnalysis
-release: "0.3"
+release: "0.4"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -15,5 +15,9 @@ log_events:
 - - 2012-08-20 15:49:02.951294 Z
   - doebel <doebel@tudos.org>
   - created
+  - ""
+- - 2012-09-12 05:51:04.485231 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.4 from 0.3
   - ""
 git_branch: 

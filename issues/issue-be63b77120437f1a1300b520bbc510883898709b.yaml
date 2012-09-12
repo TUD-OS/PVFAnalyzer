@@ -6,7 +6,7 @@ desc: |-
   This requires knowing the library mappings at runtime (e.g., through /proc/<pid>/mappings) and then loading the respective libs into the ELF reader.
 type: :feature
 component: CFGAnalysis
-release: "0.4"
+release: "0.5"
 reporter: doebel <doebel@tudos.org>
 status: :unstarted
 disposition: 
@@ -23,4 +23,8 @@ log_events:
   - doebel <doebel@tudos.org>
   - commented
   - it also requires identifying the PLT and special-handling code in there, because it contains dummy jmps in the static case which can only be resolved dynamically.
+- - 2012-09-12 05:50:34.339502 Z
+  - doebel <doebel@tudos.org>
+  - assigned to release 0.5 from 0.4
+  - ""
 git_branch: 

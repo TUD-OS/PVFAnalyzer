@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
-<title>Support for analyzing shared library code as well</title>
+<title>use getopt_long() where it fits</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="style.css" type="text/css" />
 </head>
@@ -13,12 +13,12 @@
 
 <div class="main">
 
-<h1>Support for analyzing shared library code as well</h1>
+<h1>use getopt_long() where it fits</h1>
 <div class="backptr"><a href="index.html">&laquo; CFGAnalysis project page</a></div>
 
 
   <div class="description">
-  <p>Support following jumps to libC &amp; co.</p><p>This requires knowing the library mappings at runtime (e.g., through /proc/&lt;pid&gt;/mappings) and then loading the respective libs into the ELF reader.</p>
+  <p>e.g., for the printer</p>
   </div>
 
 
@@ -27,7 +27,7 @@
   <tbody>
     <tr>
       <td class="attrname">Id:</td>
-      <td class="attrval"><span class="id">be63b77120437f1a1300b520bbc510883898709b</span></td>
+      <td class="attrval"><span class="id">fe9de160d9fef27b80624353b02a5e8c66e42ee6</span></td>
     </tr>
 
     <tr>
@@ -37,7 +37,7 @@
 
     <tr>
       <td class="attrname">Creation time:</td>
-      <td class="attrval">2012-08-27 08:06 GMT</td>
+      <td class="attrval">2012-09-12 05:49 GMT</td>
     </tr>
 
     <tr>
@@ -51,7 +51,7 @@
       <td class="attrname">Release:</td>
       <td class="attrval">
         
-          <a href="release-0.5.html">0.5</a>
+          <a href="release-0.4.html">0.4</a>
           
             (unreleased)
           
@@ -84,27 +84,7 @@
   <tbody>
   
     <tr class="even-row">
-      <td class="date">2012-09-12 05:50 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">assigned to release 0.5 from 0.4</td>
-    </tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="odd-row">
-      <td class="date">2012-08-27 11:28 GMT</td>
-      <td class="person">doebel &lt;doebel@...&gt;</td>
-      <td class="message">commented</td>
-    </tr>
-    
-      <tr><td colspan="3" class="logcomment">
-      it also requires identifying the PLT and special-handling code in there, because it contains dummy jmps in the static case which can only be resolved dynamically.
-      </td></tr>
-    
-    <tr><td></td></tr>
-  
-    <tr class="even-row">
-      <td class="date">2012-08-27 08:06 GMT</td>
+      <td class="date">2012-09-12 05:49 GMT</td>
       <td class="person">doebel &lt;doebel@...&gt;</td>
       <td class="message">created</td>
     </tr>
