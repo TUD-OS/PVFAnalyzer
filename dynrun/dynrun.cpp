@@ -861,6 +861,10 @@ int main(int argc, char **argv)
 		delete bp;
 	}
 
+	cfg.releaseNodeMemory();
+	delete fr;
+	cleanupSyscallNames();
+
 	return 0;
 }
 

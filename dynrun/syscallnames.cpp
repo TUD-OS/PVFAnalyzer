@@ -691,3 +691,12 @@ std::string syscall2Name(int syscall, int mode)
 			return "???";
 	}
 }
+
+#include <iostream>
+
+void cleanupSyscallNames()
+{
+	std::cout << "clear()" << std::endl;
+	syscallnames32.clear();
+	syscallnames64.clear();
+}

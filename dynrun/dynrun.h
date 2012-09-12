@@ -3,3 +3,4 @@
 #include <string>
 
 std::string syscall2Name(int syscall, int mode);
+void cleanupSyscallNames();
