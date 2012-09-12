@@ -1,10 +1,10 @@
 [34m********************************************[0m
-[33m        CFG Analyzer version 0.2[0m
+[33m        CFG Analyzer version 0.3[0m
 [34m********************************************[0m
 Built CFG. 12 vertices, 11 edges.
 Wrote CFG to 'callchain.cfg'
 [34m********************************************[0m
-[33m        CFG Printer version 0.2[0m
+[33m        CFG Printer version 0.3[0m
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];

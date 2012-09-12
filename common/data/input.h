@@ -183,7 +183,6 @@ public:
 	virtual ~InputReader()
 	{
 		BOOST_FOREACH(DataSection* ds, _sections) {
-			std::cout << "deleting " << (void*)ds << std::endl;
 			delete ds;
 		}
 	}

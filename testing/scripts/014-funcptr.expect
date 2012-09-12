@@ -1,11 +1,11 @@
 [34m********************************************[0m
-[33m        CFG Analyzer version 0.2[0m
+[33m        CFG Analyzer version 0.3[0m
 [34m********************************************[0m
 [31mSkipping register jump[0m (37 0 0)
 Built CFG. 5 vertices, 4 edges.
 Wrote CFG to 'funcPtr.cfg'
 [34m********************************************[0m
-[33m        CFG Printer version 0.2[0m
+[33m        CFG Printer version 0.3[0m
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
@@ -21,7 +21,7 @@ digraph G {
 3
 5
 [34m********************************************[0m
-[33m        DynRun version 0.2[0m
+[33m        DynRun version 0.3[0m
 [34m********************************************[0m
 1 breakpoints.
    System call: 59 [33m(execve)[0m
@@ -77,8 +77,9 @@ Traced CFG. 6 vertices, 5 edges.
        Trace has 1 entries.
 BBTrace: 5 entries.
 iList (19 entries) written to funcPtr.ilist
+clear()
 [34m********************************************[0m
-[33m        CFG Printer version 0.2[0m
+[33m        CFG Printer version 0.3[0m
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
@@ -94,7 +95,7 @@ digraph G {
 5->4 [penwidth=2,arrowsize=1.5];
 }
 [34m********************************************[0m
-[33m      PVF::Regs Analyzer version 0.2[0m
+[33m      PVF::Regs Analyzer version 0.3[0m
 [34m********************************************[0m
                              Instruction |    EAX   EBX   ECX   EDX flags   ESP   EIP   ESI   EDI   EBP
                                 push ebp |      -     ?     ?     ?     ?     X     ?     ?     ?     R
