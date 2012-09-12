@@ -155,6 +155,7 @@ public:
 
 	static unsigned operandCount(ud_t *ud);
 	static bool     modifiesOperand(ud_t *ud, unsigned num);
+	static char const* mnemonicToString(unsigned mnemonic);
 };
 
 /**
