@@ -104,7 +104,10 @@ def writeDOT():
 
 def showDOT():
     cmd = "gpicview cfg.png"
-    subprocess.call(cmd.split())
+    subprocess.Popen(cmd.split()) # run this job in background
+
+    import time
+    time.sleep(1)
     
     cmd = "rm cfg.png cfgNamed.dot cfgtmp.cfg"
     subprocess.call(cmd.split())
