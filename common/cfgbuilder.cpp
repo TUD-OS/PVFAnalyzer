@@ -481,8 +481,7 @@ CFGVertexDescriptor CFGBuilder_priv::handleIncomingEdges(CFGVertexDescriptor pre
 		cfg(newVertex).functionEntry = 0;
 	}
 	
-	if ((cfg(prevVertex).bb->branchType == Instruction::BT_CALL) or
-		(cfg(prevVertex).bb->branchType == Instruction::BT_CALL_RESOLVE)) {
+	if ((cfg(prevVertex).bb->branchType == Instruction::BT_CALL)) {
 		DEBUG(std::cout << "     CALL target -> becoming my own entry point." << std::endl;);
 		cfg(newVertex).functionEntry = newVertex;
 	} else if (cfg(prevVertex).bb->branchType == Instruction::BT_RET) {
