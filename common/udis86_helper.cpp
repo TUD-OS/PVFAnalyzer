@@ -118,6 +118,8 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	MODIFY_SINGLE(UD_Iand);
 	NO_MODIFICATION(UD_Icall);
 	NO_MODIFICATION(UD_Icmp);
+	MODIFY_SINGLE(UD_Idec);
+	MODIFY_SINGLE(UD_Iinc);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
 	NO_MODIFICATION(UD_Iint3);
@@ -139,9 +141,11 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	MODIFY_SINGLE(UD_Ilea);
 	MODIFY_SINGLE(UD_Imov);
 	MODIFY_SINGLE(UD_Imovzx);
+	NO_MODIFICATION(UD_Inop);
 	MODIFY_SINGLE(UD_Ior);
 	MODIFY_SINGLE(UD_Ipop);
 	NO_MODIFICATION(UD_Ipush);
+	MODIFY_SINGLE(UD_Isetl);
 	MODIFY_SINGLE(UD_Isetnz);
 	MODIFY_SINGLE(UD_Ishl);
 	MODIFY_SINGLE(UD_Ishld);
