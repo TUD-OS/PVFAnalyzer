@@ -251,7 +251,7 @@ pvfAnalysis(InstructionList& ilist)
 		DEBUG(std::cout << "4" << std::endl;);
 		if (hist.size() > 0) {
 			int* prevState = hist.back();
-			for (unsigned i; i < PlatformX8632::numGPRs(); ++i) {
+			for (unsigned i=0; i < PlatformX8632::numGPRs(); ++i) {
 
 				if ((state[i] == READINSTANT) or (state[i] == WRITEINSTANT)) {
 					continue;
