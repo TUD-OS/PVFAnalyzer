@@ -259,9 +259,15 @@ struct BreakpointData
 	{
 		origData = Syscalls::ptrace_checked(PTRACE_PEEKDATA, process, target.v, 0);
 		unsigned long newdata = (origData & ~0xFF) | 0xCC; // INT3;
+		if (Configuration::get()->debug) {
+			Syscalls::dumpMemory(process, target - 4, 8);;
+			DEBUG(std::cout << " ---> " << std::endl;);
+		}
 		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)newdata);
 		DEBUG(std::cout << "armed BP @ " << std::hex << target.v << std::endl;);
-		DEBUG(Syscalls::dumpMemory(process, target - 4, 8););
+		if (Configuration::get()->debug) {
+			Syscalls::dumpMemory(process, target - 4, 8);;
+		}
 	}
 
 
@@ -273,6 +279,9 @@ struct BreakpointData
 	 **/
 	void disarm(pid_t process)
 	{
+		if (Configuration::get()->debug) {
+			Syscalls::dumpMemory(process, target - 4, 8);;
+		}
 		Syscalls::ptrace_checked(PTRACE_POKEDATA, process, target.v, (void*)origData);
 		Syscalls::ptrace_checked(PTRACE_POKEUSER, process,
 #if __WORDSIZE == 32
@@ -282,7 +291,9 @@ struct BreakpointData
 #endif
 		                         (void*)target.v);
 		DEBUG(std::cout << "disarmed BP @ " << std::hex << target.v << std::endl;);
-		DEBUG(Syscalls::dumpMemory(process, target - 4, 8););
+		if (Configuration::get()->debug) {
+			Syscalls::dumpMemory(process, target - 4, 8);;
+		}
 	}
 };
 

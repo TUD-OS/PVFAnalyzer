@@ -141,6 +141,7 @@ static void obtainRegisterAccessInfo(Instruction *i, RegisterAccessInfoList& rea
 		i->getRegisterRWInfo(read, write);
 	} catch (NotImplementedException e) {
 		std::cout << "ERROR: " << e.message << std::endl;
+		i->print();
 		exit(1);
 	}
 
