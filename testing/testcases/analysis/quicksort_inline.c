@@ -22,15 +22,16 @@ int quickSort(int *arr, int elements) {
 }
 
 
+int array[NUM];
+
 int main()
 {
-#define NUM 100
-	int arrry[NUM];
+//#define NUM 100
 	int i;
 	for (i = NUM; i > 0; --i) {
-		arrry[NUM-i] = i;
+		array[NUM-i] = i;
 	}
-	quickSort(arrry, 100);
+	quickSort(array, NUM);
 
 	return 0;
 }
