@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: fix valgrind errors in dynrun
+desc: ""
+type: :bugfix
+component: CFGAnalysis
+release: "0.3"
+reporter: doebel <doebel@tudos.org>
+status: :unstarted
+disposition: 
+creation_time: 2012-09-12 19:39:38.969990 Z
+references: []
+
+id: 7e1b68b86a56703c3ca84d520c5dc33250ca82bd
+log_events: 
+- - 2012-09-12 19:39:39.521142 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
