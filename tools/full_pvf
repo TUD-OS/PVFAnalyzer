@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Run cfgnames first. This has two reasons:
+# 1) It builds us a reader cmd line. (We could to this ourselves, though.)
+# 2) It lets the user inspect the CFG and determine the PVF iList
+#    start address, which we read from user input thereafter.
+
+readcmd="`tools/cfgnames $1 | head -1 | cut -d\  -f -5` -o tmp.cfg"
+echo $readcmd
+# Now execute the CFG reader
+$readcmd
+
+# Ask user for iList start address
+echo -n "iList start> "
+read -e iliststart
+if [ -z "$iliststart" ]; then
+   iliststart=0
+fi
+
+# Dynamic run
+runcmd="build/dynrun/dynrun -f tmp.cfg -o tmp.ilist -i $iliststart -- $@"
+echo $runcmd
+$runcmd
+
+# PVF::Regs analysis
+pvfcmd="tools/pvfrun tmp.ilist"
+$pvfcmd
+
+#rm tmp.cfg tmp.ilist
