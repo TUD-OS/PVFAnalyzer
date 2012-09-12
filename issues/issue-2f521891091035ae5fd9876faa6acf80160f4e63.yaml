@@ -1,0 +1,19 @@
+--- !ditz.rubyforge.org,2008-03-06/issue 
+title: Tool for manual resolution of dynamic jumps
+desc: ""
+type: :feature
+component: CFGAnalysis
+release: "0.4"
+reporter: .
+status: :unstarted
+disposition: 
+creation_time: 2012-09-12 06:43:50.491530 Z
+references: []
+
+id: 2f521891091035ae5fd9876faa6acf80160f4e63
+log_events: 
+- - 2012-09-12 06:43:51.975430 Z
+  - doebel <doebel@tudos.org>
+  - created
+  - ""
+git_branch: 
