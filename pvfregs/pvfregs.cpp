@@ -163,11 +163,11 @@ static void obtainRegisterAccessInfo(Instruction *i, RegisterAccessInfoList& rea
 static void dumpHistory(InstructionList& ilist, RegisterHistory& hist)
 {
 	for (unsigned t = 0; t < hist.size(); ++t) {
-		std::cout << std::setfill(' ') << std::setw(30) << ilist[t]->c_str();
+		std::cout << std::setfill(' ') << std::setw(40) << ilist[t]->c_str() << " | ";
 		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
 			std::cout << std::setw(6);
 			switch(hist[t][i]) {
-				case DONTCARE:     std::cout << " "; break;
+				case DONTCARE:     std::cout << "-"; break;
 				case UNKNOWN:      std::cout << "?"; break;
 				case IMPORTANT:    std::cout << "X"; break;
 				case READINSTANT:  std::cout << "R"; break;
@@ -182,7 +182,7 @@ static void dumpHistory(InstructionList& ilist, RegisterHistory& hist)
 static void
 pvfAnalysis(InstructionList& ilist)
 {
-	std::cout << std::setw(30) << "Instruction";
+	std::cout << std::setw(40) << "Instruction" << " | ";
 	for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i)
 	{
 		std::cout << std::setw(6) << PlatformX8632::RegisterToString((PlatformX8632::Register)i);
