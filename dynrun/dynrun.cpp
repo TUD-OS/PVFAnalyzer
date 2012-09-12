@@ -28,12 +28,14 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <libgen.h>
 #include <sys/ptrace.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/user.h>
 #include <sys/reg.h>
+#include <sys/personality.h>
 
 #include <cstdio>
 
@@ -582,7 +584,9 @@ public:
 	bool handshake()
 	{
 		int status;
+#if __WORDSIZE==32
 		int execveRetSeen = 0;
+#endif
 		int r = Syscalls::wait_checked(_child, &status);
 		assert(r==_child and WIFSTOPPED(status) and WSTOPSIG(status) == SIGSTOP);
 
@@ -691,11 +695,16 @@ runInstrumented(std::list<BreakpointData*>& iPoints,
 		 * Child's part of the ptrace handshake
 		 */
 		ptrace(PTRACE_TRACEME, 0, 0, 0);
+		personality(ADDR_NO_RANDOMIZE);
 		raise(SIGSTOP);
 
+#if 0
+		if (Configuration::get()->debug) {
 		for (int i = 0; i < argc; ++i)
 			std::cout << argv[i] << " ";
 		std::cout << std::endl;
+		}
+#endif
 
 		/*
 		 * Execute the binary including parameters and
@@ -804,7 +813,8 @@ unrollBBs(ControlFlowGraph& cfg, std::list<CFGVertexDescriptor>& trace)
 	boost::archive::binary_oarchive oa(outFile);
 	oa << iList;
 	outFile.close();
-	std::cout << "iList (" << std::dec << iList.size() << " entries) written to " << config.output_filename << std::endl;
+	std::cout << "iList (" << std::dec << iList.size() << " entries) written to "
+	          << basename((char*)config.output_filename.c_str()) << std::endl;
 }
 
 int main(int argc, char **argv)
