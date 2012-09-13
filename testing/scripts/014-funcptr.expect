@@ -20,58 +20,11 @@ digraph G {
 }
 3
 5
+6
 [34m********************************************[0m
 [33m        DynRun version 0.3[0m
 [34m********************************************[0m
 1 breakpoints.
-   System call: 59 [33m(execve)[0m
-   System call return: 0x0
-   System call return: 0x0
-   System call: 45 [33m(brk)[0m
-   System call return: 0x804a000
-   System call: 33 [33m(access)[0m
-   System call return: 0xfffffffe
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7fde000
-   System call: 33 [33m(access)[0m
-   System call return: 0xfffffffe
-   System call: 5 [33m(open)[0m
-   System call return: 0x3
-   System call: 197 [33m(fstat64)[0m
-   System call return: 0x0
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7fbe000
-   System call: 6 [33m(close)[0m
-   System call return: 0x0
-   System call: 33 [33m(access)[0m
-   System call return: 0xfffffffe
-   System call: 5 [33m(open)[0m
-   System call return: 0x3
-   System call: 3 [33m(read)[0m
-   System call return: 0x200
-   System call: 197 [33m(fstat64)[0m
-   System call return: 0x0
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7fbd000
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7e60000
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7fb7000
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7fba000
-   System call: 6 [33m(close)[0m
-   System call return: 0x0
-   System call: 192 [33m(mmap2)[0m
-   System call return: 0xf7e5f000
-   System call: 243 [33m(set_thread_area)[0m
-   System call return: 0x0
-   System call: 125 [33m(mprotect)[0m
-   System call return: 0x0
-   System call: 125 [33m(mprotect)[0m
-   System call return: 0x0
-   System call: 91 [33m(munmap)[0m
-   System call return: 0x0
-   System call: 252 [33m(exit_group)[0m
 Program run terminated.
 Traced CFG. 6 vertices, 5 edges.
        Trace has 1 entries.

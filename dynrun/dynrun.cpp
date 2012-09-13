@@ -45,10 +45,11 @@ struct DynRunConfig : public Configuration
 	std::string input_filename;
 	std::string output_filename;
 	Address     iList_start;
+	bool        quiet;
 
 	DynRunConfig()
 		: Configuration(), input_filename("output.cfg"),
-	      output_filename("output.ilist"), iList_start(0)
+	      output_filename("output.ilist"), iList_start(0), quiet(false)
 	{ }
 };
 
@@ -58,12 +59,13 @@ static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-f <CFG file>] [-v] [-d] -- <binary> <arguments>"
+	std::cout << prog << " [-h] [-f <CFG file>] [-v] [-d] [-q] -- <binary> <arguments>"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
 	std::cout << "\t-o <file>          Set output file [output.ilist]" << std::endl;
 	std::cout << "\t-i <address>       Start iList only at first occurrence of address [default = 0, use entry]" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
+	std::cout << "\t-q                 Quiet, don't print syscall info [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
 }
@@ -87,7 +89,7 @@ parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "df:hi:o:v")) != -1) {
+	while ((opt = getopt(argc, argv, "df:hi:o:qv")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
@@ -105,6 +107,10 @@ parseInputFromOptions(int argc, char **argv)
 
 			case 'o':
 				config.output_filename = optarg;
+				break;
+
+			case 'q':
+				config.quiet = true;
 				break;
 
 			case 'h':
@@ -434,9 +440,11 @@ class PTracer
 #else
 			_curSyscall = data.orig_eax;
 #endif
-			std::cout << "   System call: " << std::dec << _curSyscall
-					  << " \033[33m(" << syscall2Name(_curSyscall, _emulationMode)
-					  << ")\033[0m" << std::endl;
+			if (!config.quiet) {
+				std::cout << "   System call: " << std::dec << _curSyscall
+				          << " \033[33m(" << syscall2Name(_curSyscall, _emulationMode)
+				          << ")\033[0m" << std::endl;
+			}
 			_inSyscall = true;
 		} else {
 #if __WORDSIZE == 64
@@ -444,8 +452,10 @@ class PTracer
 #else
 			int sysret = data.eax;
 #endif
-			std::cout << "   System call return: 0x" << std::hex
-			          << sysret << std::endl;
+			if (!config.quiet) {
+				std::cout << "   System call return: 0x" << std::hex
+			              << sysret << std::endl;
+			}
 			_inSyscall = false;
 
 #if __WORDSIZE == 64
