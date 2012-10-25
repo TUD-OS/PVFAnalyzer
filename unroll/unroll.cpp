@@ -30,11 +30,12 @@ struct UnrollConfig : public Configuration
 {
 	std::string input_filename;
 	std::string output_filename;
+	std::string eip_list_filename;
 	std::vector<int> bbList;
 
 	UnrollConfig()
 		: Configuration(), input_filename("output.cfg"),
-	      output_filename("output.ilist"), bbList()
+	      output_filename("output.ilist"), eip_list_filename(), bbList()
 	{ }
 };
 
@@ -50,6 +51,7 @@ usage(char const *prog)
 	std::cout << "\t-f <file>          Set input file [output.cfg]" << std::endl;
 	std::cout << "\t-o <file>          Write the resulting output to file. [output.ilist]" << std::endl;
 	std::cout << "\t-b BB1,BB2,...     Comma-separated list of BBs to unrolll [empty]" << std::endl;
+	std::cout << "\t-t <file>          Read instruction list from FAIL/Bochs EIP trace file" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -87,12 +89,58 @@ parseBBList(UnrollConfig& conf, char const *optarg)
 }
 
 
+static void
+BBListFromIList(ControlFlowGraph& cfg, std::string const& filename)
+{
+	std::cout << "ilist from file: " << filename << std::endl;
+	std::ifstream in(filename);
+	std::string line;
+	Address eip;
+
+	while (!in.eof()) {
+		in >> line;
+		eip.v = strtol(line.c_str(), 0, 16);
+
+		if (eip.v != 0) {
+			CFGVertexDescriptor vert = cfg.findNodeWithAddress(eip);
+			BasicBlock* bb           = cfg.node(vert).bb;
+
+			/*
+			 * We're only interested in recording BBs, hence we only want
+			 * the first instructions of a BB and skip the remainder.
+			 */
+			if (bb->firstInstruction() != eip) {
+				std::vector<Instruction*>::iterator it =
+				                 std::find_if(bb->instructions.begin(),
+				                              bb->instructions.end(),
+				                  [&] (Instruction* inst)
+				                  { return inst->ip() == eip; });
+				unsigned skip = 0;
+				for (std::vector<Instruction*>::iterator skipit = it;
+					 skipit != bb->instructions.end();
+					 ++skip, ++skipit)
+					;
+				//std::cout << "skipping: " << skip << std::endl;
+				while (--skip > 0) {
+					in >> line;
+					//std::cout << skip << std::endl;
+				}
+				continue;
+			}
+
+			//std::cout << std::hex << eip.v << " -> " << vert << std::endl;
+			config.bbList.push_back(vert);
+		}
+	}
+}
+
+
 static bool
 parseInputFromOptions(int argc, char **argv)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "b:df:ho:v")) != -1) {
+	while ((opt = getopt(argc, argv, "b:df:ho:t:v")) != -1) {
 
 		if (config.parse_option(opt))
 			continue;
@@ -112,6 +160,10 @@ parseInputFromOptions(int argc, char **argv)
 
 			case 'o':
 				config.output_filename = optarg;
+				break;
+
+			case 't':
+				config.eip_list_filename = optarg;
 				break;
 		}
 	}
@@ -145,6 +197,11 @@ int main(int argc, char **argv)
 	ControlFlowGraph cfg;
 	readCFG(cfg);
 
+	if (config.eip_list_filename != "") {
+		BBListFromIList(cfg, config.eip_list_filename);
+	}
+
+
 	std::vector<Instruction*> iList;
 	BOOST_FOREACH(int node, config.bbList) {
 		BOOST_FOREACH(Instruction *instr, cfg.node(node).bb->instructions) {
@@ -165,7 +222,7 @@ int main(int argc, char **argv)
 	boost::archive::binary_oarchive oa(outFile);
 	oa << iList;
 	outFile.close();
-	std::cout << "Written to " << config.output_filename << std::endl;
+	std::cout << "Wrote " << std::dec << iList.size() << " entries to " << config.output_filename << std::endl;
 
 	cfg.releaseNodeMemory();
 
