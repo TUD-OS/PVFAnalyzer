@@ -33,9 +33,12 @@
 
 struct ReaderConfig : public Configuration
 {
+	std::string input_filename;
 	std::string output_filename;
 	Address entryPoint;
 	std::vector<Address> terminatorAddresses;
+
+	std::vector<std::pair<Address, Address> > additionalJumps;
 
 	ReaderConfig()
 		: Configuration(), output_filename("output.cfg"), entryPoint(~0), terminatorAddresses()
@@ -48,14 +51,16 @@ static void
 usage(char const *prog)
 {
 	std::cout << "\033[32mUsage:\033[0m" << std::endl << std::endl;
-	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-v] [-e <address>] [-t <addresses>]"
+	std::cout << prog << " [-h] [-x <bytestream>] [-f <file>] [-o <file>] [-i file] [-v] [-e <address>] [-j <eip:target<] [-t <addresses>]"
 	          << std::endl << std::endl << "\033[32mOptions\033[0m" << std::endl;
 	std::cout << "\t-f <file>          Parse binary file (ELF or raw binary)" << std::endl;
 	std::cout << "\t-x <bytes>         Interpret the following two-digit hexadecimal" << std::endl;
 	std::cout << "\t                   numbers as input to work on." << std::endl;
+	std::cout << "\t-i <file>          Start with existing CFG from <file> and extend it." << std::endl;
 	std::cout << "\t-o <file>          Write the resulting CFG to file. [output.cfg]" << std::endl;
 	std::cout << "\t-e <addr>          Set decoding entry point address [0x00000000]" << std::endl;
 	std::cout << "\t-t <address>,...   Set a list of addresses where to terminate CFG building. [empty]" << std::endl;
+	std::cout << "\t-j <eip:target>    Extend CFG with a jump from EIP to target address" << std::endl;
 	std::cout << "\t-d                 Debug output [off]" << std::endl;
 	std::cout << "\t-h                 Display help" << std::endl;
 	std::cout << "\t-v                 Verbose output [off]" << std::endl;
@@ -92,12 +97,19 @@ parseTerminatorList(char const *string)
 	}
 }
 
+
+static void
+addExtensionPair(std::vector<std::pair<Address, Address> >& jumpList, char *param)
+{
+}
+
+
 static bool
 parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 {
 	int opt;
 
-	while ((opt = getopt(argc, argv, "e:df:ho:t:xv")) != -1) {
+	while ((opt = getopt(argc, argv, "e:df:hi:j:o:t:xv")) != -1) {
 
 		if (conf.parse_option(opt))
 			continue;
@@ -126,6 +138,14 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 				}
 				break;
 
+			case 'i':
+				conf.input_filename = optarg;
+				break;
+
+			case 'j':
+				addExtensionPair(conf.additionalJumps, optarg);
+				break;
+
 			case 'h':
 				usage(argv[0]);
 				return false;
@@ -147,9 +167,8 @@ parseInputFromOptions(int argc, char **argv, std::vector<InputReader*>& retvec)
 }
 
 static void
-buildCFG(std::vector<InputReader*> const & v)
+buildCFG(std::vector<InputReader*> const & v, ControlFlowGraph& cfg)
 {
-	ControlFlowGraph cfg;
 	Address entry;
 	CFGBuilder* builder = CFGBuilder::get(v, cfg);
 	cfg.setTerminators(conf.terminatorAddresses);
@@ -170,7 +189,11 @@ buildCFG(std::vector<InputReader*> const & v)
 
 	std::cout << "Built CFG. " << std::dec << boost::num_vertices(cfg.cfg) << " vertices, "
 	          << boost::num_edges(cfg.cfg) << " edges." << std::endl;
+}
 
+static void
+writeCFG(ControlFlowGraph& cfg)
+{
 	/* Store graph */
 	cfg.toFile(conf.output_filename);
 	std::cout << "Wrote CFG to '" << basename((char*)conf.output_filename.c_str())
@@ -181,6 +204,21 @@ buildCFG(std::vector<InputReader*> const & v)
 	 * CFG's vertex nodes.
 	 */
 	cfg.releaseNodeMemory();
+}
+
+
+static void
+readCFG(ControlFlowGraph& cfg)
+{
+	try {
+		cfg.fromFile(conf.input_filename);
+	} catch (FileNotFoundException fne) {
+		std::cout << "\033[31m" << fne.message << " not found.\033[0m" << std::endl;
+		return;
+	} catch (boost::archive::archive_exception ae) {
+		std::cout << "\033[31marchive exception:\033[0m " << ae.what() << std::endl;
+		return;
+	}
 }
 
 
@@ -231,6 +269,7 @@ main(int argc, char **argv)
 	using namespace std;
 
 	std::vector<InputReader*> input;
+	ControlFlowGraph cfg;
 
 	Configuration::setConfig(&conf);
 
@@ -239,21 +278,28 @@ main(int argc, char **argv)
 
 	banner();
 
-	if (input.size() == 0)
-		exit(1);
+	if (conf.input_filename == "") {
+		if (input.size() == 0)
+			exit(1);
 
-	if (conf.verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
-#if 1
-	if (conf.verbose) {
-		std::cout << "input stream:\n";
-		dump_sections(input);
-		std::cout << "---------\n";
-	}
+		if (conf.verbose) std::cout << "Read " << count_bytes(input) << " bytes of input." << std::endl;
+#if 0
+		if (conf.verbose) {
+			std::cout << "input stream:\n";
+			dump_sections(input);
+			std::cout << "---------\n";
+		}
 #endif
 
-	buildCFG(input);
+		buildCFG(input, cfg);
 
-	cleanup(input);
+		cleanup(input);
+	} else {
+		std::cout << "Starting with CFG from file: " << conf.input_filename << std::endl;
+		readCFG(cfg);
+	}
+
+	writeCFG(cfg);
 
 	return 0;
 }

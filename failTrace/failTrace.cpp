@@ -18,10 +18,8 @@
 #include <iostream>	          // std::cout
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/adj_list_serialize.hpp>
-#include <boost/graph/graphviz.hpp>
-#include "instruction/cfg.h"
+#include "instruction/disassembler.h"
+#include "data/input.h"
 #include "util.h"
 
 struct FTConfig : public Configuration
@@ -31,7 +29,7 @@ struct FTConfig : public Configuration
 	std::string output_filename;
 
 	FTConfig()
-		: Configuration(), input_filename("a.out"),
+		: Configuration(), input_filename("a.out"), trace_filename(),
 	      output_filename("output.ilist")
 	{ }
 };
@@ -92,6 +90,7 @@ parseInputFromOptions(int argc, char **argv)
 				break;
 
 			case 't':
+				config.trace_filename = optarg;
 				break;
 		}
 	}
@@ -102,7 +101,7 @@ parseInputFromOptions(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	std::vector<Instruction*> iList;
-	std::vector<InputReader*> inputs;
+	Udis86Disassembler        udis;
 
 	Configuration::setConfig(&config);
 
@@ -111,10 +110,47 @@ int main(int argc, char **argv)
 
 	banner();
 
-	FileInputReader *fr = new FileInputReader();
-	inputs.push_back(fr);
 	std::cout << "Reading ELF file: " << config.input_filename << std::endl;
+	FileInputReader *fr = new FileInputReader();
 	fr->addData(config.input_filename.c_str());
+
+	std::cout << "Reading trace file: " << config.trace_filename << std::endl;
+	std::string   traceLine;
+	std::ifstream trace(config.trace_filename);
+	if (!trace.good()) {
+		std::cout << "Error opening trace file " << config.trace_filename << std::endl;
+		return -1;
+	}
+
+	while (!trace.eof()) {
+		trace >> traceLine;
+		Address eip;
+		eip.v = strtol(traceLine.c_str(), 0, 16);
+
+		if (eip.v == 0)
+			continue;
+
+		RelocatedMemRegion buf = fr->sectionForAddress(eip)->getBuffer();
+		Address offs           = eip - buf.mappedBase;
+
+		udis.buffer(buf);
+
+		Instruction* i = udis.disassemble(offs);
+		if (config.verbose)
+			i->print(); std::cout << std::endl;
+		iList->push_back(i);
+	}
+
+	std::ofstream outstream(config.output_filename);
+	if (!outstream.good()) {
+		std::cout << "Cannot write to outfile: " << config.output_filename << std::endl;
+		return -2;
+	}
+	boost::archive::binary_oarchive oa(outstream);
+	oa << iList;
+	outstream.close();
+	std::cout << "Wrote " << std::dec << iList.size() << " instructions to " << config.output_filename << std::endl;
+	
 
 	return 0;
 }

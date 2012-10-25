@@ -121,6 +121,7 @@ SConscript("pvfregs/SConscript", variant_dir="#/build/pvfregs",  exports='env')
 SConscript("unroll/SConscript",  variant_dir="#/build/unroll",   exports='env')
 SConscript("testing/SConscript", variant_dir="build/test",       exports='env')
 SConscript("dynrun/SConscript",  variant_dir="#/build/dynrun",   exports='env')
+SConscript("failTrace/SConscript", variant_dir="#/build/failTrace", exports='env')
 
 # make a test run after compilation
 env.Append(ENV = {"TERM" : os.environ["TERM"]})
