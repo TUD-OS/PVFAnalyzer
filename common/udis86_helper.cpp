@@ -233,10 +233,12 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Icall);
 	NO_MODIFICATION(UD_Icmp);
 	MODIFY_SINGLE(UD_Idec);
+	MODIFY_SINGLE(UD_Iidiv);
 	MODIFY_SINGLE(UD_Iinc);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
 	NO_MODIFICATION(UD_Iint3);
+	MODIFY_SINGLE(UD_Iimul);
 	NO_MODIFICATION(UD_Ijmp);
 	NO_MODIFICATION(UD_Ija);
 	NO_MODIFICATION(UD_Ijae);
@@ -254,12 +256,13 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Ijz);
 	MODIFY_SINGLE(UD_Ilea);
 	MODIFY_SINGLE(UD_Imov);
+	MODIFY_SINGLE(UD_Imovsx);
 	MODIFY_SINGLE(UD_Imovzx);
-	MODIFY_SINGLE(UD_Iidiv);
-	MODIFY_SINGLE(UD_Iimul);
 	NO_MODIFICATION(UD_Inop);
+	MODIFY_SINGLE(UD_Ineg);
 	MODIFY_SINGLE(UD_Inot);
 	MODIFY_SINGLE(UD_Ior);
+	NO_MODIFICATION(UD_Iout);
 	MODIFY_SINGLE(UD_Ipop);
 	NO_MODIFICATION(UD_Ipush);
 	MODIFY_SINGLE(UD_Isar);
@@ -392,6 +395,22 @@ void Udis86Instruction::adjustFalsePositives(std::vector<RegisterAccessInfo>& re
                                              std::vector<RegisterAccessInfo>& writeSet)
 {
 	ud_t *ud = udObj();
+
+	// implicit ESP modifications
+	switch(ud->mnemonic) {
+		case UD_Icall:
+		case UD_Ipop:
+		case UD_Ipush:
+			writeSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
+			break;
+		case UD_Iret:
+			writeSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
+			readSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
+		default:
+			break;
+	}
+
+
 	if ((ud->mnemonic == UD_Ixor) and                 // is an XOR?
 		(ud->operand[0].type == UD_OP_REG) and (ud->operand[1].type == UD_OP_REG) and // both operands are REG
 		(ud->operand[0].base == ud->operand[1].base)) // operands are identical
