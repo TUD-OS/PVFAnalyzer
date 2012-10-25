@@ -92,10 +92,14 @@ parseBBList(UnrollConfig& conf, char const *optarg)
 static void
 BBListFromIList(ControlFlowGraph& cfg, std::string const& filename)
 {
-	std::cout << "ilist from file: " << filename << std::endl;
+	std::cout << "Reading instruction trace from file: " << filename << std::endl;
 	std::ifstream in(filename);
 	std::string line;
 	Address eip;
+
+	if (!in.good()) {
+		std::cout << "Error opening file " << filename << std::endl;
+	}
 
 	while (!in.eof()) {
 		in >> line;
@@ -205,7 +209,7 @@ int main(int argc, char **argv)
 	std::vector<Instruction*> iList;
 	BOOST_FOREACH(int node, config.bbList) {
 		BOOST_FOREACH(Instruction *instr, cfg.node(node).bb->instructions) {
-			if (config.debug) {
+			if (config.verbose) {
 				instr->print();
 				std::cout << "\n";
 			}
