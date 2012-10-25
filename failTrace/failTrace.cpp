@@ -18,6 +18,7 @@
 #include <iostream>	          // std::cout
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
+#include <boost/serialization/vector.hpp>
 #include "instruction/disassembler.h"
 #include "data/input.h"
 #include "util.h"
@@ -124,6 +125,7 @@ int main(int argc, char **argv)
 
 	while (!trace.eof()) {
 		trace >> traceLine;
+		DEBUG(std::cout << traceLine << std::endl;);
 		Address eip;
 		eip.v = strtol(traceLine.c_str(), 0, 16);
 
@@ -136,9 +138,11 @@ int main(int argc, char **argv)
 		udis.buffer(buf);
 
 		Instruction* i = udis.disassemble(offs);
-		if (config.verbose)
-			i->print(); std::cout << std::endl;
-		iList->push_back(i);
+		if (config.verbose) {
+			i->print();
+			std::cout << std::endl;
+		}
+		iList.push_back(i);
 	}
 
 	std::ofstream outstream(config.output_filename);
