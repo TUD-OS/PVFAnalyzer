@@ -268,6 +268,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	MODIFY_SINGLE(UD_Isar);
 	MODIFY_SINGLE(UD_Isetl);
 	MODIFY_SINGLE(UD_Isetnz);
+	MODIFY_SINGLE(UD_Isetz);
 	MODIFY_SINGLE(UD_Ishl);
 	MODIFY_SINGLE(UD_Ishld);
 	MODIFY_SINGLE(UD_Ishr);
