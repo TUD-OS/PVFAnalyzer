@@ -233,7 +233,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	NO_MODIFICATION(UD_Icall);
 	NO_MODIFICATION(UD_Icmp);
 	MODIFY_SINGLE(UD_Idec);
-	MODIFY_SINGLE(UD_Iidiv);
+	NO_MODIFICATION(UD_Iidiv);
 	MODIFY_SINGLE(UD_Iinc);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
@@ -407,6 +407,11 @@ void Udis86Instruction::adjustFalsePositives(std::vector<RegisterAccessInfo>& re
 		case UD_Iret:
 			writeSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
 			readSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
+		case UD_Iidiv:
+			DEBUG(std::cout << "IDIV" << std::endl;);
+			writeSet.push_back(RegisterAccessInfo(PlatformX8632::EAX, 32));
+			writeSet.push_back(RegisterAccessInfo(PlatformX8632::EDX, 32));
+			break;
 		default:
 			break;
 	}
