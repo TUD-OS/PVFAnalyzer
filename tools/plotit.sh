@@ -18,6 +18,8 @@ REGISTERS="EAX EBX ECX EDX ESP EBP"
 
 set -x
 echo "set yrange [0:1.3]" >$PLT
+echo "set terminal png size 1024,768" >> $PLT
+echo "set output 'pvf.png'" >>$PLT
 echo "set xlabel 'Time [instruction blocks]'" >>$PLT
 echo "set ylabel 'Raw PVF'" >> $PLT
 echo "plot \\" >>$PLT
