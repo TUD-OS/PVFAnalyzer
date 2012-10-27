@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# preparation:
+#
+# 1) I split the input EIP trace into 4 parts:
+#    $> split -d -n l/4 trace.O3.txt traceO3-
+#
+# 2) Run 4 instances of splitPVFTrace:
+#    $> tools/splitTracePVF.sh system.O3.elf traceO3-00 | tee log.00
+#    $> tools/splitTracePVF.sh system.O3.elf traceO3-01 | tee log.01
+#    $> tools/splitTracePVF.sh system.O3.elf traceO3-02 | tee log.02
+#    $> tools/splitTracePVF.sh system.O3.elf traceO3-03 | tee log.03
+#
+# 3) Plot the data using this script
+
 PLT=cmd.plt
 REGISTERS="EAX EBX ECX EDX ESP EBP"
 
