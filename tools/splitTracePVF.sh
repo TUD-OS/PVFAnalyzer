@@ -12,7 +12,7 @@ fi
 
 BINARY=$1
 TRACEFILE=$2
-STEPS=400
+LINES=10000
 
 ENTRY=$(nm $BINARY | grep " main$" | cut -d\  -f 1)
 
@@ -20,8 +20,8 @@ ENTRY=$(nm $BINARY | grep " main$" | cut -d\  -f 1)
 #echo "==== CFG Builder ==="
 #build/reader/reader -f $BINARY -o $BINARY.cfg -e 0x$ENTRY
 
-echo "==== Splitting trace ($STEPS) ==="
-split -a 5 -n l/$STEPS -d $TRACEFILE tmp/trace-$TRACEFILE-
+echo "==== Splitting trace ($LINES) ==="
+split -a 5 -l 10000 -d $TRACEFILE tmp/trace-$TRACEFILE-
 
 echo "==== Off we go..."
 TRACELIST=$(ls tmp/trace-$TRACEFILE-*);
