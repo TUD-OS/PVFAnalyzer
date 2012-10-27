@@ -215,73 +215,91 @@ Udis86Helper::mnemonicToString(unsigned mnemonic)
 #undef CASE
 }
 
-typedef boost::tuple<bool, bool, bool> ModificationInfo;
+typedef boost::tuple<AccessDirection, AccessDirection, AccessDirection> ModificationInfo;
 typedef std::map<unsigned, ModificationInfo> OpcodeModificationMap;
 
 static void initOpcodeModMap(OpcodeModificationMap& m)
 {
 /* macros for the two common cases */
 #define NO_MODIFICATION(x) \
-	m[x] = ModificationInfo(false, false, false)
+	m[x] = ModificationInfo(AccessDirection::NONE, AccessDirection::NONE, AccessDirection::NONE)
 
-#define MODIFY_SINGLE(x) \
-	m[x] = ModificationInfo(true, false, false);
+#define IN(x) \
+	m[x] = ModificationInfo(AccessDirection::IN, AccessDirection::NONE, AccessDirection::NONE)
 
-	MODIFY_SINGLE(UD_Iadc);
-	MODIFY_SINGLE(UD_Iadd);
-	MODIFY_SINGLE(UD_Iand);
-	NO_MODIFICATION(UD_Icall);
-	NO_MODIFICATION(UD_Icmp);
-	MODIFY_SINGLE(UD_Idec);
-	NO_MODIFICATION(UD_Iidiv);
-	MODIFY_SINGLE(UD_Iinc);
+#define ININ(x) \
+	m[x] = ModificationInfo(AccessDirection::IN, AccessDirection::IN, AccessDirection::NONE)
+
+#define INOUT(x) \
+	m[x] = ModificationInfo(AccessDirection::INOUT, AccessDirection::NONE, AccessDirection::NONE)
+
+#define INOUTIN(x) \
+	m[x] = ModificationInfo(AccessDirection::INOUT, AccessDirection::IN, AccessDirection::NONE)
+
+#define OUT(x) \
+	m[x] = ModificationInfo(AccessDirection::OUT, AccessDirection::NONE, AccessDirection::NONE)
+
+#define OUTIN(x) \
+	m[x] = ModificationInfo(AccessDirection::OUT, AccessDirection::IN, AccessDirection::NONE)
+
+//#define MODIFY_SINGLE(x)
+//	m[x] = ModificationInfo(AccessDirection::OUT, AccessDirection::NONE, AccessDirection::NONE);
+
+	INOUTIN(UD_Iadc);
+	INOUTIN(UD_Iadd);
+	INOUTIN(UD_Iand);
+	IN     (UD_Icall);
+	ININ   (UD_Icmp);
+	INOUT  (UD_Idec);
+	IN     (UD_Iidiv);
+	INOUT  (UD_Iinc);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
 	NO_MODIFICATION(UD_Iint3);
-	MODIFY_SINGLE(UD_Iimul);
-	NO_MODIFICATION(UD_Ijmp);
-	NO_MODIFICATION(UD_Ija);
-	NO_MODIFICATION(UD_Ijae);
-	NO_MODIFICATION(UD_Ijb);
-	NO_MODIFICATION(UD_Ijbe);
-	NO_MODIFICATION(UD_Ijg);
-	NO_MODIFICATION(UD_Ijge);
-	NO_MODIFICATION(UD_Ijl);
-	NO_MODIFICATION(UD_Ijle);
-	NO_MODIFICATION(UD_Ijno);
-	NO_MODIFICATION(UD_Ijnp);
-	NO_MODIFICATION(UD_Ijns);
-	NO_MODIFICATION(UD_Ijnz);
-	NO_MODIFICATION(UD_Ijs);
-	NO_MODIFICATION(UD_Ijz);
-	MODIFY_SINGLE(UD_Ilea);
-	MODIFY_SINGLE(UD_Imov);
-	MODIFY_SINGLE(UD_Imovsx);
-	MODIFY_SINGLE(UD_Imovzx);
+	INOUTIN(UD_Iimul);
+	IN     (UD_Ijmp);
+	IN     (UD_Ija);
+	IN     (UD_Ijae);
+	IN     (UD_Ijb);
+	IN     (UD_Ijbe);
+	IN     (UD_Ijg);
+	IN     (UD_Ijge);
+	IN     (UD_Ijl);
+	IN     (UD_Ijle);
+	IN     (UD_Ijno);
+	IN     (UD_Ijnp);
+	IN     (UD_Ijns);
+	IN     (UD_Ijnz);
+	IN     (UD_Ijs);
+	IN     (UD_Ijz);
+	OUTIN  (UD_Ilea);
+	OUTIN  (UD_Imov);
+	OUTIN  (UD_Imovsx);
+	OUTIN  (UD_Imovzx);
 	NO_MODIFICATION(UD_Inop);
-	MODIFY_SINGLE(UD_Ineg);
-	MODIFY_SINGLE(UD_Inot);
-	MODIFY_SINGLE(UD_Ior);
-	NO_MODIFICATION(UD_Iout);
-	MODIFY_SINGLE(UD_Ipop);
-	NO_MODIFICATION(UD_Ipush);
-	MODIFY_SINGLE(UD_Isar);
-	MODIFY_SINGLE(UD_Isetl);
-	MODIFY_SINGLE(UD_Isetnz);
-	MODIFY_SINGLE(UD_Isetz);
-	MODIFY_SINGLE(UD_Ishl);
-	MODIFY_SINGLE(UD_Ishld);
-	MODIFY_SINGLE(UD_Ishr);
-	MODIFY_SINGLE(UD_Ishrd);
-	MODIFY_SINGLE(UD_Isub);
-	NO_MODIFICATION(UD_Itest);
-	MODIFY_SINGLE(UD_Ixor);
+	INOUT  (UD_Ineg);
+	INOUT  (UD_Inot);
+	INOUTIN(UD_Ior);
+	ININ   (UD_Iout);
+	OUT    (UD_Ipop);
+	IN     (UD_Ipush);
+	INOUT  (UD_Isar);
+	OUT    (UD_Isetl);
+	OUT    (UD_Isetnz);
+	OUT    (UD_Isetz);
+	INOUTIN(UD_Ishl);
+	INOUTIN(UD_Ishld);
+	INOUTIN(UD_Ishr);
+	INOUTIN(UD_Ishrd);
+	INOUTIN(UD_Isub);
+	ININ   (UD_Itest);
+	INOUTIN(UD_Ixor);
 
 #undef NO_MODIFICATION
 #undef MODIFY_SINGLE
 }
 
-bool Udis86Helper::modifiesOperand(ud_t* ud, unsigned opno)
+AccessDirection Udis86Helper::modifiesOperand(ud_t* ud, unsigned opno)
 {
 	static OpcodeModificationMap opcodeModifyTable;
 	static bool tableInitialized = false;
@@ -373,20 +391,32 @@ void Udis86Instruction::getRegisterRWInfo(std::vector<RegisterAccessInfo>& readS
 	//DEBUG(std::cout << "      " << numOperands << " operand(s)." << std::endl;);
 
 	for (unsigned i = 0; i < numOperands; ++i) {
-		if (Udis86Helper::modifiesOperand(ud, i)) {
-			/*
-			 * Special handling: If a modified operand has the MEM type,
-			 * we still fill into the readSet, because the registers are
-			 * only _read_ during calculation of the address.
-			 */
-			if (ud->operand[i].type == UD_OP_MEM) {
+		//DEBUG(std::cout << "modifies operand: " << (unsigned)Udis86Helper::modifiesOperand(ud, i) << std::endl;);
+		switch (Udis86Helper::modifiesOperand(ud, i)) {
+			case AccessDirection::IN:
+				DEBUG(std::cout << "IN access, operand " << i << std::endl;);
 				this->fillAccessInfo(i, readSet);
-			} else {
+				break;
+			case AccessDirection::OUT:
+				// for memory operands, add potential scale and base registers
+				// to the read set
+				if (ud->operand[i].type == UD_OP_MEM) {
+					DEBUG(std::cout << "mem access, operand " << i << std::endl;);
+					this->fillAccessInfo(i, readSet);
+				} else { 
+					DEBUG(std::cout << "OUT access, operand " << i << std::endl;);
+					this->fillAccessInfo(i, writeSet);
+				}
+				break;
+			case AccessDirection::INOUT:
+				DEBUG(std::cout << "INOUT access, operand " << i << std::endl;);
+				this->fillAccessInfo(i, readSet);
 				this->fillAccessInfo(i, writeSet);
-			}
-		} else {
-			this->fillAccessInfo(i, readSet);
-		}
+				break;
+			case AccessDirection::NONE:
+				break;
+		} 
+		DEBUG(std::cout << readSet.size() << ", " << writeSet.size() << std::endl;);
 	}
 
 	adjustFalsePositives(readSet, writeSet);
@@ -400,13 +430,14 @@ void Udis86Instruction::adjustFalsePositives(std::vector<RegisterAccessInfo>& re
 	// implicit ESP modifications
 	switch(ud->mnemonic) {
 		case UD_Icall:
-		case UD_Ipop:
 		case UD_Ipush:
 			writeSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
 			break;
 		case UD_Iret:
+		case UD_Ipop:
 			writeSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
 			readSet.push_back(RegisterAccessInfo(PlatformX8632::ESP, 32));
+			break;
 		case UD_Iidiv:
 			DEBUG(std::cout << "IDIV" << std::endl;);
 			writeSet.push_back(RegisterAccessInfo(PlatformX8632::EAX, 32));

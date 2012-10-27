@@ -28,6 +28,8 @@
 #include "data/memory.h"
 #include "platform/platform.h"
 
+enum class AccessDirection { IN, OUT, INOUT, NONE };
+
 /**
  * @brief Generic interface for Instructions.
  **/
@@ -147,6 +149,9 @@ public:
 	virtual Instruction::BranchType opcodeToBranchType() = 0;
 
 
+	/*
+	 * pair(Register ID, access size)
+	 */
 	typedef std::pair<int, int> RegisterAccessInfo;
 
 	/**
