@@ -248,10 +248,9 @@ pvfAnalysis(InstructionList& ilist)
 		/* 3) Handle READ accesses */
 		DEBUG(std::cout << "3" << std::endl;);
 		BOOST_FOREACH(Instruction::RegisterAccessInfo info, read) {
-			if (state[info.first] == READWRITEINSTANT) {
-				continue;
+			if (state[info.first] == UNKNOWN) {
+				state[info.first] = READINSTANT;
 			}
-			state[info.first] = READINSTANT;
 			/*
 			 * The value was read, so we assume everything since the last
 			 * write access to be important.
