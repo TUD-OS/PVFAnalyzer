@@ -14,7 +14,7 @@
 # 3) Plot the data using this script
 
 PLT=cmd.plt
-REGISTERS="EAX EBX ECX EDX ESP EBP"
+REGISTERS="EAX ECX EDX EBX ESP EBP"
 
 set -x
 echo "set yrange [0:1.3]" >$PLT
@@ -31,10 +31,10 @@ for reg in $REGISTERS; do
 	cat log.03 | grep $reg | cut -d= -f 2 >>$reg
 done
 
-for reg in EAX EBX ECX EDX ESP; do
-	echo "'./$reg' u 0:1 w p, \\" >>$PLT
+for reg in EAX ECX EDX EBX ESP; do
+	echo "'./$reg' u 0:1 w p title '$reg', \\" >>$PLT
 done
-echo "'./EBP' u 0:1 w p" >>$PLT
+echo "'./EBP' u 0:1 w p title 'EBP'" >>$PLT
 
 echo "pause -1" >>$PLT
 gnuplot $PLT
