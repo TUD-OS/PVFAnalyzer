@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 
 	while (!trace.eof()) {
 		trace >> traceLine;
-		DEBUG(std::cout << traceLine << std::endl;);
+		DEBUG(std::cout << ":" << traceLine << std::endl;);
 		Address eip;
 		eip.v = strtol(traceLine.c_str(), 0, 16);
 
@@ -145,6 +145,7 @@ int main(int argc, char **argv)
 		iList.push_back(i);
 	}
 
+	iList.pop_back();
 	std::ofstream outstream(config.output_filename);
 	if (!outstream.good()) {
 		std::cout << "Cannot write to outfile: " << config.output_filename << std::endl;
