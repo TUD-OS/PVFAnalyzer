@@ -51,22 +51,22 @@ digraph G {
 [33m      PVF::Regs Analyzer version 0.3[0m
 [34m********************************************[0m
                              Instruction |    EAX   EBX   ECX   EDX flags   ESP   EIP   ESI   EDI   EBP
-                                push ebp |      -     ?     ?     ?     ?     X     ?     ?     ?     R
+                                push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
                             mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     W
-                     and esp, 0xfffffff0 |      -     ?     ?     ?     ?     -     ?     ?     ?     X
-                           sub esp, 0x10 |      -     ?     ?     ?     ?     W     ?     ?     ?     X
-          mov dword [esp+0xc], 0x80483dc |      -     ?     ?     ?     ?     X     ?     ?     ?     X
-                    call dword 0x80483e1 |      -     ?     ?     ?     ?     X     ?     ?     ?     X
-                                push ebp |      -     ?     ?     ?     ?     X     ?     ?     ?     R
-                            mov ebp, esp |      -     ?     ?     ?     ?     X     ?     ?     ?     -
-                                 pop ebp |      -     ?     ?     ?     ?     X     ?     ?     ?     W
-                                    ret  |      -     ?     ?     ?     ?     X     ?     ?     ?     X
-                      mov eax, [esp+0xc] |      W     ?     ?     ?     ?     X     ?     ?     ?     X
-                                call eax |      R     ?     ?     ?     ?     X     ?     ?     ?     X
-                                push ebp |      -     ?     ?     ?     ?     X     ?     ?     ?     R
+                     and esp, 0xfffffff0 |      -     ?     ?     ?     ?     M     ?     ?     ?     X
+                           sub esp, 0x10 |      -     ?     ?     ?     ?     M     ?     ?     ?     X
+          mov dword [esp+0xc], 0x80483dc |      -     ?     ?     ?     ?     R     ?     ?     ?     X
+                    call dword 0x80483e1 |      -     ?     ?     ?     ?     -     ?     ?     ?     X
+                                push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
                             mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     -
-                                 pop ebp |      -     ?     ?     ?     ?     ?     ?     ?     ?     W
-                                    ret  |      -     ?     ?     ?     ?     ?     ?     ?     ?     ?
+                                 pop ebp |      -     ?     ?     ?     ?     M     ?     ?     ?     W
+                                    ret  |      -     ?     ?     ?     ?     M     ?     ?     ?     X
+                      mov eax, [esp+0xc] |      W     ?     ?     ?     ?     R     ?     ?     ?     X
+                                call eax |      R     ?     ?     ?     ?     -     ?     ?     ?     X
+                                push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
+                            mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     -
+                                 pop ebp |      -     ?     ?     ?     ?     M     ?     ?     ?     W
+                                    ret  |      -     ?     ?     ?     ?     M     ?     ?     ?     ?
                             mov eax, 0x0 |      W     ?     ?     ?     ?     ?     ?     ?     ?     ?
                                   leave  |      ?     ?     ?     ?     ?     ?     ?     ?     ?     ?
-                                    ret  |      ?     ?     ?     ?     ?     ?     ?     ?     ?     ?
+                                    ret  |      ?     ?     ?     ?     ?     M     ?     ?     ?     ?
