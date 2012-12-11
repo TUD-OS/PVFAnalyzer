@@ -154,7 +154,7 @@ public:
 	static int64_t operandToValue(ud_t *ud, unsigned operandNo);
 
 	static unsigned operandCount(ud_t *ud);
-	static bool     modifiesOperand(ud_t *ud, unsigned num);
+	static AccessDirection modifiesOperand(ud_t *ud, unsigned num);
 	static char const* mnemonicToString(unsigned mnemonic);
 };
 

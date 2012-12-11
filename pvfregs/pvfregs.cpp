@@ -111,6 +111,7 @@ enum States {
 	IMPORTANT,
 	READINSTANT,
 	WRITEINSTANT,
+	READWRITEINSTANT,
 };
 
 
@@ -168,11 +169,12 @@ static void dumpHistory(InstructionList& ilist, RegisterHistory& hist)
 		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
 			std::cout << std::setw(6);
 			switch(hist[t][i]) {
-				case DONTCARE:     std::cout << "-"; break;
-				case UNKNOWN:      std::cout << "?"; break;
-				case IMPORTANT:    std::cout << "X"; break;
-				case READINSTANT:  std::cout << "R"; break;
-				case WRITEINSTANT: std::cout << "W"; break;
+				case DONTCARE:         std::cout << "-"; break;
+				case UNKNOWN:          std::cout << "?"; break;
+				case IMPORTANT:        std::cout << "X"; break;
+				case READINSTANT:      std::cout << "R"; break;
+				case WRITEINSTANT:     std::cout << "W"; break;
+				case READWRITEINSTANT: std::cout << "M"; break;
 			}
 		}
 		std::cout << std::endl;
@@ -204,25 +206,38 @@ pvfAnalysis(InstructionList& ilist)
 
 		int *state = new int[PlatformX8632::numGPRs()];
 
+		/* 1) Initialize all GPR entries for this instruction to UNKNOWN */
 		DEBUG(std::cout << "1  [new st @ " << (void*)state << std::endl;);
 		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
 			state[i] = UNKNOWN;
 		}
 
+		/* 2) Handle WRITE and READWRITE accesses */
 		DEBUG(std::cout << "2" << std::endl;);
 		BOOST_FOREACH(Instruction::RegisterAccessInfo info, write) {
 			state[info.first] = WRITEINSTANT;
+
 			/*
 			 * This value was written to. All previous instants since
-			 * the last READ are DONTCARE.
+			 * the last READ are DONTCARE. Exception: if this register is INOUT
+			 * (e.g., it is contained in the read set), we skip this part.
 			 */
+			bool skipIt = false;
+			BOOST_FOREACH(Instruction::RegisterAccessInfo rai, read) {
+				if (rai.first == info.first) {
+					state[info.first] = READWRITEINSTANT;
+					skipIt = true;
+				}
+			}
+
 			int check = timestamp-1;
-			while (check >= 0) {
+			while ((!skipIt) and (check >= 0)) {
 				DEBUG(std::cout << "2." << check << std::endl;);
 				int *st = hist[check];
 				DEBUG(std::cout << " st @ " << (void*)st << std::endl;);
 				DEBUG(std::cout << " st = " << st[0] << std::endl;);
-				if (st[info.first] == READINSTANT) {
+				if ((st[info.first] == READINSTANT) or
+					(st[info.first] == READWRITEINSTANT)) {
 					break;
 				}
 				st[info.first] = DONTCARE;
@@ -230,9 +245,12 @@ pvfAnalysis(InstructionList& ilist)
 			}
 		}
 
+		/* 3) Handle READ accesses */
 		DEBUG(std::cout << "3" << std::endl;);
 		BOOST_FOREACH(Instruction::RegisterAccessInfo info, read) {
-			state[info.first] = READINSTANT;
+			if (state[info.first] == UNKNOWN) {
+				state[info.first] = READINSTANT;
+			}
 			/*
 			 * The value was read, so we assume everything since the last
 			 * write access to be important.
@@ -240,7 +258,8 @@ pvfAnalysis(InstructionList& ilist)
 			int check = timestamp - 1;
 			while (check >= 0) {
 				int* st = hist[check];
-				if (st[info.first] == WRITEINSTANT) {
+				if ((st[info.first] == WRITEINSTANT) or
+					(st[info.first] == READWRITEINSTANT)) {
 					break;
 				}
 				st[info.first] = IMPORTANT;
@@ -248,12 +267,14 @@ pvfAnalysis(InstructionList& ilist)
 			}
 		}
 
+		/* 4) Adjust anything else according to the previous state. */
 		DEBUG(std::cout << "4" << std::endl;);
 		if (hist.size() > 0) {
 			int* prevState = hist.back();
 			for (unsigned i=0; i < PlatformX8632::numGPRs(); ++i) {
 
-				if ((state[i] == READINSTANT) or (state[i] == WRITEINSTANT)) {
+				if ((state[i] == READINSTANT) or (state[i] == WRITEINSTANT) or
+					(state[i] == READWRITEINSTANT)) {
 					continue;
 				}
 
@@ -264,14 +285,15 @@ pvfAnalysis(InstructionList& ilist)
 						state[i] = prevState[i];
 						break;
 					case READINSTANT:
+					case WRITEINSTANT:
+					case READWRITEINSTANT:
 						state[i] = UNKNOWN;
 						break;
-					case WRITEINSTANT:
-						state[i] = UNKNOWN;
 				}
 			}
 		}
 
+		/* 5) Store new state. */
 		DEBUG(std::cout << "5" << std::endl;);
 		hist.push_back(state);
 		if (Configuration::get()->debug) {

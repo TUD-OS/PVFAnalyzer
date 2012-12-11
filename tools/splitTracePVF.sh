@@ -12,21 +12,22 @@ fi
 
 BINARY=$1
 TRACEFILE=$2
-STEPS=1000
+LINES=10000
 
 ENTRY=$(nm $BINARY | grep " main$" | cut -d\  -f 1)
 
-echo "==== CFG Builder ==="
-build/reader/reader -f $BINARY -o $BINARY.cfg -e 0x$ENTRY
+# don't need CFG builder as we use failTrace below
+#echo "==== CFG Builder ==="
+#build/reader/reader -f $BINARY -o $BINARY.cfg -e 0x$ENTRY
 
-echo "==== Splitting trace ($STEPS) ==="
-split -a 5 -n l/$STEPS -d $TRACEFILE tmp/trace-
+echo "==== Splitting trace ($LINES) ==="
+split -a 5 -l 10000 -d $TRACEFILE tmp/trace-$TRACEFILE-
 
 echo "==== Off we go..."
-TRACELIST=$(ls tmp/trace-*);
+TRACELIST=$(ls tmp/trace-$TRACEFILE-*);
 for f in $TRACELIST; do 
-	build/unroll/unroll -f $BINARY.cfg -t $f -o $f.ilist
+	build/failTrace/failTrace -f $BINARY -t $f -o $f.ilist
 	tools/pvfrun $f.ilist
 done
 
-rm $BINARY.cfg $TRACELIST tmp/*.ilist
+#rm $TRACELIST tmp/*.ilist

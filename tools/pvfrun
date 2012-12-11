@@ -5,12 +5,12 @@ if [ -z "$1" ]; then
   exit 2
 fi
 
-TMP1=tmp.pvf
-TMP2=tmp2.pvf
+TMP1=$1-tmp.pvf
+TMP2=$1-tmp2.pvf
 
 
 build/pvfregs/pvfregs -f $1 >$TMP1
-cat tmp.pvf | grep -v "\*\*" | grep -v "PVF::Regs" | cut -d\| -f 2 | \
+cat $TMP1 | grep -v "\*\*" | grep -v "PVF::Regs" | cut -d\| -f 2 | \
 		sed -e's/\s\+/ /g' | sed -e 's/^ //g' |  sed -e 's/?/-/g' >$TMP2
 
 full=`cat $TMP2 | wc -l`
