@@ -19,6 +19,7 @@
 #include <getopt.h>	          // getopt()
 #include <boost/foreach.hpp>  // FOREACH
 #include "instruction/disassembler.h"
+#include <boost/serialization/vector.hpp>
 #include "data/input.h"
 #include "util.h"
 
