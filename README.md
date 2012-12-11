@@ -11,4 +11,4 @@ Collection of tools for implementing Program Vulnerability Factor analysis.
 * 'pvfrun' -- performs PVF analysis on an instruction trace
 
 A description of the tool and its purpose can be found in
-Björn Döbel, Horst Schirmeier, Michael Engel: ''Investigating the Limitations of PVF for Realistic Program Vulnerability Assessment'', 5th Workshop on Design for Reliability (DFR 2013), Berlin, Germany
+Björn Döbel, Horst Schirmeier, Michael Engel: *Investigating the Limitations of PVF for Realistic Program Vulnerability Assessment*, 5th Workshop on Design for Reliability (DFR 2013), Berlin, Germany
