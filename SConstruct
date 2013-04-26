@@ -47,23 +47,43 @@ boost/tuple/tuple.hpp
 
     return conf.Finish()
 
+
+def udisMissing():
+    print "\033[31;1mCould not find the udcli binary. Do you have libudis86 installed?\033[0m"
+    print "    Please install libudis86 (https://github.com/vmt/udis86) and either make sure"
+    print "    its 'udcli' binary is in your path or set the UDISINC and UDISLIB parameters"
+    print "    in your scons call to point to the respective directories."
+    sys.exit(1)
+
+
 def udisPath(env):
     import os
     banner("UDIS86 Detection", "\033[36m")
 
-    output = os.popen("which udcli")
-    path   = os.path.dirname(output.readlines()[0].strip())
-    libpath = path + "/../lib"
-    incpath = path + "/../include"
-    #print path
+    if ARGUMENTS.get('UDISINC') != None and ARGUMENTS.get('UDISLIB') != None:
+        print "Trying include path %s..." % ARGUMENTS.get('UDISINC')
+        incpath = ARGUMENTS.get('UDISINC')
+        print "Trying lib path %s..." % ARGUMENTS.get('UDISLIB')
+        libpath = ARGUMENTS.get('UDISLIB')
+
+    else:
+        print "Trying to find udis86 through udcli binary..."
+        output = os.popen("which udcli")
+        res = output.readlines()
+        if len(res) == 0:
+            udisMissing()
+
+        path   = os.path.dirname(res[0].strip())
+        libpath = path + "/../lib"
+        incpath = path + "/../include"
+
     if os.path.exists(libpath + "/libudis86.a"):
         libp = os.path.realpath(libpath)
         print libp
         env.Append(LIBPATH=[libp])
         env.Append(LIBS=["udis86"])
     else:
-        print "\033[31;1mlibudis86 not found.\033[0m"
-        sys.exit(1)
+        udisMissing()
 
     if os.path.exists(incpath + "/udis86.h"):
         incp = os.path.realpath(incpath)
