@@ -95,6 +95,10 @@ struct udis86_t : public ud_t
 		ar & insn_hexcode;
 /*		ar & insn_buffer;
 		ar & insn_fill; */
+		ar & asm_buf_size;
+		ar & asm_buf_fill;
+		ar & asm_buf_int;
+
 		ar & dis_mode;
 		ar & pc;
 		ar & vendor;
@@ -103,28 +107,29 @@ struct udis86_t : public ud_t
 		ar & static_cast<udop&> ( operand[0] );
 		ar & static_cast<udop&> ( operand[1] );
 		ar & static_cast<udop&> ( operand[2] );
+		ar & static_cast<udop&> ( operand[3] );
 
 		ar & error;
+		ar & _rex;
 		ar & pfx_rex;
 		ar & pfx_seg;
 		ar & pfx_opr;
 		ar & pfx_adr;
 		ar & pfx_lock;
+		ar & pfx_str;
 		ar & pfx_rep;
 		ar & pfx_repe;
 		ar & pfx_repne;
-//		ar & pfx_insn;
-//		ar & default64;
 		ar & opr_mode;
 		ar & adr_mode;
 		ar & br_far;
 		ar & br_near;
-//		ar & implicit_addr;
-/*		ar & c1;
-		ar & c2;
-		ar & c3;*/
 		ar & have_modrm;
 		ar & modrm;
+		ar & vex_op;
+		ar & vex_b1;
+		ar & vex_b2;
+		ar & primary_opcode;
 	}
 };
 #pragma GCC diagnostic pop
