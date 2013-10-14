@@ -133,7 +133,7 @@ private:
 	 */
 	RelocatedMemRegion bufferForAddress(Address a)
 	{
-		//DEBUG(std::cerr << __func__ << "(" << a << ")" << std::endl;);
+		DEBUG(std::cerr << "(" << a.v << ")" << std::endl;);
 		BOOST_FOREACH(InputReader *ir, _inputs) {
 			DataSection *sec;
 			if ((sec = ir->sectionForAddress(a)) != 0) {

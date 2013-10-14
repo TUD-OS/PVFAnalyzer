@@ -32,8 +32,8 @@ WVTEST_MAIN("memregion")
 	r.base = Address(0xF000);
 	r.size = 0x0FFF;
 	
-	WVPASSEQ(r.base.v, 0xf000);
-	WVPASSEQ(r.size, 0x0fff);
+	WVPASS(r.base.v == 0xf000);
+	WVPASS(r.size == 0x0fff);
 	WVPASS(r.contains(r.base));
 	WVPASS(r.contains(r.base + r.size));
 	WVPASS(r.contains(r.base + 5));
@@ -49,9 +49,9 @@ WVTEST_MAIN("reloc memregion")
 	r.size = 0x0FFF;
 	r.mappedBase = Address(0x10000);
 	
-	WVPASSEQ(r.base.v, 0xf000);
-	WVPASSEQ(r.size, 0x0fff);
-	WVPASSEQ(r.mappedBase.v, 0x10000);
+	WVPASS(r.base.v == 0xf000);
+	WVPASS(r.size == 0x0fff);
+	WVPASS(r.mappedBase.v == 0x10000);
 
 	WVPASS(r.contains(r.base));
 	WVPASS(r.contains(r.base + r.size));
@@ -60,8 +60,8 @@ WVTEST_MAIN("reloc memregion")
 	WVFAIL(r.contains(r.base + r.size + 1));
 	
 	WVPASS(r.relocContains(Address(0x10200)));
-	WVPASSEQ(r.regionToReloc(Address(0xF200)).v,  0x10200);
-	WVPASSEQ(r.relocToRegion(Address(0x10200)).v, 0xF200);
+	WVPASS(r.regionToReloc(Address(0xF200)).v ==  0x10200);
+	WVPASS(r.relocToRegion(Address(0x10200)).v == 0xF200);
 }
 
 
@@ -75,20 +75,20 @@ WVTEST_MAIN("hex input reader")
 	for (unsigned i = 0; i < 9; ++i) {
 		ir.addData(in[i]);
 	}
-	WVPASSEQ(ir.sectionCount(), 1);
-	WVPASSEQ(static_cast<int>(ir.section(0)->bytes()), 9);
+	WVPASS(ir.sectionCount() == 1);
+	WVPASS(static_cast<int>(ir.section(0)->bytes()) == 9);
 
 	for (unsigned i = 0; i < 5; ++i) {
 		ir2.addData(in2[i]);
 	}
-	WVPASSEQ(ir.sectionCount(), 1);
-	WVPASSEQ(static_cast<int>(ir2.section(0)->bytes()), 4);
+	WVPASS(ir.sectionCount() == 1);
+	WVPASS(static_cast<int>(ir2.section(0)->bytes()) == 4);
 
 	uint8_t const * const ptr = reinterpret_cast<uint8_t const * const>(ir.section(0)->getBuffer().base.v) + 5;
-	WVPASSEQ(*(ptr  ), 0xde);
-	WVPASSEQ(*(ptr+1), 0xad);
-	WVPASSEQ(*(ptr+2), 0xbe);
-	WVPASSEQ(*(ptr+3), 0xef);
+	WVPASS(*(ptr  ) == 0xde);
+	WVPASS(*(ptr+1) == 0xad);
+	WVPASS(*(ptr+2) == 0xbe);
+	WVPASS(*(ptr+3) == 0xef);
 }
 
 
@@ -99,9 +99,9 @@ WVTEST_MAIN("hex input, large")
 	for (unsigned i = 0; i < 3000; ++i) {
 		hr.addData(in[0]);
 	}
-	WVPASSEQ(hr.sectionCount(), 1);
-	WVPASSEQ(hr.entry().v, 0);
-	WVPASSEQ(static_cast<int>(hr.section(0)->bytes()), 3000);
+	WVPASS(hr.sectionCount() == 1);
+	WVPASS(hr.entry().v == 0);
+	WVPASS(static_cast<int>(hr.section(0)->bytes()) == 3000);
 }
 
 WVTEST_MAIN("file input reader")
@@ -109,6 +109,6 @@ WVTEST_MAIN("file input reader")
 	char const *file = "testing/testcases/cfgbuilding/payload.bin";
 	FileInputReader fr;
 	fr.addData(file);
-	WVPASSEQ(fr.sectionCount(), 1);
-	WVPASSEQ(static_cast<int>(fr.section(0)->bytes()), 32);
+	WVPASS(fr.sectionCount() == 1);
+	WVPASS(static_cast<int>(fr.section(0)->bytes()) == 32);
 }

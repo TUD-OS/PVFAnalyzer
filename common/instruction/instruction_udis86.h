@@ -93,8 +93,8 @@ struct udis86_t : public ud_t
 
 		ar & insn_offset;
 		ar & insn_hexcode;
-		ar & insn_buffer;
-		ar & insn_fill;
+/*		ar & insn_buffer;
+		ar & insn_fill; */
 		ar & dis_mode;
 		ar & pc;
 		ar & vendor;
@@ -113,16 +113,16 @@ struct udis86_t : public ud_t
 		ar & pfx_rep;
 		ar & pfx_repe;
 		ar & pfx_repne;
-		ar & pfx_insn;
-		ar & default64;
+//		ar & pfx_insn;
+//		ar & default64;
 		ar & opr_mode;
 		ar & adr_mode;
 		ar & br_far;
 		ar & br_near;
-		ar & implicit_addr;
-		ar & c1;
+//		ar & implicit_addr;
+/*		ar & c1;
 		ar & c2;
-		ar & c3;
+		ar & c3;*/
 		ar & have_modrm;
 		ar & modrm;
 	}
