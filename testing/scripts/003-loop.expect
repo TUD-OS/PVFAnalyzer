@@ -8,10 +8,10 @@ Wrote CFG to 'loop.cfg'
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x5]\l0x00000005: adc bh, al\l0x00000007: inc ebp\l0x00000008: cld \l0x00000009: add [eax], al\l0x0000000b: add [eax], al\l0x0000000d: jmp 0x14\l"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x5]\l0x00000005: adc bh, al\l0x00000007: inc ebp\l0x00000008: cld\l0x00000009: add [eax], al\l0x0000000b: add [eax], al\l0x0000000d: jmp 0x14\l"];
 2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(2) [@0x14]\l0x00000014: cmp dword [ebp-0x4], 0x9\l0x00000018: jle 0xf\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0xf]\l0x0000000f: nop \l0x00000010: add dword [ebp-0x4], 0x1\l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x1a]\l0x0000001a: mov eax, 0x0\l0x0000001f: leave \l0x00000020: ret \l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0xf]\l0x0000000f: nop\l0x00000010: add dword [ebp-0x4], 0x1\l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x1a]\l0x0000001a: mov eax, 0x0\l0x0000001f: leave\l0x00000020: ret\l"];
 0->1 [penwidth=2,arrowsize=1.5];
 1->2 [penwidth=2,arrowsize=1.5];
 2->3 [penwidth=2,arrowsize=1.5];

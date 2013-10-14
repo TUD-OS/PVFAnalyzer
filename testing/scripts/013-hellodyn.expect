@@ -8,8 +8,8 @@ Wrote CFG to 'hello_dynamic.cfg'
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x804841c]\l0x0804841c: push ebp\l0x0804841d: mov ebp, esp\l0x0804841f: and esp, 0xfffffff0\l0x08048422: sub esp, 0x10\l0x08048425: mov dword [esp], 0x80484d0\l0x0804842c: call dword 0x8048300\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x8048431]\l0x08048431: leave \l0x08048432: ret \l"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x804841c]\l0x0804841c: push ebp\l0x0804841d: mov ebp, esp\l0x0804841f: and esp, 0xfffffff0\l0x08048422: sub esp, 0x10\l0x08048425: mov dword [esp], 0x80484d0\l0x0804842c: call 0x8048300\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x8048431]\l0x08048431: leave\l0x08048432: ret\l"];
 0->1 [penwidth=2,arrowsize=1.5];
 1->2 [penwidth=2,arrowsize=1.5];
 }

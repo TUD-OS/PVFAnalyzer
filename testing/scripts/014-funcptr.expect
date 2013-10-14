@@ -9,10 +9,10 @@ Wrote CFG to 'funcPtr.cfg'
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x80483e6]\l0x080483e6: push ebp\l0x080483e7: mov ebp, esp\l0x080483e9: and esp, 0xfffffff0\l0x080483ec: sub esp, 0x10\l0x080483ef: mov dword [esp+0xc], 0x80483dc\l0x080483f7: call dword 0x80483e1\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x80483e1]\l0x080483e1: push ebp\l0x080483e2: mov ebp, esp\l0x080483e4: pop ebp\l0x080483e5: ret \l"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x80483e6]\l0x080483e6: push ebp\l0x080483e7: mov ebp, esp\l0x080483e9: and esp, 0xfffffff0\l0x080483ec: sub esp, 0x10\l0x080483ef: mov dword [esp+0xc], 0x80483dc\l0x080483f7: call 0x80483e1\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x80483e1]\l0x080483e1: push ebp\l0x080483e2: mov ebp, esp\l0x080483e4: pop ebp\l0x080483e5: ret\l"];
 3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x80483fc]\l0x080483fc: mov eax, [esp+0xc]\l0x08048400: call eax\l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x8048402]\l0x08048402: mov eax, 0x0\l0x08048407: leave \l0x08048408: ret \l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x8048402]\l0x08048402: mov eax, 0x0\l0x08048407: leave\l0x08048408: ret\l"];
 0->1 [penwidth=2,arrowsize=1.5];
 1->2 [penwidth=2,arrowsize=1.5];
 2->3 [penwidth=2,arrowsize=1.5];
@@ -36,11 +36,11 @@ clear()
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x80483e6]\l0x080483e6: push ebp\l0x080483e7: mov ebp, esp\l0x080483e9: and esp, 0xfffffff0\l0x080483ec: sub esp, 0x10\l0x080483ef: mov dword [esp+0xc], 0x80483dc\l0x080483f7: call dword 0x80483e1\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x80483e1]\l0x080483e1: push ebp\l0x080483e2: mov ebp, esp\l0x080483e4: pop ebp\l0x080483e5: ret \l"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x80483e6]\l0x080483e6: push ebp\l0x080483e7: mov ebp, esp\l0x080483e9: and esp, 0xfffffff0\l0x080483ec: sub esp, 0x10\l0x080483ef: mov dword [esp+0xc], 0x80483dc\l0x080483f7: call 0x80483e1\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0x80483e1]\l0x080483e1: push ebp\l0x080483e2: mov ebp, esp\l0x080483e4: pop ebp\l0x080483e5: ret\l"];
 3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(3) [@0x80483fc]\l0x080483fc: mov eax, [esp+0xc]\l0x08048400: call eax\l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x8048402]\l0x08048402: mov eax, 0x0\l0x08048407: leave \l0x08048408: ret \l"];
-5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(5) [@0x80483dc]\l0x080483dc: push ebp\l0x080483dd: mov ebp, esp\l0x080483df: pop ebp\l0x080483e0: ret \l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(4) [@0x8048402]\l0x08048402: mov eax, 0x0\l0x08048407: leave\l0x08048408: ret\l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(5) [@0x80483dc]\l0x080483dc: push ebp\l0x080483dd: mov ebp, esp\l0x080483df: pop ebp\l0x080483e0: ret\l"];
 0->1 [penwidth=2,arrowsize=1.5];
 1->2 [penwidth=2,arrowsize=1.5];
 2->3 [penwidth=2,arrowsize=1.5];
@@ -52,21 +52,21 @@ digraph G {
 [34m********************************************[0m
                              Instruction |    EAX   EBX   ECX   EDX flags   ESP   EIP   ESI   EDI   EBP
                                 push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
-                            mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     W
+                            mov ebp, esp |      -     ?     ?     ?     ?     X     ?     ?     ?     W
                      and esp, 0xfffffff0 |      -     ?     ?     ?     ?     M     ?     ?     ?     X
                            sub esp, 0x10 |      -     ?     ?     ?     ?     M     ?     ?     ?     X
           mov dword [esp+0xc], 0x80483dc |      -     ?     ?     ?     ?     R     ?     ?     ?     X
-                    call dword 0x80483e1 |      -     ?     ?     ?     ?     -     ?     ?     ?     X
+                          call 0x80483e1 |      -     ?     ?     ?     ?     -     ?     ?     ?     X
                                 push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
-                            mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     -
+                            mov ebp, esp |      -     ?     ?     ?     ?     X     ?     ?     ?     -
                                  pop ebp |      -     ?     ?     ?     ?     M     ?     ?     ?     W
-                                    ret  |      -     ?     ?     ?     ?     M     ?     ?     ?     X
+                                     ret |      -     ?     ?     ?     ?     M     ?     ?     ?     X
                       mov eax, [esp+0xc] |      W     ?     ?     ?     ?     R     ?     ?     ?     X
                                 call eax |      R     ?     ?     ?     ?     -     ?     ?     ?     X
                                 push ebp |      -     ?     ?     ?     ?     W     ?     ?     ?     R
-                            mov ebp, esp |      -     ?     ?     ?     ?     R     ?     ?     ?     -
+                            mov ebp, esp |      -     ?     ?     ?     ?     X     ?     ?     ?     -
                                  pop ebp |      -     ?     ?     ?     ?     M     ?     ?     ?     W
-                                    ret  |      -     ?     ?     ?     ?     M     ?     ?     ?     ?
-                            mov eax, 0x0 |      W     ?     ?     ?     ?     ?     ?     ?     ?     ?
-                                  leave  |      ?     ?     ?     ?     ?     ?     ?     ?     ?     ?
-                                    ret  |      ?     ?     ?     ?     ?     M     ?     ?     ?     ?
+                                     ret |      -     ?     ?     ?     ?     M     ?     ?     ?     ?
+                            mov eax, 0x0 |      W     ?     ?     ?     ?     X     ?     ?     ?     ?
+                                   leave |      ?     ?     ?     ?     ?     X     ?     ?     ?     ?
+                                     ret |      ?     ?     ?     ?     ?     M     ?     ?     ?     ?

@@ -8,12 +8,12 @@ Wrote CFG to 'callhierarchy.cfg'
 [34m********************************************[0m
 digraph G {
 0 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(0)"];
-1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x16]\l0x00000016: push ebp\l0x00000017: mov ebp, esp\l0x00000019: call dword 0xc\l"];
-2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0xc]\l0x0000000c: push ebp\l0x0000000d: mov ebp, esp\l0x0000000f: call dword 0x0\l"];
-3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=aquamarine,label="(3) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: sub esp, 0x10\l0x00000006: add dword [ebp-0x4], 0x1\l0x0000000a: leave \l0x0000000b: ret \l"];
-4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x14]\l0x00000014: pop ebp\l0x00000015: ret \l"];
-5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x1e]\l0x0000001e: call dword 0x0\l"];
-6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: pop ebp\l0x00000029: ret \l"];
+1 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(1) [@0x16]\l0x00000016: push ebp\l0x00000017: mov ebp, esp\l0x00000019: call 0xc\l"];
+2 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(2) [@0xc]\l0x0000000c: push ebp\l0x0000000d: mov ebp, esp\l0x0000000f: call 0x0\l"];
+3 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=aquamarine,label="(3) [@0x0]\l0x00000000: push ebp\l0x00000001: mov ebp, esp\l0x00000003: sub esp, 0x10\l0x00000006: add dword [ebp-0x4], 0x1\l0x0000000a: leave\l0x0000000b: ret\l"];
+4 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=dodgerblue,label="(4) [@0x14]\l0x00000014: pop ebp\l0x00000015: ret\l"];
+5 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(5) [@0x1e]\l0x0000001e: call 0x0\l"];
+6 [shape=box,fontname=Terminus,fontsize=8,style=filled,color=brown2,label="(6) [@0x23]\l0x00000023: mov eax, 0x0\l0x00000028: pop ebp\l0x00000029: ret\l"];
 0->1 [penwidth=2,arrowsize=1.5];
 1->2 [penwidth=2,arrowsize=1.5];
 2->3 [penwidth=2,arrowsize=1.5];
