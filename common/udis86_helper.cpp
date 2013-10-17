@@ -252,6 +252,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	ININ   (UD_Icmp);
 	INOUT  (UD_Idec);
 	IN     (UD_Iidiv);
+	OUTIN	 (UD_Iin);
 	INOUT  (UD_Iinc);
 	NO_MODIFICATION(UD_Iint);
 	NO_MODIFICATION(UD_Iint1);
@@ -273,6 +274,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	IN     (UD_Ijs);
 	IN     (UD_Ijz);
 	OUTIN  (UD_Ilea);
+	IN     (UD_Illdt);
 	OUTIN  (UD_Imov);
 	OUTIN  (UD_Imovsx);
 	OUTIN  (UD_Imovzx);
@@ -284,6 +286,7 @@ static void initOpcodeModMap(OpcodeModificationMap& m)
 	OUT    (UD_Ipop);
 	IN     (UD_Ipush);
 	INOUT  (UD_Isar);
+	OUTIN  (UD_Isbb);
 	OUT    (UD_Isetl);
 	OUT    (UD_Isetnz);
 	OUT    (UD_Isetz);
