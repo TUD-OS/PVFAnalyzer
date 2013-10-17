@@ -204,17 +204,18 @@ pvfAnalysis(InstructionList& ilist)
 		std::vector<Instruction::RegisterAccessInfo> read, write;
 		obtainRegisterAccessInfo(i, read, write);
 
-		int *state = new int[PlatformX8632::numGPRs()];
+		int *state = new int[PlatformX8632::numGPRs() + 1];
 
 		/* 1) Initialize all GPR entries for this instruction to UNKNOWN */
 		DEBUG(std::cout << "1  [new st @ " << (void*)state << std::endl;);
-		for (unsigned i = 0; i < PlatformX8632::numGPRs(); ++i) {
+		for (unsigned i = 0; i < PlatformX8632::numGPRs() + 1; ++i) {
 			state[i] = UNKNOWN;
 		}
 
 		/* 2) Handle WRITE and READWRITE accesses */
 		DEBUG(std::cout << "2" << std::endl;);
 		BOOST_FOREACH(Instruction::RegisterAccessInfo info, write) {
+		  
 			state[info.first] = WRITEINSTANT;
 
 			/*
@@ -296,10 +297,12 @@ pvfAnalysis(InstructionList& ilist)
 		/* 5) Store new state. */
 		DEBUG(std::cout << "5" << std::endl;);
 		hist.push_back(state);
+#if 0
 		if (Configuration::get()->debug) {
 			dumpHistory(ilist, hist);
 			std::cout << "--------------------------------------------------------" << std::endl;
 		}
+#endif
 		timestamp += 1;
 	}
 
