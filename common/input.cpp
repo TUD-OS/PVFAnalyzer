@@ -262,6 +262,11 @@ void FileInputReader::loadElfPhdr(int elffd, GElf_Phdr& phdr)
 	uint8_t *buffer;
 	DEBUG(std::cout << "Allocating mem buffer. Size " << phdr.p_memsz
 	                << ", alignment " << phdr.p_align << std::endl;);
+
+	if (phdr.p_memsz == 0) {
+		return;
+	}
+
 	int fail = posix_memalign((void**)&buffer, phdr.p_align, phdr.p_memsz);
 	if (fail) {
 		std::cout << "Aligned memory allocation failed: " << fail << std::endl;
