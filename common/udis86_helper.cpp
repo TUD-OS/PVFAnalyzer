@@ -343,9 +343,18 @@ void Udis86Instruction::fillAccessInfo(unsigned opno, std::vector<RegisterAccess
 		case UD_OP_REG:
 		{
 			reg  = PlatformX8632::UdisToPlatformRegister(ud->operand[opno].base);
+
+			// try 1: check if instruction has operand size encoded
 			size = ud->operand[opno].size;
-			if (!size)
-				size = PlatformX8632::UdisToPlatformAccessSize(ud->operand[opno].base);
+			if (!size) {
+				try {
+					// try 2: see if we can deduce operand size from operand
+					size = PlatformX8632::UdisToPlatformAccessSize(ud->operand[opno].base);
+				} catch (NotImplementedException) {
+					// if all else fails: use hard-coded mword size
+					size = 32;
+				}
+			}
 			//DEBUG(std::cout << reg << ", " << size << std::endl;);
 			set.push_back(RegisterAccessInfo(reg, size));
 			return;

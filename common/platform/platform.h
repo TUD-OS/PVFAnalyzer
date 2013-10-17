@@ -65,7 +65,7 @@ public:
 				return EDX;
 			case UD_R_ESP: return ESP;
 			case UD_R_EBP: return EBP;
-			case UD_R_ESI: return ESI;
+			case UD_R_ESI: case UD_R_SI: return ESI;
 			case UD_R_EDI: return EDI;
 			default:
 				std::cout << __func__ << " UNHANDLED REGNO: " << std::hex << udreg << std::endl;
